@@ -1,158 +1,168 @@
-# Travel Agent System
+# Travel Agent
 
-Sistema autónomo de agente de viajes con capacidades avanzadas de análisis, recomendación y optimización.
+Agente de viajes inteligente con capacidades avanzadas de búsqueda, recomendación y gestión de ventas.
 
-## Arquitectura Independiente
+## Estructura del Proyecto
 
-El sistema está diseñado para funcionar de forma completamente autónoma, con los siguientes componentes core:
-
-### 1. Núcleo del Agente
-- `agent_core/`: Componentes centrales del agente
-  - `orchestrator.py`: Coordinación y optimización de tareas
-  - `observer.py`: Sistema de observación y análisis
-  - `knowledge_base.py`: Base de conocimiento propia
-  - `rag_system.py`: Sistema de adquisición y expansión de conocimiento
-
-### 2. Módulos Especializados
-- `modules/`
-  - `analyzer/`: Análisis de paquetes y oportunidades
-  - `recommender/`: Sistema de recomendaciones
-  - `visualizer/`: Generación de visualizaciones
-  - `optimizer/`: Optimización de recursos y rendimiento
-
-### 3. Interfaces
-- `interfaces/`
-  - `api/`: API REST para integración
-  - `cli/`: Interfaz de línea de comandos
-  - `web/`: Interfaz web para gestión
-
-### 4. Utilidades
-- `utils/`
-  - `cache.py`: Sistema de caché
-  - `metrics.py`: Recolección de métricas
-  - `logger.py`: Sistema de logging
-  - `config.py`: Gestión de configuración
+```
+TravelAgent/
+├── agent_core/
+│   ├── __init__.py
+│   ├── schemas.py          # Modelos de datos con validación Pydantic
+│   ├── config.py          # Sistema de configuración multi-ambiente
+│   ├── interfaces.py      # Interfaces y protocolos base
+│   └── managers/
+│       ├── __init__.py
+│       ├── cache_manager.py    # Gestión de caché multi-backend
+│       ├── storage_manager.py  # Almacenamiento persistente
+│       └── session_manager.py  # Gestión de sesiones de venta
+├── data/                  # Datos persistentes
+├── cache/                 # Archivos de caché
+├── config/               # Archivos de configuración
+│   ├── base.json
+│   ├── development.json
+│   ├── testing.json
+│   └── production.json
+├── docs/                 # Documentación
+│   └── migration_map.md
+├── requirements.txt      # Dependencias del proyecto
+└── README.md            # Este archivo
+```
 
 ## Características Principales
 
-1. **Autonomía Total**
-   - Sistema independiente
-   - Sin dependencias externas innecesarias
-   - Autogestión de recursos
-   - Aprendizaje continuo
+### Gestión de Datos
+- Modelos de datos con validación Pydantic
+- Enums para tipos y estados
+- Serialización/deserialización automática
+- Validadores personalizados
 
-2. **Capacidades Avanzadas**
-   - Análisis contextual
-   - Recomendaciones personalizadas
-   - Optimización automática
-   - Visualización de datos
+### Configuración
+- Soporte para múltiples ambientes
+- Carga desde variables de entorno
+- Carga desde archivos JSON
+- Validación de configuración
+- Logging avanzado
 
-3. **Escalabilidad**
-   - Arquitectura modular
-   - Fácil extensión
-   - Alta performance
-   - Gestión eficiente de recursos
+### Caché
+- Múltiples backends (Redis, Disco, Memoria)
+- Políticas configurables
+- Compresión automática
+- Métricas y monitoreo
+- Limpieza automática
 
-4. **Inteligencia**
-   - RAG (Retrieval Augmented Generation)
-   - Aprendizaje continuo
-   - Adaptación dinámica
-   - Mejora automática
+### Almacenamiento
+- Múltiples backends (MongoDB, SQLite, Archivos)
+- Operaciones asíncronas
+- Búsqueda y consultas
+- Validación de datos
+- Métricas y monitoreo
+
+### Gestión de Sesiones
+- Estado de sesión persistente
+- Recuperación automática
+- Limpieza de sesiones expiradas
+- Métricas de conversión
+- Reportes detallados
 
 ## Instalación
 
+1. Clonar el repositorio:
 ```bash
-# Clonar repositorio
-git clone https://github.com/your-org/travel-agent.git
+git clone https://github.com/yourusername/TravelAgent.git
+cd TravelAgent
+```
 
-# Instalar dependencias
+2. Crear y activar entorno virtual:
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
+```
+
+3. Instalar dependencias:
+```bash
 pip install -r requirements.txt
+```
 
-# Configurar entorno
-python setup.py install
+4. Configurar variables de entorno:
+```bash
+cp .env.example .env
+# Editar .env con tus configuraciones
 ```
 
 ## Uso
 
+1. Iniciar el agente:
 ```python
-from travel_agent import TravelAgent
+from agent_core.config import config
+from agent_core.managers import cache_manager, storage_manager, session_manager
 
-# Inicializar agente
-agent = TravelAgent()
+# La configuración se carga automáticamente
+print(config.to_dict())
 
-# Ejecutar tareas
-results = agent.process_request({
-    'type': 'search_packages',
-    'params': {
-        'destination': 'Caribbean',
-        'budget': 5000,
-        'dates': ['2025-06-01', '2025-06-15']
-    }
-})
+# Los managers son singletons
+cache_manager.get_metrics()
+storage_manager.get_metrics()
+session_manager.get_metrics()
+```
+
+2. Crear una sesión de venta:
+```python
+from agent_core.schemas import SalesQuery, CustomerProfile, SearchCriteria
+
+# Crear perfil de cliente
+customer = CustomerProfile(
+    id="customer123",
+    name="John Doe",
+    email="john@example.com"
+)
+
+# Crear consulta
+query = SalesQuery(
+    id="query123",
+    customer=customer,
+    criteria=SearchCriteria(
+        destination="Paris",
+        dates={
+            "start": "2025-06-01",
+            "end": "2025-06-07"
+        }
+    )
+)
+
+# Iniciar sesión
+session = await session_manager.create_session(query, customer)
+print(f"Session created: {session.session_id}")
 ```
 
 ## Desarrollo
 
-1. **Setup del Entorno**
+1. Configurar ambiente de desarrollo:
 ```bash
-# Crear entorno virtual
-python -m venv venv
-source venv/bin/activate
-
-# Instalar dependencias de desarrollo
-pip install -r requirements-dev.txt
+cp config/development.json.example config/development.json
+# Editar configuración según necesidades
 ```
 
-2. **Tests**
+2. Ejecutar tests:
 ```bash
-# Ejecutar tests
 pytest tests/
-
-# Coverage
-pytest --cov=travel_agent tests/
 ```
 
-3. **Linting**
+3. Verificar estilo de código:
 ```bash
-# Verificar estilo
-flake8 travel_agent/
-black travel_agent/
+flake8 agent_core/
+black agent_core/
 ```
 
-## Contribución
+## Contribuir
 
 1. Fork el repositorio
-2. Cree una rama para su feature (`git checkout -b feature/AmazingFeature`)
-3. Commit sus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abra un Pull Request
-
-## Roadmap
-
-1. **Fase 1: Fundación** (Actual)
-   - [x] Arquitectura base
-   - [x] Componentes core
-   - [x] Tests básicos
-   - [ ] Documentación inicial
-
-2. **Fase 2: Expansión**
-   - [ ] RAG avanzado
-   - [ ] Más proveedores
-   - [ ] UI mejorada
-   - [ ] API expandida
-
-3. **Fase 3: Optimización**
-   - [ ] Performance tuning
-   - [ ] Escalabilidad
-   - [ ] Monitoreo avanzado
-   - [ ] Seguridad mejorada
+2. Crear rama para feature: `git checkout -b feature/nueva-caracteristica`
+3. Commit cambios: `git commit -am 'Agregar nueva caracteristica'`
+4. Push a la rama: `git push origin feature/nueva-caracteristica`
+5. Crear Pull Request
 
 ## Licencia
 
-Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE.md](LICENSE.md) para detalles.
-
-## Contacto
-
-Your Name - [@your_twitter](https://twitter.com/your_twitter) - email@example.com
-
-Project Link: [https://github.com/your-org/travel-agent](https://github.com/your-org/travel-agent)
+Este proyecto está licenciado bajo MIT License - ver el archivo [LICENSE](LICENSE) para detalles.
