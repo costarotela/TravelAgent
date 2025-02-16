@@ -148,3 +148,180 @@
 - Interfaces bien definidas
 - Fácil adición de proveedores
 - Sistema de plugins
+
+## 5. Sistema de Presupuestos
+
+### Características Principales
+1. **Versionado de Presupuestos**
+   - Historial completo de cambios
+   - Tracking de modificaciones
+   - Metadata por versión
+   - Comentarios de cambios
+
+2. **Estados de Presupuesto**
+   - Borrador
+   - Pendiente
+   - Aprobado
+   - Rechazado
+   - Expirado
+
+3. **Gestión de Precios**
+   - Cálculo automático de totales
+   - Markup configurable
+   - Múltiples monedas
+   - Historial de precios
+
+4. **Plantillas**
+   - Templates predefinidos
+   - Markup por defecto
+   - Validez configurable
+   - Metadata personalizable
+
+## 6. Sistema de Notificaciones
+
+### Canales Implementados
+1. **Email**
+   - SMTP configurable
+   - Templates HTML
+   - Reply-to personalizable
+   - Tracking de envío
+
+2. **SMS**
+   - Integración con proveedores
+   - Mensajes personalizados
+   - Confirmación de entrega
+   - Retry automático
+
+3. **Push Notifications**
+   - Soporte multi-plataforma
+   - Badges y sonidos
+   - Acciones rápidas
+   - Prioridad configurable
+
+4. **Webhooks**
+   - URLs configurables
+   - Headers personalizados
+   - Firma de seguridad
+   - Retry con backoff
+
+### Características del Sistema
+1. **Gestión de Preferencias**
+   - Canales por usuario
+   - Horarios silenciosos
+   - Tipos deshabilitados
+   - Prioridades
+
+2. **Templates**
+   - Plantillas por tipo
+   - Variables dinámicas
+   - Múltiples idiomas
+   - Versionado
+
+3. **Prioridades**
+   - Niveles configurables
+   - Urgencia automática
+   - Escalamiento
+   - Timeouts
+
+## 7. Sistema de Reportes
+
+### Tipos de Reportes
+1. **Reporte de Ventas**
+   - Total de ventas
+   - Conversión
+   - Destinos populares
+   - Distribución por proveedor
+
+2. **Reporte de Presupuestos**
+   - Estado de presupuestos
+   - Tiempo de proceso
+   - Tasa de conversión
+   - Proyección de ingresos
+
+3. **Reporte de Proveedores**
+   - Performance
+   - Tiempo de respuesta
+   - Tasa de error
+   - Rutas populares
+
+4. **Reporte de Destinos**
+   - Búsquedas
+   - Reservas
+   - Demanda estacional
+   - Distribución de proveedores
+
+### Formatos de Exportación
+1. **PDF**
+   - Templates personalizables
+   - Fuentes configurables
+   - Tamaños de página
+   - Marcas de agua
+
+2. **Excel**
+   - Múltiples hojas
+   - Fórmulas automáticas
+   - Formato condicional
+   - Gráficos integrados
+
+3. **CSV**
+   - Delimitadores configurables
+   - Encoding personalizable
+   - Headers opcionales
+   - Escape automático
+
+4. **JSON**
+   - Estructura jerárquica
+   - Metadata incluida
+   - Indentación configurable
+   - Compresión opcional
+
+5. **HTML**
+   - Templates responsivos
+   - CSS personalizable
+   - Gráficos interactivos
+   - Impresión optimizada
+
+### Características Avanzadas
+1. **Generación de Reportes**
+   - Períodos configurables
+   - Métricas personalizadas
+   - Comparativas temporales
+   - Tendencias y proyecciones
+
+2. **Visualización**
+   - Gráficos diversos
+   - Tablas dinámicas
+   - Indicadores KPI
+   - Dashboards
+
+3. **Automatización**
+   - Programación periódica
+   - Distribución automática
+   - Alertas basadas en umbrales
+   - Caché inteligente
+
+## 8. Características Técnicas
+
+### Infraestructura
+- Gestión de dependencias con Conda
+- Ambiente reproducible
+- Logging detallado
+- Manejo de errores robusto
+
+### Rendimiento
+- Operaciones asíncronas
+- Caché inteligente
+- Timeouts configurables
+- Reintentos automáticos
+
+### Seguridad
+- Manejo seguro de credenciales
+- Autenticación robusta
+- Validación de datos
+- Sanitización de entradas
+
+### Extensibilidad
+- Arquitectura modular
+- Interfaces bien definidas
+- Fácil adición de proveedores
+- Sistema de plugins
