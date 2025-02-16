@@ -1,11 +1,11 @@
 aiohappyeyeballs==2.4.6
-aiohttp==3.11.12
+aiohttp>=3.8.0
 aiosignal==1.3.2
 annotated-types @ file:///home/conda/feedstock_root/build_artifacts/annotated-types_1733247046149/work
 anyio @ file:///home/conda/feedstock_root/build_artifacts/anyio_1736174388474/work
 async-timeout==5.0.1
 attrs==25.1.0
-beautifulsoup4==4.13.3
+beautifulsoup4>=4.9.0
 black==25.1.0
 certifi @ file:///home/conda/feedstock_root/build_artifacts/certifi_1739515848642/work/certifi
 click @ file:///home/conda/feedstock_root/build_artifacts/click_1734858813237/work
@@ -13,7 +13,7 @@ coverage==7.6.12
 dnspython @ file:///home/conda/feedstock_root/build_artifacts/dnspython_1733256735222/work
 email_validator @ file:///home/conda/feedstock_root/build_artifacts/email-validator-meta_1733300719943/work
 exceptiongroup @ file:///home/conda/feedstock_root/build_artifacts/exceptiongroup_1733208806608/work
-fastapi @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_fastapi_1738326226/work
+fastapi>=0.68.0
 fastapi-cli @ file:///home/conda/feedstock_root/build_artifacts/fastapi-cli_1734302308128/work
 flake8==7.1.1
 frozenlist==1.5.0
@@ -37,14 +37,15 @@ multidict==6.1.0
 mypy-extensions==1.0.0
 numpy @ file:///home/conda/feedstock_root/build_artifacts/numpy_1739425573380/work/dist/numpy-2.2.3-cp310-cp310-linux_x86_64.whl#sha256=edb5ad9a663c469f63fbde767c9f2f25a38aa681d29ed312240370832fa0bf37
 packaging==24.2
-pandas==2.2.0
+pandas>=1.3.0
 pathspec==0.12.1
 platformdirs==4.3.6
 playwright==1.50.0
 pluggy==1.5.0
+plotly>=5.3.0
 propcache==0.2.1
 pycodestyle==2.12.1
-pydantic==2.6.1
+pydantic>=1.8.0
 pydantic_core @ file:///home/conda/feedstock_root/build_artifacts/pydantic-core_1734571487232/work
 pyee==12.1.1
 pyflakes==3.2.0
@@ -53,11 +54,14 @@ pytest==8.3.4
 pytest-asyncio==0.25.3
 pytest-cov==6.0.0
 python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/python-dateutil_1733215673016/work
-python-dotenv==1.0.0
+python-dotenv>=0.19.0
 python-jose[cryptography]==3.3.0
 python-multipart @ file:///home/conda/feedstock_root/build_artifacts/python-multipart_1734420773152/work
 pytz @ file:///home/conda/feedstock_root/build_artifacts/pytz_1706886791323/work
 PyYAML @ file:///home/conda/feedstock_root/build_artifacts/pyyaml_1737454647378/work
+prometheus-client>=0.12.0
+redis>=4.0.0
+requests>=2.26.0
 rich @ file:///home/conda/feedstock_root/build_artifacts/rich_1733342254348/work/dist
 rich-toolkit @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_rich-toolkit_1733750834/work
 scikit-learn @ file:///home/conda/feedstock_root/build_artifacts/scikit-learn_1736496756180/work/dist/scikit_learn-1.6.1-cp310-cp310-linux_x86_64.whl#sha256=8b3481924bda36bf9a85c5f500f48e43e1178ead014b2d2ecf10f7b9b49935b4
@@ -67,14 +71,15 @@ six @ file:///home/conda/feedstock_root/build_artifacts/six_1733380938961/work
 sniffio @ file:///home/conda/feedstock_root/build_artifacts/sniffio_1733244044561/work
 soupsieve==2.6
 starlette @ file:///home/conda/feedstock_root/build_artifacts/starlette_1737823930525/work
-streamlit==1.31.0
+streamlit>=1.10.0
+tenacity>=8.0.0
 threadpoolctl @ file:///home/conda/feedstock_root/build_artifacts/threadpoolctl_1714400101435/work
 tomli==2.2.1
 typer==0.15.1
 typer-slim==0.15.1
 typing_extensions @ file:///home/conda/feedstock_root/build_artifacts/typing_extensions_1733188668063/work
 tzdata @ file:///home/conda/feedstock_root/build_artifacts/python-tzdata_1737541069190/work
-uvicorn @ file:///home/conda/feedstock_root/build_artifacts/uvicorn_1734292939144/work
+uvicorn>=0.15.0
 uvloop @ file:///home/conda/feedstock_root/build_artifacts/uvloop_1730214334932/work
 watchfiles @ file:///home/conda/feedstock_root/build_artifacts/watchfiles_1736550398500/work
 websockets @ file:///home/conda/feedstock_root/build_artifacts/websockets_1737358157915/work
