@@ -11,35 +11,55 @@ Sistema inteligente para agentes de viajes que automatiza y optimiza el proceso 
 - 💼 **Gestión de Presupuestos**: Generación y seguimiento de presupuestos
 - 🔄 **Integración con Proveedores**: Conexión con múltiples proveedores de viajes
 
+## Configuración del Entorno
+
+### Requisitos Previos
+- [Miniconda](https://docs.conda.io/en/latest/miniconda.html) o [Anaconda](https://www.anaconda.com/download)
+- Git
+
+### Instalación
+
+1. Clonar el repositorio:
+```bash
+git clone https://github.com/costarotela/TravelAgent.git
+cd TravelAgent
+```
+
+2. Crear y activar el entorno Conda:
+```bash
+conda env create -f environment.yml
+conda activate travel-agent
+```
+
+3. Configurar variables de entorno:
+```bash
+cp .env.example .env
+# Editar .env con las credenciales necesarias
+```
+
 ## Estructura del Proyecto
 
 ```
-SmartTravelAgency/
+TravelAgent/
 ├── docs/
-│   └── RELEVAMIENTO.md     # Documento de relevamiento
-├── smart_travel_agency/
-│   ├── core/               # Componentes principales
-│   │   ├── agent.py                 # Agente principal
-│   │   ├── agent_observer.py        # Monitoreo y métricas
-│   │   ├── agent_orchestrator.py    # Orquestación de flujos
-│   │   ├── analysis_engine.py       # Motor de análisis
-│   │   ├── browser_manager.py       # Gestión de navegación
-│   │   ├── budget_engine.py         # Motor de presupuestos
-│   │   ├── config.py                # Configuración
-│   │   ├── opportunity_tracker.py   # Rastreo de oportunidades
-│   │   ├── package_analyzer.py      # Análisis de paquetes
-│   │   ├── price_monitor.py         # Monitoreo de precios
-│   │   ├── provider_manager.py      # Gestión de proveedores
-│   │   ├── recommendation_engine.py # Motor de recomendaciones
-│   │   ├── schemas.py              # Modelos de datos
-│   │   ├── session_manager.py      # Gestión de sesiones
-│   │   ├── storage_manager.py      # Gestión de almacenamiento
-│   │   └── visualization_engine.py  # Motor de visualización
-│   ├── memory/             # Gestión de memoria y conocimiento
-│   └── utils/             # Utilidades comunes
-├── tests/                 # Tests unitarios y de integración
-├── .env.example          # Variables de entorno de ejemplo
-└── requirements.txt      # Dependencias del proyecto
+│   ├── RELEVAMIENTO.md        # Documento de relevamiento inicial
+│   ├── ESTADO_EVOLUCION.md    # Estado y plan de evolución
+│   └── api/                   # Documentación de API
+├── src/                       # Código fuente principal
+│   ├── core/                  # Componentes principales
+│   │   ├── agent/            # Agente principal y orquestación
+│   │   ├── providers/        # Gestión de proveedores
+│   │   ├── search/          # Motor de búsqueda
+│   │   ├── analysis/        # Análisis y recomendaciones
+│   │   └── budget/          # Gestión de presupuestos
+│   ├── interfaces/          # Interfaces de usuario
+│   ├── utils/              # Utilidades comunes
+│   └── config/             # Configuración
+├── tests/                  # Tests
+├── scripts/               # Scripts de utilidad
+├── .env.example          # Template de variables de entorno
+├── environment.yml       # Configuración del entorno Conda
+└── README.md            # Documentación principal
 ```
 
 ## Componentes Core
@@ -118,31 +138,26 @@ Coordina todos los componentes y gestiona el flujo principal de trabajo.
 - Exportación de datos
 - Formateo de resultados
 
-## Instalación
+## Desarrollo
 
-1. Clonar el repositorio:
+### Actualizar Dependencias
+
+Para agregar nuevas dependencias:
+1. Agregar el paquete a `environment.yml`
+2. Actualizar el entorno:
 ```bash
-git clone https://github.com/username/smart-travel-agency.git
-cd smart-travel-agency
+conda env update -f environment.yml
 ```
 
-2. Crear entorno virtual:
+### Ejecutar Tests
 ```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# o
-.\venv\Scripts\activate  # Windows
+pytest
 ```
 
-3. Instalar dependencias:
+### Formatear Código
 ```bash
-pip install -r requirements.txt
-```
-
-4. Configurar variables de entorno:
-```bash
-cp .env.example .env
-# Editar .env con las credenciales necesarias
+black src tests
+isort src tests
 ```
 
 ## Uso
@@ -170,24 +185,6 @@ budget = await agent.create_budget(
     packages=results,
     metadata={"client_id": "123"}
 )
-```
-
-## Desarrollo
-
-1. Instalar dependencias de desarrollo:
-```bash
-pip install -r requirements-dev.txt
-```
-
-2. Ejecutar tests:
-```bash
-pytest
-```
-
-3. Verificar estilo de código:
-```bash
-flake8
-black .
 ```
 
 ## Contribución

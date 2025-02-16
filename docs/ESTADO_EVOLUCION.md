@@ -24,6 +24,12 @@
    - Pendiente implementación completa
    - Necesario desarrollo de UI/UX
 
+### Infraestructura ✅
+1. **Gestión de Dependencias**
+   - Implementado sistema Conda para gestión de paquetes
+   - Ambiente reproducible con environment.yml
+   - Dependencias organizadas y versionadas
+
 ## Plan de Acción
 
 ### Fase 1: Optimización de Core (Sprint Actual)

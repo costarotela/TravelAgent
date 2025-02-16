@@ -1,0 +1,38 @@
+name: travel-agent
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  # Base dependencies
+  - requests>=2.31.0
+  - beautifulsoup4>=4.12.0
+  - selenium>=4.15.0
+  - python-dotenv>=1.0.0
+  - sqlalchemy>=2.0.0
+  - pydantic>=2.5.0
+  - fastapi>=0.104.0
+  - uvicorn>=0.24.0
+  - jinja2>=3.1.0
+  - aiohttp>=3.9.0
+  - redis-py>=5.0.0
+  - pandas>=2.1.0
+  - numpy>=1.24.0
+  # Development dependencies
+  - pytest>=7.4.0
+  - pytest-cov>=4.1.0
+  - pytest-asyncio>=0.21.0
+  - pytest-mock>=3.12.0
+  - black>=23.10.0
+  - flake8>=6.1.0
+  - isort>=5.12.0
+  - mypy>=1.7.0
+  - ipython>=8.17.0
+  - jupyter>=1.0.0
+  # Production dependencies
+  - gunicorn>=21.2.0
+  - prometheus-client>=0.18.0
+  - pip:
+    - sentry-sdk>=1.32.0
+    - newrelic>=9.0.0
