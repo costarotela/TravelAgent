@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 class Provider(str, Enum):
     """Proveedores soportados."""
+
     OLA = "OLA"
     AERO = "AERO"
     DESPEGAR = "DESPEGAR"
@@ -19,6 +20,7 @@ class Provider(str, Enum):
 
 class AlertType(str, Enum):
     """Tipos de alertas."""
+
     PRICE_DROP = "price_drop"
     PRICE_RISE = "price_rise"
     OPPORTUNITY = "opportunity"
@@ -27,6 +29,7 @@ class AlertType(str, Enum):
 
 class PriorityLevel(str, Enum):
     """Niveles de prioridad."""
+
     ALTA = "alta"
     MEDIA = "media"
     BAJA = "baja"
@@ -34,6 +37,7 @@ class PriorityLevel(str, Enum):
 
 class SearchCriteria(BaseModel):
     """Criterios de búsqueda."""
+
     destination: str
     start_date: datetime
     end_date: datetime
@@ -47,6 +51,7 @@ class SearchCriteria(BaseModel):
 
 class TravelPackage(BaseModel):
     """Paquete turístico."""
+
     id: str
     provider: Provider
     title: str
@@ -68,6 +73,7 @@ class TravelPackage(BaseModel):
 
 class PriceAlert(BaseModel):
     """Alerta de precio."""
+
     type: AlertType
     package_id: str
     message: str
@@ -77,6 +83,7 @@ class PriceAlert(BaseModel):
 
 class Recommendation(BaseModel):
     """Recomendación para un paquete."""
+
     type: str
     priority: PriorityLevel
     message: str
@@ -85,6 +92,7 @@ class Recommendation(BaseModel):
 
 class PackageAnalysis(BaseModel):
     """Análisis de un paquete."""
+
     package_id: str
     score: float
     price_analysis: Dict[str, Any]
@@ -96,6 +104,7 @@ class PackageAnalysis(BaseModel):
 
 class Opportunity(BaseModel):
     """Oportunidad detectada."""
+
     type: str
     package: TravelPackage
     savings: float
@@ -108,6 +117,7 @@ class Opportunity(BaseModel):
 
 class Budget(BaseModel):
     """Presupuesto generado."""
+
     id: str
     search_criteria: SearchCriteria
     packages: List[TravelPackage]
