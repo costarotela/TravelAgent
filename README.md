@@ -1,15 +1,81 @@
-# Smart Travel Agency Assistant
+# Smart Travel Agency 
 
 Sistema inteligente para agentes de viajes que automatiza y optimiza el proceso de búsqueda, análisis y recomendación de paquetes turísticos.
 
 ## Características Principales
 
-- 🔍 **Búsqueda Inteligente**: Búsqueda y análisis automatizado de paquetes turísticos
-- 📊 **Análisis de Mercado**: Monitoreo de precios y detección de oportunidades
-- 💡 **Recomendaciones Personalizadas**: Sugerencias basadas en preferencias y patrones
-- 📈 **Visualizaciones**: Gráficos y reportes interactivos
-- 💼 **Gestión de Presupuestos**: Generación y seguimiento de presupuestos
-- 🔄 **Integración con Proveedores**: Conexión con múltiples proveedores de viajes
+- **Búsqueda Inteligente**: Búsqueda y análisis automatizado de paquetes turísticos
+- **Análisis de Mercado**: Monitoreo de precios y detección de oportunidades
+- **Recomendaciones Personalizadas**: Sugerencias basadas en preferencias y patrones
+- **Visualizaciones**: Gráficos y reportes interactivos
+- **Gestión de Presupuestos**: Generación y seguimiento de presupuestos
+- **Integración con Proveedores**: Conexión con múltiples proveedores de viajes
+### Agente Premium
+Nuestro sistema incluye un asistente AI avanzado que realiza:
+
+1. **Observación y Reflexión** 
+   - Análisis de mercado en tiempo real
+   - Investigación web automática
+   - Identificación de oportunidades
+
+2. **Análisis Inteligente**
+   - Comparación avanzada de precios
+   - Análisis de tendencias
+   - Evaluación de calidad/precio
+
+3. **Planificación Estratégica**
+   - Optimización de itinerarios
+   - Recomendaciones personalizadas
+   - Gestión inteligente de recursos
+
+4. **Revisión y Control**
+   - Verificación automática
+   - Control de calidad
+   - Monitoreo continuo
+
+5. **Toma de Decisiones**
+   - Recomendaciones basadas en datos
+   - Optimización automática
+   - Gestión de contingencias
+
+## Interfaz de Usuario
+
+La aplicación cuenta con una interfaz web construida con Streamlit que proporciona las siguientes funcionalidades:
+
+1. **Dashboard**
+   - Métricas clave
+   - Gráficos interactivos
+   - Actividad reciente
+
+2. **Búsqueda de Paquetes**
+   - Formulario de búsqueda avanzado
+   - Filtros personalizables
+   - Visualización de resultados
+   - Detalles de paquetes
+
+3. **Gestión de Presupuestos**
+   - Lista de presupuestos activos
+   - Creación de presupuestos
+   - Plantillas predefinidas
+   - Seguimiento de estados
+
+4. **Reportes**
+   - Generación de reportes
+   - Múltiples formatos de exportación
+   - Visualización de datos
+   - Guardado y compartición
+
+5. **Gestión de Proveedores**
+   - Estado de proveedores
+   - Monitoreo en tiempo real
+   - Configuración de APIs
+   - Métricas de rendimiento
+
+6. **Configuración**
+   - Ajustes generales
+   - Notificaciones
+   - Seguridad
+   - Personalización
 
 ## Configuración del Entorno
 
@@ -35,6 +101,18 @@ conda activate travel-agent
 ```bash
 cp .env.example .env
 # Editar .env con las credenciales necesarias
+```
+
+## Ejecución
+
+1. Ejecutar la aplicación:
+```bash
+python run.py
+```
+
+2. Abrir en el navegador:
+```
+http://localhost:8501
 ```
 
 ## Estructura del Proyecto

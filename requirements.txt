@@ -37,14 +37,14 @@ multidict==6.1.0
 mypy-extensions==1.0.0
 numpy @ file:///home/conda/feedstock_root/build_artifacts/numpy_1739425573380/work/dist/numpy-2.2.3-cp310-cp310-linux_x86_64.whl#sha256=edb5ad9a663c469f63fbde767c9f2f25a38aa681d29ed312240370832fa0bf37
 packaging==24.2
-pandas @ file:///home/conda/feedstock_root/build_artifacts/pandas_1726878398774/work
+pandas==2.2.0
 pathspec==0.12.1
 platformdirs==4.3.6
 playwright==1.50.0
 pluggy==1.5.0
 propcache==0.2.1
 pycodestyle==2.12.1
-pydantic @ file:///home/conda/feedstock_root/build_artifacts/pydantic_1737761369378/work
+pydantic==2.6.1
 pydantic_core @ file:///home/conda/feedstock_root/build_artifacts/pydantic-core_1734571487232/work
 pyee==12.1.1
 pyflakes==3.2.0
@@ -53,7 +53,8 @@ pytest==8.3.4
 pytest-asyncio==0.25.3
 pytest-cov==6.0.0
 python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/python-dateutil_1733215673016/work
-python-dotenv @ file:///home/conda/feedstock_root/build_artifacts/python-dotenv_1733243180666/work
+python-dotenv==1.0.0
+python-jose[cryptography]==3.3.0
 python-multipart @ file:///home/conda/feedstock_root/build_artifacts/python-multipart_1734420773152/work
 pytz @ file:///home/conda/feedstock_root/build_artifacts/pytz_1706886791323/work
 PyYAML @ file:///home/conda/feedstock_root/build_artifacts/pyyaml_1737454647378/work
@@ -66,6 +67,7 @@ six @ file:///home/conda/feedstock_root/build_artifacts/six_1733380938961/work
 sniffio @ file:///home/conda/feedstock_root/build_artifacts/sniffio_1733244044561/work
 soupsieve==2.6
 starlette @ file:///home/conda/feedstock_root/build_artifacts/starlette_1737823930525/work
+streamlit==1.31.0
 threadpoolctl @ file:///home/conda/feedstock_root/build_artifacts/threadpoolctl_1714400101435/work
 tomli==2.2.1
 typer==0.15.1
@@ -77,3 +79,5 @@ uvloop @ file:///home/conda/feedstock_root/build_artifacts/uvloop_1730214334932/
 watchfiles @ file:///home/conda/feedstock_root/build_artifacts/watchfiles_1736550398500/work
 websockets @ file:///home/conda/feedstock_root/build_artifacts/websockets_1737358157915/work
 yarl==1.18.3
+altair==5.2.0
+passlib[bcrypt]==1.7.4
