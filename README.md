@@ -1,4 +1,4 @@
-# Travel Agent Assistant
+# Smart Travel Agency Assistant
 
 Sistema inteligente para agentes de viajes que automatiza y optimiza el proceso de búsqueda, análisis y recomendación de paquetes turísticos.
 
@@ -14,10 +14,10 @@ Sistema inteligente para agentes de viajes que automatiza y optimiza el proceso 
 ## Estructura del Proyecto
 
 ```
-TravelAgent/
+SmartTravelAgency/
 ├── docs/
 │   └── RELEVAMIENTO.md     # Documento de relevamiento
-├── travel_agent/
+├── smart_travel_agency/
 │   ├── core/               # Componentes principales
 │   │   ├── agent.py                 # Agente principal
 │   │   ├── agent_observer.py        # Monitoreo y métricas
@@ -122,8 +122,8 @@ Coordina todos los componentes y gestiona el flujo principal de trabajo.
 
 1. Clonar el repositorio:
 ```bash
-git clone https://github.com/username/travel-agent.git
-cd travel-agent
+git clone https://github.com/username/smart-travel-agency.git
+cd smart-travel-agency
 ```
 
 2. Crear entorno virtual:
@@ -149,9 +149,9 @@ cp .env.example .env
 
 1. Iniciar el agente:
 ```python
-from travel_agent.core.agent import TravelAgent
+from smart_travel_agency.core.agent import SmartTravelAgent
 
-agent = TravelAgent()
+agent = SmartTravelAgent()
 await agent.start()
 ```
 

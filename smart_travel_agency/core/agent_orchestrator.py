@@ -14,7 +14,7 @@ import asyncio
 from datetime import datetime
 from enum import Enum
 
-from .agent import TravelAgent
+from .agent import SmartTravelAgent
 from .agent_observer import AgentObserver
 from .schemas import SearchCriteria, TravelPackage, Budget, AgentState, WorkflowState
 from ..memory.supabase import SupabaseMemory
@@ -38,7 +38,7 @@ class AgentOrchestrator:
         self.memory = SupabaseMemory()
 
         # Componentes principales
-        self.agent = TravelAgent()
+        self.agent = SmartTravelAgent()
         self.observer = AgentObserver()
 
         # Estado del orquestador

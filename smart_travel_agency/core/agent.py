@@ -26,7 +26,7 @@ from .storage_manager import StorageManager
 from ..memory.supabase import SupabaseMemory
 
 
-class TravelAgent:
+class SmartTravelAgent:
     """Agente principal del sistema de viajes."""
 
     def __init__(self):

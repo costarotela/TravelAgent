@@ -120,7 +120,7 @@ class Config:
     
     def _get_environment(self) -> Environment:
         """Determinar ambiente actual."""
-        env = os.getenv("TRAVEL_AGENT_ENV", "development").lower()
+        env = os.getenv("SMART_TRAVEL_AGENCY_ENV", "development").lower()
         return Environment(env)
     
     def _load_base_config(self) -> None:
@@ -146,7 +146,7 @@ class Config:
         return DatabaseConfig(
             host=os.getenv("DB_HOST", "localhost"),
             port=int(os.getenv("DB_PORT", "5432")),
-            name=os.getenv("DB_NAME", "travel_agent"),
+            name=os.getenv("DB_NAME", "smart_travel_agency"),
             user=os.getenv("DB_USER", "postgres"),
             password=os.getenv("DB_PASSWORD", ""),
             pool_size=int(os.getenv("DB_POOL_SIZE", "5")),
@@ -243,7 +243,7 @@ class Config:
     def get(self, key: str, default: Any = None) -> Any:
         """Obtener valor de configuración."""
         # Buscar en variables de entorno
-        env_key = f"TRAVEL_AGENT_{key.upper()}"
+        env_key = f"SMART_TRAVEL_AGENCY_{key.upper()}"
         if env_key in os.environ:
             return os.environ[env_key]
         

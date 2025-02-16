@@ -13,7 +13,7 @@ import logging
 import asyncio
 from datetime import datetime
 
-from .agent import TravelAgent
+from .agent import SmartTravelAgent
 from .schemas import AgentState, AgentMetrics
 from ..memory.supabase import SupabaseMemory
 
@@ -28,7 +28,7 @@ class AgentObserver:
 
         # Estado del observador
         self.active = False
-        self.agent: Optional[TravelAgent] = None
+        self.agent: Optional[SmartTravelAgent] = None
         self.last_check = datetime.now()
 
         # Métricas
@@ -49,7 +49,7 @@ class AgentObserver:
             "memory_usage": 0.8,  # 80% de uso
         }
 
-    async def start(self, agent: TravelAgent):
+    async def start(self, agent: SmartTravelAgent):
         """
         Iniciar observador.
 
