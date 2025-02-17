@@ -1,87 +1,42 @@
 # Smart Travel Agency 
 
-Sistema inteligente para agentes de viajes que automatiza y optimiza el proceso de búsqueda, análisis y recomendación de paquetes turísticos.
+Sistema simplificado para agentes de viajes que facilita la búsqueda y generación de presupuestos de viajes.
 
 ## Características Principales
 
-- **Búsqueda Inteligente**: Búsqueda y análisis automatizado de paquetes turísticos
-- **Análisis de Mercado**: Monitoreo de precios y detección de oportunidades
-- **Recomendaciones Personalizadas**: Sugerencias basadas en preferencias y patrones
-- **Visualizaciones**: Gráficos y reportes interactivos
-- **Gestión de Presupuestos**: Generación y seguimiento de presupuestos
-- **Integración con Proveedores**: Conexión con múltiples proveedores de viajes
-### Agente Premium
-Nuestro sistema incluye un asistente AI avanzado que realiza:
+- **Búsqueda Simple**: Búsqueda rápida de vuelos y paquetes
+- **Presupuestos Básicos**: Generación simple de presupuestos
+- **Interfaz Intuitiva**: UI simple y fácil de usar
+- **Almacenamiento Local**: Base de datos SQLite para persistencia
+- **Proveedor Aero**: Integración con proveedor principal de vuelos
 
-1. **Observación y Reflexión** 
-   - Análisis de mercado en tiempo real
-   - Investigación web automática
-   - Identificación de oportunidades
+## Documentación
 
-2. **Análisis Inteligente**
-   - Comparación avanzada de precios
-   - Análisis de tendencias
-   - Evaluación de calidad/precio
+La documentación del proyecto se encuentra en el directorio `docs/`:
 
-3. **Planificación Estratégica**
-   - Optimización de itinerarios
-   - Recomendaciones personalizadas
-   - Gestión inteligente de recursos
-
-4. **Revisión y Control**
-   - Verificación automática
-   - Control de calidad
-   - Monitoreo continuo
-
-5. **Toma de Decisiones**
-   - Recomendaciones basadas en datos
-   - Optimización automática
-   - Gestión de contingencias
+- `PLAN_SIMPLIFICACION.md`: Plan detallado de simplificación del sistema
+- `ESTADO_EVOLUCION.md`: Estado actual del proyecto y próximos pasos
+- `PLAN_MEJORAS.md`: Plan de mejoras incrementales
 
 ## Interfaz de Usuario
 
-La aplicación cuenta con una interfaz web construida con Streamlit que proporciona las siguientes funcionalidades:
+La aplicación cuenta con una interfaz web simple construida con Streamlit que proporciona:
 
-1. **Dashboard**
-   - Métricas clave
-   - Gráficos interactivos
-   - Actividad reciente
+1. **Búsqueda de Vuelos**
+   - Formulario simple de búsqueda
+   - Filtros básicos
+   - Visualización de resultados en tabla
 
-2. **Búsqueda de Paquetes**
-   - Formulario de búsqueda avanzado
-   - Filtros personalizables
-   - Visualización de resultados
-   - Detalles de paquetes
-
-3. **Gestión de Presupuestos**
-   - Lista de presupuestos activos
+2. **Gestión de Presupuestos**
    - Creación de presupuestos
-   - Plantillas predefinidas
-   - Seguimiento de estados
-
-4. **Reportes**
-   - Generación de reportes
-   - Múltiples formatos de exportación
-   - Visualización de datos
-   - Guardado y compartición
-
-5. **Gestión de Proveedores**
-   - Estado de proveedores
-   - Monitoreo en tiempo real
-   - Configuración de APIs
-   - Métricas de rendimiento
-
-6. **Configuración**
-   - Ajustes generales
-   - Notificaciones
-   - Seguridad
-   - Personalización
+   - Lista de presupuestos activos
+   - Exportación simple
 
 ## Configuración del Entorno
 
 ### Requisitos Previos
-- [Miniconda](https://docs.conda.io/en/latest/miniconda.html) o [Anaconda](https://www.anaconda.com/download)
-- Git
+- Python 3.8+
+- pip
 
 ### Instalación
 
@@ -91,16 +46,9 @@ git clone https://github.com/costarotela/TravelAgent.git
 cd TravelAgent
 ```
 
-2. Crear y activar el entorno Conda:
+2. Instalar dependencias:
 ```bash
-conda env create -f environment.yml
-conda activate travel-agent
-```
-
-3. Configurar variables de entorno:
-```bash
-cp .env.example .env
-# Editar .env con las credenciales necesarias
+pip install -r requirements.txt
 ```
 
 ## Ejecución
@@ -120,165 +68,43 @@ http://localhost:8501
 ```
 TravelAgent/
 ├── docs/
-│   ├── RELEVAMIENTO.md        # Documento de relevamiento inicial
-│   ├── ESTADO_EVOLUCION.md    # Estado y plan de evolución
-│   └── api/                   # Documentación de API
-├── src/                       # Código fuente principal
-│   ├── core/                  # Componentes principales
-│   │   ├── agent/            # Agente principal y orquestación
-│   │   ├── providers/        # Gestión de proveedores
-│   │   ├── search/          # Motor de búsqueda
-│   │   ├── analysis/        # Análisis y recomendaciones
-│   │   └── budget/          # Gestión de presupuestos
-│   ├── interfaces/          # Interfaces de usuario
-│   ├── utils/              # Utilidades comunes
-│   └── config/             # Configuración
-├── tests/                  # Tests
-├── scripts/               # Scripts de utilidad
-├── .env.example          # Template de variables de entorno
-├── environment.yml       # Configuración del entorno Conda
-└── README.md            # Documentación principal
+│   ├── PLAN_SIMPLIFICACION.md  # Plan de simplificación
+│   ├── ESTADO_EVOLUCION.md     # Estado actual
+│   └── PLAN_MEJORAS.md         # Plan de mejoras
+├── src/
+│   ├── core/
+│   │   ├── providers/         # Proveedores de viajes
+│   │   └── budget/           # Gestión de presupuestos
+│   ├── ui/                   # Interfaces de usuario
+│   └── utils/               # Utilidades
+├── data/                   # Base de datos SQLite
+└── requirements.txt       # Dependencias del proyecto
 ```
 
-## Componentes Core
+## Componentes Principales
 
-### 1. Agente Principal (`agent.py`)
-Coordina todos los componentes y gestiona el flujo principal de trabajo.
+### 1. Búsqueda (`search.py`)
+- Formulario de búsqueda simple
+- Filtros básicos
+- Visualización de resultados
 
-### 2. Observador (`agent_observer.py`)
-- Monitoreo del estado del agente
-- Registro de eventos y acciones
-- Generación de métricas
-- Detección de anomalías
-
-### 3. Orquestador (`agent_orchestrator.py`)
-- Gestión de flujos de trabajo
-- Coordinación de eventos
-- Supervisión de componentes
-
-### 4. Motor de Análisis (`analysis_engine.py`)
-- Análisis de datos de viajes
-- Procesamiento de información de mercado
-- Generación de insights
-- Evaluación de tendencias
-
-### 5. Gestor de Navegación (`browser_manager.py`)
-- Gestión de sesiones web
-- Extracción de datos
-- Automatización de interacciones
-
-### 6. Motor de Presupuestos (`budget_engine.py`)
+### 2. Presupuestos (`budget/`)
 - Generación de presupuestos
-- Gestión de versiones
-- Cálculo de costos
-- Personalización de ofertas
+- Almacenamiento en SQLite
+- Exportación básica
 
-### 7. Rastreador de Oportunidades (`opportunity_tracker.py`)
-- Detección de oportunidades
-- Análisis de mercado
-- Alertas en tiempo real
-
-### 8. Analizador de Paquetes (`package_analyzer.py`)
-- Análisis de paquetes turísticos
-- Comparación de precios
-- Evaluación de características
-
-### 9. Monitor de Precios (`price_monitor.py`)
-- Monitoreo continuo de precios
-- Detección de cambios
-- Alertas de variaciones
-
-### 10. Gestor de Proveedores (`provider_manager.py`)
-- Gestión de proveedores
-- Coordinación de búsquedas
-- Procesamiento de reservas
-- Gestión de credenciales
-
-### 11. Motor de Recomendaciones (`recommendation_engine.py`)
-- Generación de recomendaciones
-- Aprendizaje de preferencias
-- Personalización de sugerencias
-
-### 12. Gestor de Sesiones (`session_manager.py`)
-- Gestión de sesiones de venta
-- Mantenimiento de estados
-- Coordinación de flujos
-
-### 13. Gestor de Almacenamiento (`storage_manager.py`)
-- Gestión de persistencia
-- Coordinación de backups
-- Manejo de caché
-- Optimización de acceso
-
-### 14. Motor de Visualización (`visualization_engine.py`)
-- Generación de visualizaciones
-- Creación de reportes
-- Exportación de datos
-- Formateo de resultados
-
-## Desarrollo
-
-### Actualizar Dependencias
-
-Para agregar nuevas dependencias:
-1. Agregar el paquete a `environment.yml`
-2. Actualizar el entorno:
-```bash
-conda env update -f environment.yml
-```
-
-### Ejecutar Tests
-```bash
-pytest
-```
-
-### Formatear Código
-```bash
-black src tests
-isort src tests
-```
-
-## Uso
-
-1. Iniciar el agente:
-```python
-from smart_travel_agency.core.agent import SmartTravelAgent
-
-agent = SmartTravelAgent()
-await agent.start()
-```
-
-2. Realizar búsqueda:
-```python
-results = await agent.search_packages(criteria={
-    "destination": "Cancún",
-    "dates": ["2025-03-01", "2025-03-07"],
-    "budget": 1500
-})
-```
-
-3. Generar presupuesto:
-```python
-budget = await agent.create_budget(
-    packages=results,
-    metadata={"client_id": "123"}
-)
-```
+### 3. Proveedor Aero (`providers/aero.py`)
+- Búsqueda de vuelos
+- Caché en memoria
+- Manejo de errores básico
 
 ## Contribución
 
-1. Fork del repositorio
-2. Crear rama de feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit de cambios (`git commit -am 'Agregar nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Crear Pull Request
+1. Hacer fork del repositorio
+2. Crear rama para nueva funcionalidad
+3. Hacer commit de los cambios
+4. Crear pull request
 
 ## Licencia
 
-Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detalles.
-
-## Contacto
-
-- **Autor**: Tu Nombre
-- **Email**: tu@email.com
-- **GitHub**: [@username](https://github.com/username)
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.

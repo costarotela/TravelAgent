@@ -1,22 +1,22 @@
-"""Main entry point for the Travel Agent application."""
+"""Script principal para ejecutar la aplicación."""
 import os
+import sys
 from pathlib import Path
+import streamlit as st
 
-import streamlit.web.bootstrap as bootstrap
-from dotenv import load_dotenv
+# Configuración global de la página - DEBE SER EL PRIMER COMANDO DE STREAMLIT
+st.set_page_config(
+    page_title="Agencia de Viajes",
+    page_icon="✈️",
+    layout="wide"
+)
 
-# Load environment variables
-load_dotenv()
+# Agregar el directorio raíz al PYTHONPATH
+root_dir = Path(__file__).parent.absolute()
+sys.path.append(str(root_dir))
 
-# Set up paths
-ROOT_DIR = Path(__file__).parent
-os.environ["PYTHONPATH"] = str(ROOT_DIR)
+# Importar y ejecutar la aplicación
+from src.ui.app import main
 
-# Run the Streamlit application
 if __name__ == "__main__":
-    bootstrap.run(
-        str(ROOT_DIR / "src" / "ui" / "main.py"),
-        "",
-        [],
-        flag_options={}
-    )
+    main()

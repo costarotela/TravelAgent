@@ -1,0 +1,32 @@
+2025-02-17 10:33:49,934 - travel_agency - ERROR - Error al obtener métricas: no such column: name
+2025-02-17 10:33:57,540 - travel_agency - ERROR - Error al obtener métricas: no such column: name
+2025-02-17 10:49:26,633 - travel_agency - ERROR - Error al obtener métricas: no such column: name
+2025-02-17 10:49:29,685 - travel_agency - ERROR - Error al obtener métricas: no such column: name
+2025-02-17 10:49:37,126 - travel_agency - ERROR - Error al obtener métricas: no such column: name
+2025-02-17 10:50:20,804 - travel_agency - INFO - Metric: cache_miss=1 tags={'provider': 'aero'}
+2025-02-17 10:50:21,812 - travel_agency - INFO - Metric: search_duration=1.001555 tags={'provider': 'aero'}
+2025-02-17 10:50:21,816 - travel_agency - INFO - Metric: search_duration=1.014377 tags={'params': "{'origin': 'BUE', 'destination': 'CUN', 'departure_date': '2025-02-18', 'return_date': '2025-02-25', 'adults': 1, 'children': 0, 'infants': 0}"}
+2025-02-17 10:53:45,076 - travel_agency - INFO - Metric: cache_miss=1 tags={'provider': 'aero'}
+2025-02-17 10:53:46,083 - travel_agency - INFO - Metric: search_duration=1.001156 tags={'provider': 'aero'}
+2025-02-17 10:53:46,088 - travel_agency - INFO - Metric: search_duration=1.013932 tags={'params': "{'origin': 'BUE', 'destination': 'CUN', 'departure_date': '2025-02-18', 'return_date': '2025-02-25', 'adults': 2, 'children': 0, 'infants': 0}"}
+2025-02-17 10:53:58,523 - travel_agency - INFO - Metric: cache_hit=1 tags={'provider': 'aero'}
+2025-02-17 10:53:58,528 - travel_agency - INFO - Metric: search_duration=0.007903 tags={'params': "{'origin': 'BUE', 'destination': 'CUN', 'departure_date': '2025-02-18', 'return_date': '2025-02-25', 'adults': 2, 'children': 0, 'infants': 0}"}
+2025-02-17 11:18:35,329 - travel_agency - INFO - Metric: cache_miss=1 tags={'provider': 'aero'}
+2025-02-17 11:18:36,336 - travel_agency - INFO - Metric: search_duration=1.001224 tags={'provider': 'aero'}
+2025-02-17 11:19:46,904 - travel_agency - INFO - Metric: cache_miss=1 tags={'provider': 'aero'}
+2025-02-17 11:19:47,911 - travel_agency - INFO - Metric: search_duration=1.000544 tags={'provider': 'aero'}
+2025-02-17 11:23:14,064 - travel_agency - INFO - Metric: cache_miss=1 tags={'provider': 'aero'}
+2025-02-17 11:23:15,072 - travel_agency - INFO - Metric: search_duration=1.001332 tags={'provider': 'aero'}
+2025-02-17 11:26:53,766 - travel_agency - INFO - Metric: cache_miss=1 tags={'provider': 'aero'}
+2025-02-17 11:26:54,774 - travel_agency - INFO - Metric: search_duration=1.000863 tags={'provider': 'aero'}
+2025-02-17 11:29:26,677 - travel_agency - INFO - Metric: cache_miss=1 tags={'provider': 'aero'}
+2025-02-17 11:29:27,683 - travel_agency - INFO - Metric: search_duration=1.000236 tags={'provider': 'aero'}
+2025-02-17 11:31:29,563 - travel_agency - INFO - Metric: cache_miss=1 tags={'provider': 'aero'}
+2025-02-17 11:31:30,569 - travel_agency - INFO - Metric: search_duration=1.000221 tags={'provider': 'aero'}
+2025-02-17 11:31:34,062 - travel_agency - ERROR - Error al obtener métricas: no such column: name
+2025-02-17 13:07:19,899 - travel_agency - ERROR - Error al registrar métrica: save_metric() takes 2 positional arguments but 4 were given
+2025-02-17 13:07:20,900 - travel_agency - ERROR - Error al registrar métrica: save_metric() takes 2 positional arguments but 4 were given
+2025-02-17 13:14:13,963 - travel_agency - ERROR - Error al registrar métrica: save_metric() takes 2 positional arguments but 4 were given
+2025-02-17 13:14:14,963 - travel_agency - ERROR - Error al registrar métrica: save_metric() takes 2 positional arguments but 4 were given
+2025-02-17 13:36:11,619 - travel_agency - ERROR - Error al registrar métrica: save_metric() takes 2 positional arguments but 4 were given
+2025-02-17 13:36:12,620 - travel_agency - ERROR - Error al registrar métrica: save_metric() takes 2 positional arguments but 4 were given
