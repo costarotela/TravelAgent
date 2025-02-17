@@ -3,11 +3,13 @@ import streamlit as st
 from datetime import datetime, timedelta
 import asyncio
 from typing import List
+import pandas as pd
 
 from src.core.providers import AeroProvider, SearchCriteria, TravelPackage
 from src.core.budget import create_budget_from_package
 from src.core.budget.storage import BudgetStorage
 from src.utils.database import Database
+from src.utils.monitoring import monitor
 
 def save_search_params(params):
     """Guardar parámetros de búsqueda en el estado."""
@@ -32,12 +34,14 @@ def create_budget_from_flight(flight, adults):
         st.session_state.selected_budget_id = budget_id
         st.session_state.redirect_to = "Presupuestos"
         
+        monitor.log_metric("budget_created", 1, {"type": "flight"})
         return True
     except Exception as e:
         st.error(f"Error al crear presupuesto: {str(e)}")
+        monitor.log_error(e, {"action": "create_budget"})
         return False
 
-def filter_and_sort_results(results: List[TravelPackage], price_range, flight_type, sort_by):
+def filter_and_sort_results(results: List[TravelPackage], price_range, flight_type, sort_by, cabin_class=None):
     """Filtrar y ordenar resultados."""
     filtered = []
     
@@ -48,6 +52,10 @@ def filter_and_sort_results(results: List[TravelPackage], price_range, flight_ty
             
         # Filtrar por tipo de vuelo
         if flight_type != "Todos" and flight.details.get("type") != flight_type.lower():
+            continue
+            
+        # Filtrar por clase de cabina
+        if cabin_class and cabin_class != "Todas" and flight.details.get("cabin_class") != cabin_class:
             continue
             
         filtered.append(flight)
@@ -62,11 +70,75 @@ def filter_and_sort_results(results: List[TravelPackage], price_range, flight_ty
     
     return filtered
 
+def show_flight_details(flight: TravelPackage, adults: int):
+    """Mostrar detalles del vuelo en un formato mejorado."""
+    with st.container():
+        # Usar columnas para mejor organización
+        col1, col2, col3 = st.columns([2, 2, 1])
+        
+        with col1:
+            st.subheader(f"{flight.origin} → {flight.destination}")
+            st.caption(f"Fecha: {flight.departure_date.strftime('%Y-%m-%d')}")
+            st.write(f"🛫 **Aerolínea:** {flight.details.get('airline', 'N/A')}")
+            st.write(f"✈️ **Vuelo:** {flight.details.get('flight_number', 'N/A')}")
+        
+        with col2:
+            st.write(f"⏱️ **Duración:** {flight.details.get('duration', 'N/A')}")
+            st.write(f"🎫 **Clase:** {flight.details.get('cabin_class', 'N/A')}")
+            st.write(f"🧳 **Equipaje:** {flight.details.get('baggage', 'N/A')}")
+            if flight.details.get("stops"):
+                st.write(f"🛑 **Escalas:** {', '.join(flight.details['stops'])}")
+        
+        with col3:
+            st.write(f"💰 **Precio:**")
+            st.markdown(f"<h3 style='text-align: center;'>${flight.price:.0f}</h3>", unsafe_allow_html=True)
+            st.caption(flight.currency)
+            
+            if st.button("📄 Crear Presupuesto", key=f"btn_{flight.id}"):
+                with st.spinner("Creando presupuesto..."):
+                    if create_budget_from_flight(flight, adults):
+                        st.success("¡Presupuesto creado!")
+        
+        st.divider()
+
+def export_results_to_excel(results: List[TravelPackage]):
+    """Exportar resultados a Excel."""
+    try:
+        # Convertir resultados a DataFrame
+        data = []
+        for flight in results:
+            data.append({
+                "Origen": flight.origin,
+                "Destino": flight.destination,
+                "Fecha": flight.departure_date,
+                "Aerolínea": flight.details.get("airline"),
+                "Vuelo": flight.details.get("flight_number"),
+                "Clase": flight.details.get("cabin_class"),
+                "Duración": flight.details.get("duration"),
+                "Equipaje": flight.details.get("baggage"),
+                "Precio": flight.price,
+                "Moneda": flight.currency
+            })
+        
+        df = pd.DataFrame(data)
+        
+        # Guardar a Excel
+        excel_file = "resultados_busqueda.xlsx"
+        df.to_excel(excel_file, index=False)
+        
+        # Leer el archivo para devolverlo
+        with open(excel_file, "rb") as f:
+            return f.read()
+    except Exception as e:
+        st.error(f"Error al exportar resultados: {str(e)}")
+        monitor.log_error(e, {"action": "export_results"})
+        return None
+
 def render_search_page():
     """Renderizar página de búsqueda."""
     st.title("Búsqueda de Vuelos")
     
-    # Inicializar estado de resultados si no existe
+    # Inicializar estado
     if "search_results" not in st.session_state:
         st.session_state.search_results = []
         
@@ -103,7 +175,7 @@ def render_search_page():
             )
         
         # Botón de búsqueda
-        submitted = st.form_submit_button("Buscar Vuelos")
+        submitted = st.form_submit_button("🔍 Buscar Vuelos")
         
         if submitted:
             # Guardar parámetros
@@ -117,21 +189,27 @@ def render_search_page():
             
             # Realizar búsqueda
             with st.spinner("Buscando vuelos..."):
-                provider = AeroProvider({"name": "aero"})
-                criteria = SearchCriteria(**params)
-                results = asyncio.run(provider.search_packages(criteria))
-                
-                if not results:
-                    st.warning("No se encontraron vuelos.")
-                else:
-                    st.session_state.search_results = results
+                try:
+                    provider = AeroProvider({"name": "aero"})
+                    criteria = SearchCriteria(**params)
+                    results = asyncio.run(provider.search_packages(criteria))
+                    
+                    if not results:
+                        st.warning("No se encontraron vuelos.")
+                        monitor.log_metric("search_empty", 1)
+                    else:
+                        st.session_state.search_results = results
+                        monitor.log_metric("search_success", 1, {"results": len(results)})
+                except Exception as e:
+                    st.error(f"Error al buscar vuelos: {str(e)}")
+                    monitor.log_error(e, {"action": "search"})
     
     # Mostrar resultados si existen
     if st.session_state.search_results:
         st.subheader("Vuelos Encontrados")
         
-        # Filtros y ordenamiento
-        col1, col2, col3 = st.columns(3)
+        # Filtros y ordenamiento en columnas
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
             # Rango de precios
@@ -153,6 +231,13 @@ def render_search_page():
             )
         
         with col3:
+            # Clase de cabina
+            cabin_class = st.selectbox(
+                "Clase",
+                options=["Todas", "Economy", "Business", "First"]
+            )
+        
+        with col4:
             # Ordenamiento
             sort_by = st.selectbox(
                 "Ordenar por",
@@ -164,33 +249,31 @@ def render_search_page():
             st.session_state.search_results,
             price_range,
             flight_type,
-            sort_by
+            sort_by,
+            cabin_class
         )
+        
+        # Mostrar contador de resultados y botón de exportar
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write(f"📊 {len(filtered_results)} vuelos encontrados")
+        with col2:
+            if filtered_results:
+                excel_data = export_results_to_excel(filtered_results)
+                if excel_data:
+                    st.download_button(
+                        "📥 Exportar a Excel",
+                        excel_data,
+                        "resultados_busqueda.xlsx",
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
         
         if not filtered_results:
             st.warning("No hay vuelos que coincidan con los filtros seleccionados.")
         else:
             # Mostrar resultados filtrados
             for flight in filtered_results:
-                with st.container():
-                    col1, col2 = st.columns([3, 1])
-                    
-                    with col1:
-                        st.write(f"**{flight.origin} → {flight.destination}**")
-                        st.write(f"Fecha: {flight.departure_date.strftime('%Y-%m-%d')}")
-                        st.write(f"Tipo: {flight.details.get('type', 'N/A').title()}")
-                        st.write(f"Aerolínea: {flight.details.get('airline', 'N/A')}")
-                        st.write(f"Clase: {flight.details.get('cabin_class', 'N/A')}")
-                        st.write(f"Duración: {flight.details.get('duration', 'N/A')}")
-                        if flight.details.get("stops"):
-                            st.write(f"Escalas: {', '.join(flight.details['stops'])}")
-                    
-                    with col2:
-                        st.write(f"Precio: ${flight.price:.0f} {flight.currency}")
-                        if st.button("Crear Presupuesto", key=f"btn_{flight.id}"):
-                            create_budget_from_flight(flight, adults)
-                    
-                    st.divider()
+                show_flight_details(flight, adults)
 
 if __name__ == "__main__":
     render_search_page()

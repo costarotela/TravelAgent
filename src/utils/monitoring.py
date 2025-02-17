@@ -1,5 +1,6 @@
 """Sistema simple de monitoreo."""
 import logging
+import json
 from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path
@@ -35,8 +36,8 @@ class Monitor:
                 CREATE TABLE IF NOT EXISTS metrics (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TIMESTAMP,
-                    name TEXT,
-                    value REAL,
+                    metric_name TEXT,
+                    metric_value REAL,
                     tags JSON
                 )
             """)
@@ -47,8 +48,8 @@ class Monitor:
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TIMESTAMP,
                     error_type TEXT,
-                    message TEXT,
-                    context JSON
+                    error_message TEXT,
+                    tags JSON
                 )
             """)
             
@@ -57,12 +58,27 @@ class Monitor:
     def log_metric(self, name: str, value: float, tags: Optional[Dict[str, str]] = None):
         """Registrar una métrica."""
         try:
-            self.db.save_metric(name, value, tags)
+            with self.db.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute("""
+                    INSERT INTO metrics (
+                        timestamp, metric_name, metric_value, tags
+                    ) VALUES (?, ?, ?, ?)
+                """, (
+                    datetime.now().isoformat(),
+                    name,
+                    value,
+                    json.dumps(tags) if tags else None
+                ))
+                
+                conn.commit()
+            
             self.logger.info(f"Metric: {name}={value} tags={tags}")
         except Exception as e:
             self.logger.error(f"Error al registrar métrica: {e}")
     
-    def log_error(self, error: Exception, context: Optional[Dict[str, Any]] = None):
+    def log_error(self, error: Exception, tags: Optional[Dict[str, Any]] = None):
         """Registrar un error."""
         try:
             with self.db.get_connection() as conn:
@@ -70,64 +86,26 @@ class Monitor:
                 
                 cursor.execute("""
                     INSERT INTO errors (
-                        timestamp, error_type, message, context
+                        timestamp, error_type, error_message, tags
                     ) VALUES (?, ?, ?, ?)
                 """, (
                     datetime.now().isoformat(),
                     type(error).__name__,
                     str(error),
-                    str(context) if context else None
+                    json.dumps(tags) if tags else None
                 ))
                 
                 conn.commit()
             
             self.logger.error(f"Error: {type(error).__name__} - {str(error)}")
-            if context:
-                self.logger.error(f"Context: {context}")
+            if tags:
+                self.logger.error(f"Context: {tags}")
         except Exception as e:
             self.logger.error(f"Error al registrar error: {e}")
-    
-    def get_recent_metrics(self, metric_name: Optional[str] = None, limit: int = 100):
-        """Obtener métricas recientes."""
-        try:
-            with self.db.get_connection() as conn:
-                cursor = conn.cursor()
-                
-                if metric_name:
-                    cursor.execute("""
-                        SELECT * FROM metrics
-                        WHERE name = ?
-                        ORDER BY timestamp DESC
-                        LIMIT ?
-                    """, (metric_name, limit))
-                else:
-                    cursor.execute("""
-                        SELECT * FROM metrics
-                        ORDER BY timestamp DESC
-                        LIMIT ?
-                    """, (limit,))
-                
-                return cursor.fetchall()
-        except Exception as e:
-            self.logger.error(f"Error al obtener métricas: {e}")
-            return []
-    
-    def get_recent_errors(self, limit: int = 100):
-        """Obtener errores recientes."""
-        try:
-            with self.db.get_connection() as conn:
-                cursor = conn.cursor()
-                
-                cursor.execute("""
-                    SELECT * FROM errors
-                    ORDER BY timestamp DESC
-                    LIMIT ?
-                """, (limit,))
-                
-                return cursor.fetchall()
-        except Exception as e:
-            self.logger.error(f"Error al obtener errores: {e}")
-            return []
+
+def get_metrics_db_path() -> str:
+    """Obtener ruta a la base de datos de métricas."""
+    return str(Path("data/metrics.db").absolute())
 
 # Instancia global del monitor
 monitor = Monitor()

@@ -1,128 +1,158 @@
-"""Search engine for travel packages across multiple providers."""
+"""Motor de búsqueda simplificado."""
 import asyncio
+from typing import List, Dict, Any, Optional
+from datetime import datetime
 import logging
-from typing import Dict, List, Optional, Type
+from concurrent.futures import ThreadPoolExecutor
 
-from ..providers import (
-    AeroProvider,
-    BaseProvider,
-    DespegarProvider,
-    OlaProvider,
-    SearchCriteria,
-    TravelPackage
-)
+from src.core.providers import TravelProvider, SearchCriteria, TravelPackage
+from src.utils.monitoring import monitor
+from src.utils.cache import search_cache
 
 logger = logging.getLogger(__name__)
 
+class SearchError(Exception):
+    """Error base para búsquedas."""
+    pass
+
+class ProviderError(SearchError):
+    """Error específico de proveedor."""
+    def __init__(self, provider: str, original_error: Exception):
+        self.provider = provider
+        self.original_error = original_error
+        super().__init__(f"Error en proveedor {provider}: {str(original_error)}")
 
 class SearchEngine:
-    """Search engine that coordinates searches across multiple providers."""
-
-    def __init__(self, provider_credentials: Dict[str, Dict[str, str]]):
-        """Initialize search engine with provider credentials.
+    """Motor de búsqueda simplificado."""
+    
+    def __init__(self, providers: List[TravelProvider]):
+        """Inicializar motor con proveedores."""
+        self.providers = providers
+        self._executor = ThreadPoolExecutor(max_workers=3)
         
-        Args:
-            provider_credentials: Dictionary mapping provider names to their credentials
-                Example: {
-                    "OLA": {"api_key": "...", "api_secret": "..."},
-                    "AERO": {"client_id": "...", "client_secret": "..."},
-                    "DESPEGAR": {"api_key": "...", "affiliate_id": "..."}
-                }
-        """
-        self.provider_credentials = provider_credentials
-        self.provider_classes = {
-            "OLA": OlaProvider,
-            "AERO": AeroProvider,
-            "DESPEGAR": DespegarProvider
-        }
-        self._validate_credentials()
-
-    def _validate_credentials(self) -> None:
-        """Validate that credentials are provided for all providers."""
-        for provider_name, provider_class in self.provider_classes.items():
-            if provider_name not in self.provider_credentials:
-                raise ValueError(f"Missing credentials for provider: {provider_name}")
-
+    async def _search_provider(
+        self,
+        provider: TravelProvider,
+        criteria: SearchCriteria,
+        progress_callback: Optional[callable] = None
+    ) -> List[TravelPackage]:
+        """Buscar en un proveedor específico con manejo de errores."""
+        try:
+            # Notificar inicio de búsqueda
+            if progress_callback:
+                progress_callback(f"Iniciando búsqueda en {provider.name}...")
+            
+            # Buscar en caché primero
+            cache_key = {
+                "provider": provider.name,
+                "origin": criteria.origin,
+                "destination": criteria.destination,
+                "departure_date": criteria.departure_date.isoformat(),
+                "adults": criteria.adults
+            }
+            
+            cached_results = search_cache.get_search_results(cache_key)
+            if cached_results:
+                logger.info(f"Resultados encontrados en caché para {provider.name}")
+                monitor.log_metric("cache_hit", 1, {"provider": provider.name})
+                if progress_callback:
+                    progress_callback(f"Resultados encontrados en caché para {provider.name}")
+                return cached_results
+            
+            # Buscar en el proveedor
+            if progress_callback:
+                progress_callback(f"Buscando en {provider.name}...")
+                
+            results = await provider.search_packages(criteria)
+            
+            # Guardar en caché
+            if results:
+                search_cache.cache_search_results(cache_key, results)
+                monitor.log_metric(
+                    "search_success",
+                    1,
+                    {"provider": provider.name, "results": len(results)}
+                )
+                
+            if progress_callback:
+                progress_callback(
+                    f"Búsqueda completada en {provider.name}: "
+                    f"{len(results)} resultados encontrados"
+                )
+            
+            return results
+            
+        except Exception as e:
+            logger.error(f"Error en proveedor {provider.name}: {str(e)}")
+            monitor.log_error(e, {
+                "provider": provider.name,
+                "action": "search",
+                "criteria": str(criteria)
+            })
+            raise ProviderError(provider.name, e)
+    
     async def search(
         self,
         criteria: SearchCriteria,
-        providers: Optional[List[str]] = None,
-        timeout: int = 30
-    ) -> List[TravelPackage]:
-        """Search for travel packages across all or specified providers.
+        progress_callback: Optional[callable] = None
+    ) -> Dict[str, Any]:
+        """
+        Realizar búsqueda en todos los proveedores.
         
         Args:
-            criteria: Search criteria for the packages
-            providers: Optional list of provider names to search. If None, search all
-            timeout: Maximum time to wait for responses in seconds
-        
+            criteria: Criterios de búsqueda
+            progress_callback: Función opcional para reportar progreso
+            
         Returns:
-            List of travel packages from all providers
+            Dict con resultados y errores por proveedor
         """
-        if providers is None:
-            providers = list(self.provider_classes.keys())
-        else:
-            providers = [p.upper() for p in providers]
-            invalid_providers = set(providers) - set(self.provider_classes.keys())
-            if invalid_providers:
-                raise ValueError(f"Invalid providers: {invalid_providers}")
-
-        search_tasks = []
-        for provider_name in providers:
-            provider_class = self.provider_classes[provider_name]
-            credentials = self.provider_credentials[provider_name]
-            search_tasks.append(
-                self._search_provider(provider_class, credentials, criteria)
+        start_time = datetime.now()
+        all_results = []
+        errors = {}
+        
+        # Validar criterios
+        if not criteria.is_valid():
+            raise SearchError("Criterios de búsqueda inválidos")
+        
+        # Buscar en paralelo en todos los proveedores
+        tasks = []
+        for provider in self.providers:
+            task = asyncio.create_task(
+                self._search_provider(provider, criteria, progress_callback)
             )
-
-        try:
-            results = await asyncio.gather(*search_tasks, return_exceptions=True)
-        except asyncio.TimeoutError:
-            logger.error("Search timeout exceeded")
-            raise TimeoutError("Search took too long to complete")
-
-        packages = []
-        for provider_name, result in zip(providers, results):
-            if isinstance(result, Exception):
-                logger.error(f"Error searching {provider_name}: {result}")
-                continue
-            packages.extend(result)
-
-        return self._sort_packages(packages)
-
-    async def _search_provider(
-        self,
-        provider_class: Type[BaseProvider],
-        credentials: Dict[str, str],
-        criteria: SearchCriteria
-    ) -> List[TravelPackage]:
-        """Search a single provider for travel packages.
+            tasks.append((provider.name, task))
         
-        Args:
-            provider_class: The provider class to instantiate
-            credentials: Credentials for the provider
-            criteria: Search criteria
+        # Esperar resultados
+        for provider_name, task in tasks:
+            try:
+                results = await task
+                if results:
+                    all_results.extend(results)
+            except ProviderError as e:
+                errors[provider_name] = str(e.original_error)
+                if progress_callback:
+                    progress_callback(
+                        f"Error en {provider_name}: {str(e.original_error)}"
+                    )
         
-        Returns:
-            List of travel packages from the provider
-        """
-        try:
-            async with provider_class(credentials) as provider:
-                return await provider.search(criteria)
-        except Exception as e:
-            logger.error(f"Error searching with {provider_class.__name__}: {e}")
-            raise
-
-    def _sort_packages(self, packages: List[TravelPackage]) -> List[TravelPackage]:
-        """Sort packages by price and availability.
+        # Registrar métricas
+        duration = (datetime.now() - start_time).total_seconds()
+        monitor.log_metric("search_duration", duration)
+        monitor.log_metric("total_results", len(all_results))
+        monitor.log_metric("provider_errors", len(errors))
         
-        Args:
-            packages: List of packages to sort
+        if progress_callback:
+            progress_callback(
+                f"Búsqueda completada en {duration:.1f}s. "
+                f"Encontrados {len(all_results)} resultados."
+            )
         
-        Returns:
-            Sorted list of packages
-        """
-        return sorted(
-            packages,
-            key=lambda x: (not x.availability, x.price)
-        )
+        return {
+            "results": all_results,
+            "errors": errors,
+            "stats": {
+                "duration": duration,
+                "total_results": len(all_results),
+                "providers_with_errors": len(errors)
+            }
+        }

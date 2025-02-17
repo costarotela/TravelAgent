@@ -1,122 +1,106 @@
-"""Proveedor de vuelos simulado para desarrollo."""
-from datetime import datetime, timedelta
-import random
-from typing import List, Dict, Any
+"""Proveedor Aero."""
 import asyncio
+import logging
+from datetime import datetime, timedelta
+from typing import List, Dict, Any
 
-from .base import TravelProvider, TravelPackage, SearchCriteria
+from .base import BaseProvider, SearchCriteria, TravelPackage
+from src.utils.monitoring import monitor
 
-class AeroProvider(TravelProvider):
-    """Proveedor de vuelos simulado."""
+logger = logging.getLogger(__name__)
 
-    def __init__(self, config: Dict[str, Any]):
-        """Inicializar proveedor."""
-        super().__init__(config)
-        self.name = config.get("name", "aero")
-
-    async def search_packages(self, criteria: SearchCriteria) -> List[TravelPackage]:
-        """Buscar paquetes de viaje."""
-        # Simular tiempo de búsqueda
-        await asyncio.sleep(1)
-
-        # Generar vuelos simulados
+class AeroProvider(BaseProvider):
+    """Implementación del proveedor Aero."""
+    
+    async def login(self):
+        """Simular login."""
+        await asyncio.sleep(0.1)  # Simular latencia de red
+    
+    async def logout(self):
+        """Simular logout."""
+        await asyncio.sleep(0.1)  # Simular latencia de red
+    
+    async def _search(self, criteria: SearchCriteria) -> List[TravelPackage]:
+        """
+        Simular búsqueda de vuelos.
+        
+        Esta es una implementación de ejemplo que genera datos simulados.
+        En una implementación real, aquí se realizaría la llamada a la API
+        del proveedor.
+        """
+        # Simular latencia de red y procesamiento
+        process_time = 0.5 + (hash(criteria.destination) % 1000) / 1000
+        await asyncio.sleep(process_time)
+        
+        # Registrar métrica de latencia
+        monitor.log_metric(
+            "provider_latency",
+            process_time,
+            {"provider": self.name}
+        )
+        
+        # Simular error aleatorio (10% de probabilidad)
+        if hash(f"{criteria.origin}{datetime.now().minute}") % 10 == 0:
+            raise Exception("Error de conexión simulado")
+        
         results = []
-
-        # Vuelo directo (el más barato)
-        results.append(TravelPackage(
-            id=f"vuelo_directo_{random.randint(1000, 9999)}",
-            provider="aero",
-            type="flight",
-            origin=criteria.origin,
-            destination=criteria.destination,
-            departure_date=criteria.departure_date,
-            return_date=criteria.return_date,
-            price=random.uniform(800, 1200),
-            currency="USD",
-            details={
-                "airline": "Aerolíneas Test",
-                "flight_number": f"TEST{random.randint(100, 999)}",
-                "baggage": "23kg",
-                "cabin_class": "Economy",
-                "type": "direct",
-                "duration": "2h 30m"
-            }
-        ))
+        base_price = 500 + (hash(criteria.destination) % 1000)
         
-        # Vuelo con escala (precio medio)
-        results.append(TravelPackage(
-            id=f"vuelo_escala_{random.randint(1000, 9999)}",
-            provider="aero",
-            type="flight",
-            origin=criteria.origin,
-            destination=criteria.destination,
-            departure_date=criteria.departure_date,
-            return_date=criteria.return_date,
-            price=random.uniform(600, 900),
-            currency="USD",
-            details={
-                "airline": "Low Cost Airways",
-                "flight_number": f"LOW{random.randint(100, 999)}",
-                "baggage": "10kg",
-                "cabin_class": "Economy",
-                "type": "stopover",
-                "duration": "4h 30m",
-                "stops": ["Paris"]
-            }
-        ))
+        # Generar algunos resultados simulados
+        for i in range(5):
+            departure = criteria.departure_date + timedelta(hours=i*3)
+            return_date = None
+            if criteria.return_date:
+                return_date = criteria.return_date + timedelta(hours=i*2)
+            
+            # Variar precio según clase y cantidad de pasajeros
+            price_multiplier = {
+                "ECONOMY": 1.0,
+                "PREMIUM_ECONOMY": 1.5,
+                "BUSINESS": 2.5,
+                "FIRST": 4.0
+            }.get(criteria.cabin_class, 1.0)
+            
+            total_passengers = criteria.adults + criteria.children
+            price = base_price * price_multiplier * total_passengers
+            
+            # Agregar variación aleatoria al precio
+            price_variation = (hash(f"{departure}{i}") % 200) - 100
+            price += price_variation
+            
+            results.append(TravelPackage(
+                id=f"AERO-{criteria.departure_date.strftime('%Y%m%d')}-{i}",
+                provider=self.name,
+                origin=criteria.origin,
+                destination=criteria.destination,
+                departure_date=departure,
+                return_date=return_date,
+                price=price,
+                currency="USD",
+                availability=True,
+                details={
+                    "flight_number": f"AR{1000 + i}",
+                    "aircraft": "Airbus A320",
+                    "duration": "2h 30m",
+                    "cabin_class": criteria.cabin_class,
+                    "seats_available": 20 - (hash(str(departure)) % 15),
+                    "baggage": "23kg",
+                    "type": "DIRECT" if i % 2 == 0 else "1_STOP",
+                    "stops": [] if i % 2 == 0 else ["GRU"],
+                    "airline": "Aero Airlines",
+                    "departure_time": departure.strftime("%H:%M")
+                }
+            ))
         
-        # Vuelo premium (el más caro)
-        results.append(TravelPackage(
-            id=f"vuelo_premium_{random.randint(1000, 9999)}",
-            provider="aero",
-            type="flight",
-            origin=criteria.origin,
-            destination=criteria.destination,
-            departure_date=criteria.departure_date,
-            return_date=criteria.return_date,
-            price=random.uniform(1500, 2000),
-            currency="USD",
-            details={
-                "airline": "Premium Airlines",
-                "flight_number": f"PRE{random.randint(100, 999)}",
-                "baggage": "32kg",
-                "cabin_class": "Business",
-                "type": "premium",
-                "duration": "2h 30m",
-                "lounge_access": True
-            }
-        ))
-        
-        return results
-
-    async def get_package_details(self, package_id: str) -> TravelPackage:
-        """Obtener detalles de un paquete."""
-        # Simular búsqueda del paquete
-        await asyncio.sleep(0.5)
-        
-        # Generar un paquete de ejemplo basado en el ID
-        return TravelPackage(
-            id=package_id,
-            provider="aero",
-            type="flight",
-            origin="Buenos Aires",
-            destination="Madrid",
-            departure_date=datetime.now().date(),
-            return_date=None,
-            price=random.uniform(800, 2000),
-            currency="USD",
-            details={
-                "airline": "Aerolíneas Test",
-                "flight_number": f"TEST{random.randint(100, 999)}",
-                "baggage": "23kg",
-                "cabin_class": "Economy",
-                "type": "direct",
-                "duration": "2h 30m"
+        # Registrar métricas de resultados
+        monitor.log_metric(
+            "search_results",
+            len(results),
+            {
+                "provider": self.name,
+                "origin": criteria.origin,
+                "destination": criteria.destination
             }
         )
-
-    async def check_availability(self, package_id: str) -> bool:
-        """Verificar disponibilidad de un paquete."""
-        # Simular verificación
-        await asyncio.sleep(0.5)
-        return random.choice([True, True, True, False])  # 75% de probabilidad de disponibilidad
+        
+        return results

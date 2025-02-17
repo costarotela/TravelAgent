@@ -2,20 +2,97 @@
 import streamlit as st
 from datetime import datetime
 from typing import Optional
+import pandas as pd
+from fpdf import FPDF
+import io
 
 from src.core.budget.storage import BudgetStorage
 from src.core.budget.models import Budget
 from src.utils.database import Database
+from src.utils.monitoring import monitor
 
 def update_budget_status(budget_id: str, new_status: str) -> bool:
     """Actualizar el estado de un presupuesto."""
     try:
         storage = BudgetStorage(Database())
         storage.update_budget_status(budget_id, new_status)
+        monitor.log_metric("budget_status_updated", 1, {"status": new_status})
         return True
     except Exception as e:
         st.error(f"Error al actualizar el presupuesto: {str(e)}")
+        monitor.log_error(e, {"action": "update_budget_status"})
         return False
+
+def export_budget_to_pdf(budget: Budget) -> Optional[bytes]:
+    """Exportar presupuesto a PDF."""
+    try:
+        pdf = FPDF()
+        pdf.add_page()
+        
+        # Título
+        pdf.set_font("Arial", "B", 16)
+        pdf.cell(0, 10, f"Presupuesto #{budget.id}", ln=True, align="C")
+        pdf.ln(10)
+        
+        # Información del cliente
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(0, 10, "Información del Cliente", ln=True)
+        pdf.set_font("Arial", "", 12)
+        pdf.cell(0, 10, f"Cliente: {budget.customer_name or 'Sin especificar'}", ln=True)
+        pdf.cell(0, 10, f"Fecha: {datetime.now().strftime('%Y-%m-%d')}", ln=True)
+        pdf.ln(10)
+        
+        # Detalles del viaje
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(0, 10, "Detalles del Viaje", ln=True)
+        pdf.set_font("Arial", "", 12)
+        
+        for item in budget.items:
+            pdf.cell(0, 10, f"Origen: {item.description.split(' → ')[0]}", ln=True)
+            pdf.cell(0, 10, f"Destino: {item.description.split(' → ')[1]}", ln=True)
+            pdf.cell(0, 10, f"Fecha: {item.details.get('departure_date', 'N/A')}", ln=True)
+            pdf.cell(0, 10, f"Pasajeros: {item.details.get('adults', 0)} adultos", ln=True)
+            pdf.cell(0, 10, f"Precio: ${item.total_price} {item.currency}", ln=True)
+            pdf.ln(5)
+        
+        # Total
+        pdf.set_font("Arial", "B", 12)
+        total = sum(item.total_price for item in budget.items)
+        pdf.cell(0, 10, f"Total: ${total} {budget.items[0].currency}", ln=True)
+        
+        return pdf.output(dest="S").encode("latin1")
+    except Exception as e:
+        st.error(f"Error al exportar a PDF: {str(e)}")
+        monitor.log_error(e, {"action": "export_budget_pdf"})
+        return None
+
+def export_budget_to_excel(budget: Budget) -> Optional[bytes]:
+    """Exportar presupuesto a Excel."""
+    try:
+        # Crear DataFrame con los items
+        data = []
+        for item in budget.items:
+            data.append({
+                "Tipo": item.type,
+                "Descripción": item.description,
+                "Precio": item.total_price,
+                "Moneda": item.currency,
+                "Fecha": item.details.get("departure_date", "N/A"),
+                "Pasajeros": item.details.get("adults", 0)
+            })
+        
+        df = pd.DataFrame(data)
+        
+        # Crear buffer en memoria
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Presupuesto")
+        
+        return output.getvalue()
+    except Exception as e:
+        st.error(f"Error al exportar a Excel: {str(e)}")
+        monitor.log_error(e, {"action": "export_budget_excel"})
+        return None
 
 def show_budget_details(budget: Budget, is_selected: bool = False):
     """Mostrar detalles de un presupuesto."""
@@ -41,6 +118,7 @@ def show_budget_details(budget: Budget, is_selected: bool = False):
                     if customer_name:
                         budget.customer_name = customer_name
                         BudgetStorage(Database()).update_budget(budget)
+                        monitor.log_metric("budget_customer_updated", 1)
                         st.rerun()
         elif budget.customer_name:
             st.write(f"**Cliente:** {budget.customer_name}")
@@ -60,18 +138,48 @@ def show_budget_details(budget: Budget, is_selected: bool = False):
             st.write(f"**Total:** ${total} {budget.items[0].currency}")
         
         # Acciones
-        if budget.status == "draft" and is_selected:
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("✅ Aceptar", key=f"accept_{budget.id}"):
-                    if update_budget_status(budget.id, "accepted"):
-                        st.success("¡Presupuesto aceptado!")
-                        st.rerun()
-            with col2:
-                if st.button("❌ Rechazar", key=f"reject_{budget.id}"):
-                    if update_budget_status(budget.id, "rejected"):
-                        st.error("Presupuesto rechazado")
-                        st.rerun()
+        if is_selected:
+            col1, col2, col3 = st.columns(3)
+            
+            # Botones de estado
+            if budget.status == "draft":
+                with col1:
+                    if st.button("✅ Aceptar", key=f"accept_{budget.id}"):
+                        if update_budget_status(budget.id, "accepted"):
+                            st.success("¡Presupuesto aceptado!")
+                            st.rerun()
+                with col2:
+                    if st.button("❌ Rechazar", key=f"reject_{budget.id}"):
+                        if update_budget_status(budget.id, "rejected"):
+                            st.error("Presupuesto rechazado")
+                            st.rerun()
+            
+            # Botones de exportación
+            with col3:
+                export_format = st.selectbox(
+                    "Formato",
+                    options=["PDF", "Excel"],
+                    key=f"export_{budget.id}"
+                )
+                
+                if export_format == "PDF":
+                    pdf_data = export_budget_to_pdf(budget)
+                    if pdf_data:
+                        st.download_button(
+                            "📥 Descargar PDF",
+                            pdf_data,
+                            f"presupuesto_{budget.id}.pdf",
+                            "application/pdf"
+                        )
+                else:
+                    excel_data = export_budget_to_excel(budget)
+                    if excel_data:
+                        st.download_button(
+                            "📥 Descargar Excel",
+                            excel_data,
+                            f"presupuesto_{budget.id}.xlsx",
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
 
 def render_budgets_page():
     """Renderizar página de presupuestos."""

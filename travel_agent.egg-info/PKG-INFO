@@ -1,0 +1,9 @@
+Metadata-Version: 2.2
+Name: travel-agent
+Version: 0.1
+Requires-Dist: streamlit
+Requires-Dist: pandas
+Requires-Dist: plotly
+Requires-Dist: fpdf
+Requires-Dist: openpyxl
+Dynamic: requires-dist
