@@ -1,14 +1,53 @@
 """Travel agent implementation."""
 
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime
 
 from src.core.agent.base import AgentCore
 from src.core.providers.base import SearchCriteria, TravelPackage
+from src.core.notifications.manager import NotificationManager
+from src.core.notifications.change_notifier import ChangeNotifier
+from src.core.notifications.providers import EmailProvider, WebhookProvider
 
 
 class TravelAgent(AgentCore):
     """Simple travel agent with basic functionality."""
+
+    def __init__(self):
+        """Initialize travel agent with notification system."""
+        super().__init__()
+        
+        # Configuración de notificaciones
+        email_config = {
+            "smtp_host": "smtp.tuempresa.com",
+            "smtp_port": 587,
+            "username": "notificaciones@tuempresa.com",
+            "password": "tupassword",
+            "use_tls": True,
+            "from_email": "notificaciones@tuempresa.com",
+        }
+        
+        webhook_config = {
+            "webhook_url": "https://hooks.slack.com/services/XXXX/XXXX/XXXX",
+            "secret_key": "your-secret-key",
+        }
+        
+        # Inicializar proveedores de notificaciones
+        email_provider = EmailProvider(**email_config)
+        webhook_provider = WebhookProvider(**webhook_config)
+        
+        # Inicializar manager de notificaciones
+        self.notification_manager = NotificationManager(
+            email_provider=email_provider,
+            webhook_provider=webhook_provider,
+        )
+        
+        # Inicializar notificador de cambios
+        self.change_notifier = ChangeNotifier(
+            notification_manager=self.notification_manager,
+            threshold=5,
+            recipients=["alertas@tuempresa.com"],
+        )
 
     async def search_packages(self, criteria: SearchCriteria) -> List[TravelPackage]:
         """Search for travel packages."""
@@ -58,6 +97,50 @@ class TravelAgent(AgentCore):
 
             await self.end_action(success=True)
             return analysis
+
+        except Exception as e:
+            await self.end_action(success=False, error=str(e))
+            raise
+
+    async def update_ola_data(self, destino: str) -> None:
+        """Update OLA data and process changes.
+
+        Args:
+            destino: Destination to update data for
+        """
+        await self.start_action("update_ola_data")
+
+        try:
+            # Obtener datos actualizados (simulado por ahora)
+            report = {
+                "stats": {
+                    "total_nuevos": 3,
+                    "total_actualizados": 2,
+                    "total_eliminados": 1,
+                },
+                "nuevos": [
+                    {"id": "pkg1", "destino": destino, "precio": 1000},
+                    {"id": "pkg2", "destino": destino, "precio": 1200},
+                    {"id": "pkg3", "destino": destino, "precio": 800},
+                ],
+                "actualizados": [
+                    {"id": "pkg4", "destino": destino, "precio_anterior": 900, "precio_nuevo": 950},
+                    {"id": "pkg5", "destino": destino, "precio_anterior": 1100, "precio_nuevo": 1050},
+                ],
+                "eliminados": [
+                    {"id": "pkg6", "destino": destino, "ultimo_precio": 1300},
+                ],
+            }
+
+            # Procesar cambios y enviar notificaciones
+            self.change_notifier.process_report(report)
+
+            # Track metrics
+            await self.add_metric("packages_updated", len(report["actualizados"]))
+            await self.add_metric("packages_added", len(report["nuevos"]))
+            await self.add_metric("packages_removed", len(report["eliminados"]))
+
+            await self.end_action(success=True)
 
         except Exception as e:
             await self.end_action(success=False, error=str(e))

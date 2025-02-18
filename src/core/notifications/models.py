@@ -17,6 +17,10 @@ class NotificationType(str, Enum):
     BUDGET_EXPIRED = "budget_expired"
     PRICE_CHANGE = "price_change"
     AVAILABILITY_CHANGE = "availability_change"
+    OLA_SIGNIFICANT_CHANGES = "ola_significant_changes"
+    OLA_NEW_PACKAGES = "ola_new_packages"
+    OLA_UPDATED_PACKAGES = "ola_updated_packages"
+    OLA_DELETED_PACKAGES = "ola_deleted_packages"
     CUSTOM = "custom"
 
 
