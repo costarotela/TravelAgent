@@ -146,9 +146,9 @@ Pygments @ file:///home/conda/feedstock_root/build_artifacts/pygments_1736243443
 pymdown-extensions==10.14.3
 pyparsing==3.2.1
 PySocks @ file:///home/conda/feedstock_root/build_artifacts/pysocks_1733217236728/work
-pytest @ file:///home/conda/feedstock_root/build_artifacts/pytest_1733217473289/work
-pytest-asyncio @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_pytest-asyncio_1738104606/work/dist
-pytest-cov @ file:///home/conda/feedstock_root/build_artifacts/pytest-cov_1733223023082/work
+pytest==8.3.4
+pytest-asyncio==0.25.3
+pytest-cov==6.0.0
 pytest-mock @ file:///home/conda/feedstock_root/build_artifacts/pytest-mock_1733364214944/work
 python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/python-dateutil_1733215673016/work
 python-decouple==3.8
@@ -230,3 +230,4 @@ wsproto==1.2.0
 yarl @ file:///home/conda/feedstock_root/build_artifacts/yarl_1737575777699/work
 zipp @ file:///home/conda/feedstock_root/build_artifacts/zipp_1732827521216/work
 zstandard==0.23.0
+aioredis==1.3.1
