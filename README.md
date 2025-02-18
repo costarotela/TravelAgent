@@ -1,11 +1,11 @@
 # Costa Rotela Travel Agency
 
-Sistema de gestión de presupuestos y búsqueda de vuelos para Costa Rotela Travel Agency.
+Sistema de gestión de presupuestos y búsqueda de vuelos para TudoBem Travel Agency.
 
 ## Características
 
 ### 1. Gestión de Presupuestos
-- Creación automática desde paquetes de viaje
+- Creación automática de presupuestos de paquetes de viaje con asistencia de vendedor
 - Almacenamiento persistente en SQLite
 - Exportación a PDF
 - Filtrado y búsqueda avanzada
