@@ -22,17 +22,17 @@ class OlaProvider(BaseProvider):
         super().__init__(config)
         self.monitor = OLAMonitor()
         self.updater = OLAUpdater(config, monitor=self.monitor)
-        self.update_interval = config.get('update_interval', 3600)  # 1 hour by default
+        self.update_interval = config.get("update_interval", 3600)  # 1 hour by default
 
     async def search(self, criteria: SearchCriteria) -> List[TravelPackage]:
         """Search for travel packages in OLA with dynamic update."""
         try:
             # Update data if necessary
             await self.updater.fetch_data(criteria.destination)
-            
+
             # Perform search in cache
             results = self._search_cached_packages(criteria)
-            
+
             return results
         except Exception as e:
             self.monitor.log_error()
@@ -42,31 +42,31 @@ class OlaProvider(BaseProvider):
         """Search in local cache using provided criteria."""
         cached_data = self.updater.cache
         results = []
-        
+
         for package_hash, package in cached_data.items():
             if self._matches_criteria(package, criteria):
                 results.append(self._parse_package(package))
-        
+
         return results
 
     def _matches_criteria(self, package: PaqueteOLA, criteria: SearchCriteria) -> bool:
         """Check if a package matches search criteria."""
         if criteria.destination and package.destino != criteria.destination:
             return False
-            
+
         if criteria.max_price and package.precio > criteria.max_price:
             return False
-            
+
         if criteria.start_date:
             start_date = datetime.strptime(criteria.start_date, "%Y-%m-%d")
             if not any(fecha >= start_date for fecha in package.fechas):
                 return False
-                
+
         if criteria.end_date:
             end_date = datetime.strptime(criteria.end_date, "%Y-%m-%d")
             if not any(fecha <= end_date for fecha in package.fechas):
                 return False
-                
+
         return True
 
     def _parse_package(self, data: PaqueteOLA) -> TravelPackage:
@@ -100,7 +100,7 @@ class OlaProvider(BaseProvider):
             for package in self.updater.cache.values():
                 if package.data_hash == package_id:
                     return self._parse_package(package)
-            
+
             return None
         except Exception as e:
             self.monitor.log_error()
@@ -113,7 +113,7 @@ class OlaProvider(BaseProvider):
             for package in self.updater.cache.values():
                 if package.data_hash == package_id:
                     return package.disponibilidad
-            
+
             return False
         except Exception as e:
             self.monitor.log_error()

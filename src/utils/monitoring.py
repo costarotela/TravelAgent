@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path
+from prometheus_client import Counter as PrometheusCounter, Histogram
 
 from .database import Database
 
@@ -118,10 +119,36 @@ class Monitor:
             self.logger.error(f"Error al registrar error: {e}")
 
 
+def setup_monitoring():
+    """Configura las métricas de monitoreo."""
+    # Métricas para el detector de cambios
+    if "changes_detected" not in METRICS:
+        METRICS["changes_detected"] = PrometheusCounter(
+            "changes_detected_total", "Total de cambios detectados", ["tipo"]
+        )
+
+    if "update_duration" not in METRICS:
+        METRICS["update_duration"] = Histogram(
+            "update_duration_seconds", "Duración de las actualizaciones", ["provider"]
+        )
+
+    if "cache_hits" not in METRICS:
+        METRICS["cache_hits"] = PrometheusCounter(
+            "cache_hits_total", "Total de aciertos en caché", ["cache_type"]
+        )
+
+    if "cache_misses" not in METRICS:
+        METRICS["cache_misses"] = PrometheusCounter(
+            "cache_misses_total", "Total de fallos en caché", ["cache_type"]
+        )
+
+
 def get_metrics_db_path() -> str:
     """Obtener ruta a la base de datos de métricas."""
     return str(Path("data/metrics.db").absolute())
 
 
 # Instancia global del monitor
+METRICS = {}
+setup_monitoring()
 monitor = Monitor()

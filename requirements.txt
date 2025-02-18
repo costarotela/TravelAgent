@@ -110,6 +110,7 @@ notebook @ file:///home/conda/feedstock_root/build_artifacts/notebook_1734789425
 notebook_shim @ file:///home/conda/feedstock_root/build_artifacts/notebook-shim_1733408315203/work
 numpy==1.26.4
 openpyxl @ file:///home/conda/feedstock_root/build_artifacts/openpyxl_1725460861946/work
+outcome==1.3.0.post0
 overrides @ file:///home/conda/feedstock_root/build_artifacts/overrides_1734587627321/work
 packaging==23.2
 pandas @ file:///home/conda/feedstock_root/build_artifacts/pandas_1736810577256/work
@@ -164,11 +165,13 @@ rfc3986-validator @ file:///home/conda/feedstock_root/build_artifacts/rfc3986-va
 rich @ file:///home/conda/feedstock_root/build_artifacts/rich_1733342254348/work/dist
 rpds-py @ file:///home/conda/feedstock_root/build_artifacts/rpds-py_1733366641280/work
 rsa==4.9
+selenium==4.28.1
 Send2Trash @ file:///home/conda/feedstock_root/build_artifacts/send2trash_1733322040660/work
 sentry-sdk==2.21.0
 six @ file:///home/conda/feedstock_root/build_artifacts/six_1733380938961/work
 smmap @ file:///home/conda/feedstock_root/build_artifacts/smmap_1739781697784/work
 sniffio @ file:///home/conda/feedstock_root/build_artifacts/sniffio_1733244044561/work
+sortedcontainers==2.4.0
 soupsieve @ file:///home/conda/feedstock_root/build_artifacts/soupsieve_1693929250441/work
 SQLAlchemy==2.0.38
 st-annotated-text==4.0.2
@@ -198,7 +201,9 @@ tomli @ file:///home/conda/feedstock_root/build_artifacts/tomli_1733256695513/wo
 toolz==1.0.0
 tornado @ file:///home/conda/feedstock_root/build_artifacts/tornado_1732615921868/work
 traitlets @ file:///home/conda/feedstock_root/build_artifacts/traitlets_1733367359838/work
--e git+https://costarotela@github.com/costarotela/TravelAgent.git@d136af116f1e922a2e4cd243bcce0a027a99b621#egg=travel_agent
+-e git+https://costarotela@github.com/costarotela/TravelAgent.git@1e7dc4ab98a4fb4c452ef5578a3ce1943f2e2af4#egg=travel_agent
+trio==0.29.0
+trio-websocket==0.12.1
 types-python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/types-python-dateutil_1733612335562/work
 typing_extensions @ file:///home/conda/feedstock_root/build_artifacts/typing_extensions_1733188668063/work
 typing_utils @ file:///home/conda/feedstock_root/build_artifacts/typing_utils_1733331286120/work
@@ -214,6 +219,7 @@ webcolors @ file:///home/conda/feedstock_root/build_artifacts/webcolors_17333597
 webencodings @ file:///home/conda/feedstock_root/build_artifacts/webencodings_1733236011802/work
 websocket-client @ file:///home/conda/feedstock_root/build_artifacts/websocket-client_1733157342724/work
 widgetsnbextension @ file:///home/conda/feedstock_root/build_artifacts/widgetsnbextension_1729587602438/work
+wsproto==1.2.0
 yarl @ file:///home/conda/feedstock_root/build_artifacts/yarl_1737575777699/work
 zipp @ file:///home/conda/feedstock_root/build_artifacts/zipp_1732827521216/work
 zstandard==0.23.0

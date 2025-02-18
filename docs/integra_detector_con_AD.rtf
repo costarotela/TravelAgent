@@ -1,0 +1,94 @@
+Para integrar el Detector con el Actualizador Dinámico, lo ideal es que el proceso de actualización emita un reporte (con los cambios detectados: nuevos, actualizados y eliminados) que luego sea analizado por el Detector. Este módulo adicional se encarga de revisar ese reporte y, según reglas o umbrales predefinidos, desencadena acciones como análisis profundo, notificaciones o incluso reentrenamiento de modelos.
+A continuación, te muestro cómo podrías hacerlo:
+1.    Crear el Módulo Detector:
+ Implementa una clase (por ejemplo, ChangeDetector) que reciba el reporte del Actualizador. Esta clase evaluará si los cambios detectados son significativos (por ejemplo, si el número de actualizaciones supera un umbral) y ejecutará las acciones pertinentes.
+2.    Integrar el Detector en el Flujo del Agente Principal:
+ Una vez que el Actualizador (OLAUpdater) complete su ciclo de actualización y genere el reporte, el Agente Principal (TravelAgent) invoca al Detector para que analice el reporte. Así, el flujo de trabajo es:
+Actualizador extrae y normaliza datos.
+Se detectan cambios y se genera un reporte.
+El Agente Principal pasa ese reporte al Detector.
+El Detector analiza el reporte y, si es necesario, dispara procesos adicionales (por ejemplo, alertas o reentrenamientos).
+Aquí tienes un ejemplo de implementación:
+# File: /src/core/detector.py
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+class ChangeDetector:
+    def __init__(self, update_threshold: int = 5):
+        self.update_threshold = update_threshold
+
+    def analyze_report(self, report: dict) -> None:
+        stats = report.get('stats', {})
+        nuevos = stats.get('total_nuevos', 0)
+        actualizados = stats.get('total_actualizados', 0)
+        eliminados = stats.get('total_eliminados', 0)
+        
+        logger.info(f"Reporte de cambios: {nuevos} nuevos, {actualizados} actualizados, {eliminados} eliminados")
+        
+        if actualizados > self.update_threshold:
+            self.trigger_additional_analysis(report)
+        else:
+            logger.info("Los cambios no superan el umbral; no se requiere análisis adicional.")
+
+    def trigger_additional_analysis(self, report: dict) -> None:
+        # Aquí puedes implementar lógica adicional, por ejemplo,
+        # notificaciones, reentrenamiento de modelos, o actualización de dashboards.
+        logger.info("Se han detectado cambios significativos. Iniciando análisis adicional...")
+        # Ejemplo: enviar alerta, actualizar base de conocimientos o invocar un servicio de reentrenamiento.
+
+Luego, en el Agente Principal, se integra el Detector de la siguiente forma:
+# File: /src/core/travel_agent.py
+
+import asyncio
+import logging
+from src.providers.ola_dynamic_updater import OLAUpdater
+from src.core.detector import ChangeDetector
+
+logger = logging.getLogger(__name__)
+
+class TravelAgent:
+    def __init__(self):
+        self.ola_config = {
+            'base_url': 'https://ola.com',
+            'headless': True,
+            'update_interval': 3600  # intervalo en segundos (1 hora)
+        }
+        # Se instancia el Actualizador y el Monitor (si ya se tiene integrado)
+        self.ola_updater = OLAUpdater(self.ola_config)
+        # Se instancia el Detector con un umbral (por ejemplo, 5 actualizaciones)
+        self.change_detector = ChangeDetector(update_threshold=5)
+        self.knowledge_base = {}  # Simulación de la base de conocimientos
+
+    async def update_ola_data(self, destino: str):
+        try:
+            report = await self.ola_updater.fetch_data(destino)
+            self.apply_updates(report)
+            # Invocar al Detector para analizar el reporte de cambios
+            self.change_detector.analyze_report(report)
+        except Exception as e:
+            logger.error(f"Fallo en update_ola_data: {str(e)}")
+
+    def apply_updates(self, report: dict):
+        logger.info("Aplicando actualizaciones en la base de conocimientos...")
+        self.knowledge_base.update(report)
+        logger.info(f"Actualización aplicada: {report['stats']}")
+
+# Ejemplo de ejecución
+async def main():
+    agent = TravelAgent()
+    await agent.update_ola_data("Cancún")
+    # Para una ejecución periódica, se podría utilizar:
+    # while True:
+    #     await agent.update_ola_data("Cancún")
+    #     await asyncio.sleep(agent.ola_config['update_interval'])
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+Explicación de la Integración:
+El OLAUpdater ya implementado se encarga de extraer, normalizar y detectar cambios en los datos, generando un reporte con estadísticas.
+La clase ChangeDetector analiza ese reporte y decide si se requieren acciones adicionales basándose en un umbral configurado.
+El TravelAgent actúa como coordinador, llamando primero al Actualizador y luego pasando el resultado al Detector. De esta forma, se encapsula la lógica de detección en un módulo separado, facilitando el mantenimiento y posibles futuras extensiones (por ejemplo, diferentes criterios de análisis).
+Esta integración permite que, además de actualizar dinámicamente los datos, el sistema sea proactivo al identificar situaciones anómalas o cambios significativos, lo que puede ser vital para mantener la precisión y la relevancia de la información en tiempo real.

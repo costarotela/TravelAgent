@@ -13,17 +13,18 @@ from selenium.common.exceptions import TimeoutException, WebDriverException
 
 logger = logging.getLogger(__name__)
 
+
 class SmartBrowser:
     """Navegador inteligente para scraping."""
-    
+
     def __init__(
         self,
         headless: bool = True,
         proxy: Optional[str] = None,
-        user_agent: Optional[str] = None
+        user_agent: Optional[str] = None,
     ):
         """Inicializar navegador.
-        
+
         Args:
             headless: Ejecutar en modo headless
             proxy: Proxy para las conexiones
@@ -39,33 +40,33 @@ class SmartBrowser:
         """Configurar el driver de Selenium."""
         try:
             options = webdriver.ChromeOptions()
-            
+
             if self.headless:
-                options.add_argument('--headless')
-            
+                options.add_argument("--headless")
+
             if self.proxy:
-                options.add_argument(f'--proxy-server={self.proxy}')
-            
+                options.add_argument(f"--proxy-server={self.proxy}")
+
             if self.user_agent:
-                options.add_argument(f'user-agent={self.user_agent}')
-            
+                options.add_argument(f"user-agent={self.user_agent}")
+
             # Opciones adicionales para mejor rendimiento
-            options.add_argument('--no-sandbox')
-            options.add_argument('--disable-dev-shm-usage')
-            options.add_argument('--disable-gpu')
-            options.add_argument('--disable-extensions')
-            
+            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--disable-gpu")
+            options.add_argument("--disable-extensions")
+
             self.driver = webdriver.Chrome(options=options)
             self.driver.set_page_load_timeout(30)
             logger.info("Driver de Chrome inicializado correctamente")
-            
+
         except Exception as e:
             logger.error(f"Error inicializando Chrome driver: {e}")
             raise
 
     async def navigate(self, url: str):
         """Navegar a una URL.
-        
+
         Args:
             url: URL a visitar
         """
@@ -77,26 +78,23 @@ class SmartBrowser:
             raise
 
     async def wait_for_element(
-        self,
-        selector: str,
-        timeout: int = 10,
-        type: str = 'css'
+        self, selector: str, timeout: int = 10, type: str = "css"
     ) -> bool:
         """Esperar por un elemento en la página.
-        
+
         Args:
             selector: Selector del elemento
             timeout: Tiempo máximo de espera
             type: Tipo de selector (css/xpath)
-            
+
         Returns:
             bool: True si el elemento fue encontrado
         """
         try:
-            by_type = By.CSS_SELECTOR if type == 'css' else By.XPATH
+            by_type = By.CSS_SELECTOR if type == "css" else By.XPATH
             element = await asyncio.to_thread(
                 WebDriverWait(self.driver, timeout).until,
-                EC.presence_of_element_located((by_type, selector))
+                EC.presence_of_element_located((by_type, selector)),
             )
             return bool(element)
         except TimeoutException:
@@ -108,18 +106,15 @@ class SmartBrowser:
 
     async def execute_script(self, script: str) -> Any:
         """Ejecutar JavaScript en la página.
-        
+
         Args:
             script: Código JavaScript a ejecutar
-            
+
         Returns:
             Any: Resultado de la ejecución
         """
         try:
-            result = await asyncio.to_thread(
-                self.driver.execute_script,
-                script
-            )
+            result = await asyncio.to_thread(self.driver.execute_script, script)
             return result
         except Exception as e:
             logger.error(f"Error ejecutando script: {e}")
@@ -127,7 +122,7 @@ class SmartBrowser:
 
     def get_page_source(self) -> str:
         """Obtener el código fuente de la página actual.
-        
+
         Returns:
             str: Código fuente HTML
         """
@@ -135,24 +130,24 @@ class SmartBrowser:
 
     def get_soup(self) -> BeautifulSoup:
         """Obtener objeto BeautifulSoup de la página actual.
-        
+
         Returns:
             BeautifulSoup: Objeto para parsing HTML
         """
-        return BeautifulSoup(self.get_page_source(), 'html.parser')
+        return BeautifulSoup(self.get_page_source(), "html.parser")
 
     async def extract_data(self, selectors: Dict[str, str]) -> Dict[str, Any]:
         """Extraer datos usando selectores.
-        
+
         Args:
             selectors: Diccionario de nombres y selectores CSS
-            
+
         Returns:
             Dict[str, Any]: Datos extraídos
         """
         soup = self.get_soup()
         data = {}
-        
+
         for key, selector in selectors.items():
             try:
                 element = soup.select_one(selector)
@@ -161,7 +156,7 @@ class SmartBrowser:
             except Exception as e:
                 logger.error(f"Error extrayendo {key}: {e}")
                 data[key] = None
-        
+
         return data
 
     async def close(self):

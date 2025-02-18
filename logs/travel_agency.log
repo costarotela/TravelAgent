@@ -187,3 +187,11 @@
 2025-02-18 07:56:40,350 - travel_agency - ERROR - Error al registrar métrica: table metrics has no column named metric_value
 2025-02-18 07:56:41,131 - travel_agency - ERROR - Error al registrar métrica: table metrics has no column named metric_value
 2025-02-18 07:56:41,132 - travel_agency - ERROR - Error al registrar métrica: table metrics has no column named metric_value
+2025-02-18 11:39:32,891 - travel_agency - ERROR - Error al registrar métrica: table metrics has no column named metric_value
+2025-02-18 11:39:33,427 - travel_agency - ERROR - Error al registrar métrica: table metrics has no column named metric_value
+2025-02-18 11:39:33,427 - travel_agency - ERROR - Error al registrar métrica: table metrics has no column named metric_value
+2025-02-18 11:39:33,427 - src.core.providers.aero - INFO - test_aero: Cache hit for GRU:EZE:2025-02-19:ECONOMY
+2025-02-18 11:39:33,428 - travel_agency - ERROR - Error al registrar métrica: table metrics has no column named metric_value
+2025-02-18 11:39:33,428 - travel_agency - ERROR - Error al registrar métrica: table metrics has no column named metric_value
+2025-02-18 11:39:33,964 - travel_agency - ERROR - Error al registrar métrica: table metrics has no column named metric_value
+2025-02-18 11:39:33,965 - travel_agency - ERROR - Error al registrar métrica: table metrics has no column named metric_value

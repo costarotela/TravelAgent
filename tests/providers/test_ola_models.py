@@ -6,8 +6,9 @@ from src.core.providers.ola_models import (
     Vuelo,
     ImpuestoEspecial,
     PoliticasCancelacion,
-    PaqueteOLA
+    PaqueteOLA,
 )
+
 
 @pytest.fixture
 def vuelo_data():
@@ -18,17 +19,15 @@ def vuelo_data():
         "duracion": "2h",
         "aerolinea": "AeroMéxico",
         "escala": None,
-        "espera": None
+        "espera": None,
     }
+
 
 @pytest.fixture
 def impuesto_data():
     """Fixture para datos de impuesto."""
-    return {
-        "nombre": "IVA",
-        "monto": 100.0,
-        "detalle": "Impuesto al valor agregado"
-    }
+    return {"nombre": "IVA", "monto": 100.0, "detalle": "Impuesto al valor agregado"}
+
 
 @pytest.fixture
 def politicas_data():
@@ -36,8 +35,9 @@ def politicas_data():
     return {
         "0-61 noches antes": "Reembolso completo",
         "62-90 noches antes": "50% reembolso",
-        "91+ noches antes": "No reembolsable"
+        "91+ noches antes": "No reembolsable",
     }
+
 
 @pytest.fixture
 def paquete_data(vuelo_data, politicas_data):
@@ -54,8 +54,9 @@ def paquete_data(vuelo_data, politicas_data):
         "fechas": [datetime.now()],
         "incluye": ["Vuelo", "Hotel", "Traslados"],
         "politicas_cancelacion": politicas_data,
-        "disponibilidad": True
+        "disponibilidad": True,
     }
+
 
 class TestVuelo:
     """Suite de pruebas para modelo Vuelo."""
@@ -79,6 +80,7 @@ class TestVuelo:
         with pytest.raises(ValueError):
             Vuelo(salida="08:00")  # Faltan campos requeridos
 
+
 class TestImpuestoEspecial:
     """Suite de pruebas para modelo ImpuestoEspecial."""
 
@@ -91,11 +93,9 @@ class TestImpuestoEspecial:
 
     def test_impuesto_optional_fields(self):
         """Probar campos opcionales de impuesto."""
-        impuesto = ImpuestoEspecial(
-            nombre="Tasa",
-            monto=50.0
-        )
+        impuesto = ImpuestoEspecial(nombre="Tasa", monto=50.0)
         assert impuesto.detalle is None
+
 
 class TestPoliticasCancelacion:
     """Suite de pruebas para modelo PoliticasCancelacion."""
@@ -110,10 +110,13 @@ class TestPoliticasCancelacion:
     def test_politicas_validation(self):
         """Probar validación de campos requeridos."""
         with pytest.raises(ValueError):
-            PoliticasCancelacion(**{
-                "0-61 noches antes": "Reembolso"
-                # Faltan campos requeridos
-            })
+            PoliticasCancelacion(
+                **{
+                    "0-61 noches antes": "Reembolso"
+                    # Faltan campos requeridos
+                }
+            )
+
 
 class TestPaqueteOLA:
     """Suite de pruebas para modelo PaqueteOLA."""
