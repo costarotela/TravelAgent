@@ -1,4 +1,5 @@
 """OLA Travel provider implementation."""
+
 import logging
 from typing import Dict, List, Optional
 
@@ -40,7 +41,9 @@ class OlaProvider(BaseProvider):
         """Search for travel packages in OLA."""
         try:
             search_params = self._build_search_params(criteria)
-            async with self._session.get(self.SEARCH_ENDPOINT, params=search_params) as response:
+            async with self._session.get(
+                self.SEARCH_ENDPOINT, params=search_params
+            ) as response:
                 response.raise_for_status()
                 data = await response.json()
                 return [self._parse_package(pkg) for pkg in data["packages"]]
@@ -54,7 +57,9 @@ class OlaProvider(BaseProvider):
     async def get_package_details(self, package_id: str) -> TravelPackage:
         """Get detailed package information from OLA."""
         try:
-            async with self._session.get(f"{self.DETAILS_ENDPOINT}/{package_id}") as response:
+            async with self._session.get(
+                f"{self.DETAILS_ENDPOINT}/{package_id}"
+            ) as response:
                 response.raise_for_status()
                 data = await response.json()
                 return self._parse_package(data, include_raw=True)
@@ -68,7 +73,9 @@ class OlaProvider(BaseProvider):
     async def check_availability(self, package_id: str) -> bool:
         """Check package availability in OLA."""
         try:
-            async with self._session.get(f"{self.DETAILS_ENDPOINT}/{package_id}/availability") as response:
+            async with self._session.get(
+                f"{self.DETAILS_ENDPOINT}/{package_id}/availability"
+            ) as response:
                 response.raise_for_status()
                 data = await response.json()
                 return data["available"]
@@ -120,6 +127,6 @@ class OlaProvider(BaseProvider):
                 "amenities": data.get("amenities", []),
                 "cancellation_policy": data.get("cancellation_policy"),
             },
-            raw_data=data if include_raw else None
+            raw_data=data if include_raw else None,
         )
         return package

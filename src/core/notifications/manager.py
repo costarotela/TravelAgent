@@ -1,4 +1,5 @@
 """Notification manager for handling all notification operations."""
+
 import logging
 from datetime import datetime, time
 from typing import Dict, List, Optional, Union
@@ -29,7 +30,7 @@ class NotificationManager:
         webhook_provider: Optional[WebhookProvider] = None,
     ):
         """Initialize notification manager.
-        
+
         Args:
             email_provider: Provider for email notifications
             sms_provider: Provider for SMS notifications
@@ -53,10 +54,10 @@ class NotificationManager:
         priority: NotificationPriority = NotificationPriority.MEDIUM,
         context: Optional[Dict] = None,
         scheduled_for: Optional[datetime] = None,
-        metadata: Optional[Dict[str, str]] = None
+        metadata: Optional[Dict[str, str]] = None,
     ) -> Notification:
         """Create a new notification.
-        
+
         Args:
             type: Type of notification
             recipient_id: ID of recipient
@@ -65,7 +66,7 @@ class NotificationManager:
             context: Optional context for template rendering
             scheduled_for: Optional scheduled time
             metadata: Optional metadata
-        
+
         Returns:
             Created Notification object
         """
@@ -76,9 +77,7 @@ class NotificationManager:
 
         # Check if notification type is disabled
         if type in preferences.disabled_types:
-            logger.info(
-                f"Notification type {type} is disabled for user {recipient_id}"
-            )
+            logger.info(f"Notification type {type} is disabled for user {recipient_id}")
             return None
 
         # Get channels for notification type
@@ -86,25 +85,21 @@ class NotificationManager:
 
         # Get template if specified
         template = self._templates.get(template_id) if template_id else None
-        
+
         # Create notification
         notification = Notification(
             id=str(uuid4()),
             type=type,
             priority=priority,
             subject=self._render_template(
-                template.subject if template else "",
-                context
+                template.subject if template else "", context
             ),
-            body=self._render_template(
-                template.body if template else "",
-                context
-            ),
+            body=self._render_template(template.body if template else "", context),
             recipient_email=preferences.email,
             recipient_phone=preferences.phone,
             channels=channels,
             scheduled_for=scheduled_for,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         logger.info(
@@ -114,23 +109,19 @@ class NotificationManager:
         return notification
 
     def send_notification(
-        self,
-        notification: Notification,
-        force: bool = False
+        self, notification: Notification, force: bool = False
     ) -> bool:
         """Send a notification through configured channels.
-        
+
         Args:
             notification: Notification to send
             force: If True, ignore quiet hours
-        
+
         Returns:
             True if sent successfully
         """
         if not force and self._is_quiet_hours(notification):
-            logger.info(
-                f"Notification {notification.id} delayed due to quiet hours"
-            )
+            logger.info(f"Notification {notification.id} delayed due to quiet hours")
             return False
 
         success = True
@@ -143,9 +134,7 @@ class NotificationManager:
 
             try:
                 provider.send(notification)
-                logger.info(
-                    f"Sent notification {notification.id} via {channel}"
-                )
+                logger.info(f"Sent notification {notification.id} via {channel}")
             except Exception as e:
                 logger.error(
                     f"Failed to send notification {notification.id} "
@@ -159,16 +148,14 @@ class NotificationManager:
         return success
 
     def notify_budget_update(
-        self,
-        budget: Budget,
-        old_status: Optional[BudgetStatus] = None
+        self, budget: Budget, old_status: Optional[BudgetStatus] = None
     ) -> List[Notification]:
         """Create notifications for budget updates.
-        
+
         Args:
             budget: Updated budget
             old_status: Previous status if status changed
-        
+
         Returns:
             List of created notifications
         """
@@ -196,7 +183,7 @@ class NotificationManager:
             template_id=f"{ntype}_client",
             priority=priority,
             context={"budget": budget},
-            metadata={"budget_id": budget.id}
+            metadata={"budget_id": budget.id},
         )
         if client_notification:
             notifications.append(client_notification)
@@ -208,31 +195,25 @@ class NotificationManager:
             template_id=f"{ntype}_internal",
             priority=priority,
             context={"budget": budget},
-            metadata={"budget_id": budget.id}
+            metadata={"budget_id": budget.id},
         )
         if internal_notification:
             notifications.append(internal_notification)
 
         return notifications
 
-    def register_template(
-        self,
-        template: NotificationTemplate
-    ) -> None:
+    def register_template(self, template: NotificationTemplate) -> None:
         """Register a new notification template.
-        
+
         Args:
             template: Template to register
         """
         self._templates[template.id] = template
         logger.info(f"Registered template {template.id}")
 
-    def set_preferences(
-        self,
-        preferences: NotificationPreference
-    ) -> None:
+    def set_preferences(self, preferences: NotificationPreference) -> None:
         """Set notification preferences for a user.
-        
+
         Args:
             preferences: User's notification preferences
         """
@@ -259,17 +240,13 @@ class NotificationManager:
         else:  # Handles overnight quiet hours
             return current_hour >= start or current_hour < end
 
-    def _render_template(
-        self,
-        template: str,
-        context: Optional[Dict] = None
-    ) -> str:
+    def _render_template(self, template: str, context: Optional[Dict] = None) -> str:
         """Render a template with given context."""
         if not template:
             return ""
         if not context:
             return template
-            
+
         # Simple template rendering
         result = template
         for key, value in context.items():

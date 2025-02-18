@@ -1,9 +1,12 @@
 """Common models for providers."""
+
 from typing import Dict, Optional
 from pydantic import BaseModel
 
+
 class SearchCriteria(BaseModel):
     """Search criteria for travel packages."""
+
     origin: str
     destination: str
     departure_date: str
@@ -15,8 +18,10 @@ class SearchCriteria(BaseModel):
     class_type: Optional[str] = None
     flexible_dates: bool = False
 
+
 class TravelPackage(BaseModel):
     """Travel package information."""
+
     id: str
     provider: str
     origin: str

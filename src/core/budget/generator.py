@@ -1,4 +1,5 @@
 """Budget generator for travel packages."""
+
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
@@ -15,7 +16,7 @@ class BudgetGenerator:
 
     def __init__(self, default_markup: float = 0.15):
         """Initialize budget generator.
-        
+
         Args:
             default_markup: Default markup percentage (0.15 = 15%)
         """
@@ -29,10 +30,10 @@ class BudgetGenerator:
         template: Optional[BudgetTemplate] = None,
         validity_days: Optional[int] = None,
         notes: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None
+        metadata: Optional[Dict[str, str]] = None,
     ) -> Budget:
         """Create a new budget from selected packages.
-        
+
         Args:
             client_name: Name of the client
             client_email: Email of the client
@@ -41,13 +42,15 @@ class BudgetGenerator:
             validity_days: Optional number of days the budget is valid
             notes: Optional notes about the budget
             metadata: Optional metadata key-value pairs
-        
+
         Returns:
             New Budget object
         """
         # Use template values or defaults
         markup = template.markup_percentage if template else self.default_markup
-        valid_days = validity_days or (template.default_validity_days if template else 7)
+        valid_days = validity_days or (
+            template.default_validity_days if template else 7
+        )
 
         # Calculate prices
         total_price = sum(pkg.price for pkg in packages)
@@ -63,7 +66,7 @@ class BudgetGenerator:
             total_price=total_price,
             currency=packages[0].currency if packages else "USD",
             markup_percentage=markup,
-            final_price=final_price
+            final_price=final_price,
         )
 
         # Create budget
@@ -75,7 +78,7 @@ class BudgetGenerator:
             versions=[initial_version],
             valid_until=datetime.utcnow() + timedelta(days=valid_days),
             notes=notes,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         logger.info(f"Created new budget {budget.id} for {client_name}")
@@ -88,10 +91,10 @@ class BudgetGenerator:
         markup: Optional[float] = None,
         notes: Optional[str] = None,
         comment: str = "",
-        created_by: str = "system"
+        created_by: str = "system",
     ) -> Budget:
         """Create a new version of an existing budget.
-        
+
         Args:
             budget: Existing budget to update
             packages: Optional new list of packages
@@ -99,24 +102,24 @@ class BudgetGenerator:
             notes: Optional new notes
             comment: Comment about the changes
             created_by: User or system creating the version
-        
+
         Returns:
             Updated Budget object
         """
         if budget.status not in [BudgetStatus.DRAFT, BudgetStatus.PENDING]:
-            raise ValueError(
-                f"Cannot update budget in {budget.status} status"
-            )
+            raise ValueError(f"Cannot update budget in {budget.status} status")
 
         # Get current version
         current = budget.versions[budget.current_version - 1]
-        
+
         # Track changes
         changes = {}
         if packages:
             changes["packages"] = "Updated package selection"
         if markup is not None:
-            changes["markup"] = f"Updated markup from {current.markup_percentage:.1%} to {markup:.1%}"
+            changes["markup"] = (
+                f"Updated markup from {current.markup_percentage:.1%} to {markup:.1%}"
+            )
         if notes:
             changes["notes"] = "Updated notes"
 
@@ -136,7 +139,7 @@ class BudgetGenerator:
             total_price=total_price,
             currency=new_packages[0].currency if new_packages else current.currency,
             markup_percentage=new_markup,
-            final_price=final_price
+            final_price=final_price,
         )
 
         # Update budget
@@ -146,9 +149,7 @@ class BudgetGenerator:
         if notes:
             budget.notes = notes
 
-        logger.info(
-            f"Created version {budget.current_version} of budget {budget.id}"
-        )
+        logger.info(f"Created version {budget.current_version} of budget {budget.id}")
         return budget
 
     def update_status(
@@ -156,16 +157,16 @@ class BudgetGenerator:
         budget: Budget,
         new_status: BudgetStatus,
         comment: str = "",
-        created_by: str = "system"
+        created_by: str = "system",
     ) -> Budget:
         """Update the status of a budget.
-        
+
         Args:
             budget: Budget to update
             new_status: New status to set
             comment: Comment about the status change
             created_by: User or system updating the status
-        
+
         Returns:
             Updated Budget object
         """
@@ -174,24 +175,15 @@ class BudgetGenerator:
 
         # Validate status transition
         valid_transitions = {
-            BudgetStatus.DRAFT: [
-                BudgetStatus.PENDING,
-                BudgetStatus.EXPIRED
-            ],
+            BudgetStatus.DRAFT: [BudgetStatus.PENDING, BudgetStatus.EXPIRED],
             BudgetStatus.PENDING: [
                 BudgetStatus.APPROVED,
                 BudgetStatus.REJECTED,
-                BudgetStatus.EXPIRED
+                BudgetStatus.EXPIRED,
             ],
-            BudgetStatus.APPROVED: [
-                BudgetStatus.EXPIRED
-            ],
-            BudgetStatus.REJECTED: [
-                BudgetStatus.DRAFT
-            ],
-            BudgetStatus.EXPIRED: [
-                BudgetStatus.DRAFT
-            ]
+            BudgetStatus.APPROVED: [BudgetStatus.EXPIRED],
+            BudgetStatus.REJECTED: [BudgetStatus.DRAFT],
+            BudgetStatus.EXPIRED: [BudgetStatus.DRAFT],
         }
 
         if new_status not in valid_transitions[budget.status]:
@@ -210,7 +202,7 @@ class BudgetGenerator:
             total_price=current.total_price,
             currency=current.currency,
             markup_percentage=current.markup_percentage,
-            final_price=current.final_price
+            final_price=current.final_price,
         )
 
         # Update budget
@@ -219,29 +211,26 @@ class BudgetGenerator:
         budget.status = new_status
         budget.updated_at = datetime.utcnow()
 
-        logger.info(
-            f"Updated budget {budget.id} status to {new_status}"
-        )
+        logger.info(f"Updated budget {budget.id} status to {new_status}")
         return budget
 
     def compare_versions(
-        self,
-        budget: Budget,
-        version1: int,
-        version2: int
+        self, budget: Budget, version1: int, version2: int
     ) -> Dict[str, Dict]:
         """Compare two versions of a budget.
-        
+
         Args:
             budget: Budget to compare versions from
             version1: First version number
             version2: Second version number
-        
+
         Returns:
             Dictionary with differences between versions
         """
-        if not (1 <= version1 <= len(budget.versions) and
-                1 <= version2 <= len(budget.versions)):
+        if not (
+            1 <= version1 <= len(budget.versions)
+            and 1 <= version2 <= len(budget.versions)
+        ):
             raise ValueError("Invalid version numbers")
 
         v1 = budget.versions[version1 - 1]
@@ -250,24 +239,26 @@ class BudgetGenerator:
         differences = {
             "packages": {
                 "added": [
-                    pkg for pkg in v2.packages
+                    pkg
+                    for pkg in v2.packages
                     if pkg.id not in [p.id for p in v1.packages]
                 ],
                 "removed": [
-                    pkg for pkg in v1.packages
+                    pkg
+                    for pkg in v1.packages
                     if pkg.id not in [p.id for p in v2.packages]
-                ]
+                ],
             },
             "pricing": {
                 "total_price_diff": v2.total_price - v1.total_price,
                 "markup_diff": v2.markup_percentage - v1.markup_percentage,
-                "final_price_diff": v2.final_price - v1.final_price
+                "final_price_diff": v2.final_price - v1.final_price,
             },
             "metadata": {
                 "created_by": v2.created_by,
                 "comment": v2.comment,
-                "changes": v2.changes
-            }
+                "changes": v2.changes,
+            },
         }
 
         return differences

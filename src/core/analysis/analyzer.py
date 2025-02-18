@@ -1,4 +1,5 @@
 """Package analyzer for evaluating and scoring travel options."""
+
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -12,6 +13,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PackageScore:
     """Score and analysis details for a travel package."""
+
     package: TravelPackage
     total_score: float
     price_score: float
@@ -29,10 +31,10 @@ class PackageAnalyzer:
         price_weight: float = 0.3,
         duration_weight: float = 0.2,
         convenience_weight: float = 0.3,
-        reliability_weight: float = 0.2
+        reliability_weight: float = 0.2,
     ):
         """Initialize package analyzer with scoring weights.
-        
+
         Args:
             price_weight: Weight for price score (0-1)
             duration_weight: Weight for duration score (0-1)
@@ -40,10 +42,7 @@ class PackageAnalyzer:
             reliability_weight: Weight for reliability score (0-1)
         """
         self._validate_weights(
-            price_weight,
-            duration_weight,
-            convenience_weight,
-            reliability_weight
+            price_weight, duration_weight, convenience_weight, reliability_weight
         )
         self.price_weight = price_weight
         self.duration_weight = duration_weight
@@ -53,14 +52,14 @@ class PackageAnalyzer:
     def analyze_packages(
         self,
         packages: List[TravelPackage],
-        preferred_airlines: Optional[List[str]] = None
+        preferred_airlines: Optional[List[str]] = None,
     ) -> List[PackageScore]:
         """Analyze and score a list of travel packages.
-        
+
         Args:
             packages: List of packages to analyze
             preferred_airlines: Optional list of preferred airlines
-        
+
         Returns:
             List of PackageScore objects, sorted by total score
         """
@@ -76,10 +75,7 @@ class PackageAnalyzer:
         for package in packages:
             try:
                 score = self._score_package(
-                    package,
-                    price_range,
-                    duration_range,
-                    preferred_airlines
+                    package, price_range, duration_range, preferred_airlines
                 )
                 scores.append(score)
             except Exception as e:
@@ -94,7 +90,7 @@ class PackageAnalyzer:
         package: TravelPackage,
         price_range: Tuple[float, float],
         duration_range: Tuple[int, int],
-        preferred_airlines: Optional[List[str]]
+        preferred_airlines: Optional[List[str]],
     ) -> PackageScore:
         """Score an individual package based on various criteria."""
         # Calculate individual scores
@@ -102,16 +98,15 @@ class PackageAnalyzer:
         duration_score = self._calculate_duration_score(package, duration_range)
         convenience_score = self._calculate_convenience_score(package)
         reliability_score = self._calculate_reliability_score(
-            package,
-            preferred_airlines
+            package, preferred_airlines
         )
 
         # Calculate weighted total
         total_score = (
-            self.price_weight * price_score +
-            self.duration_weight * duration_score +
-            self.convenience_weight * convenience_score +
-            self.reliability_weight * reliability_score
+            self.price_weight * price_score
+            + self.duration_weight * duration_score
+            + self.convenience_weight * convenience_score
+            + self.reliability_weight * reliability_score
         )
 
         return PackageScore(
@@ -121,13 +116,11 @@ class PackageAnalyzer:
             duration_score=duration_score,
             convenience_score=convenience_score,
             reliability_score=reliability_score,
-            details=self._get_score_details(package)
+            details=self._get_score_details(package),
         )
 
     def _calculate_price_score(
-        self,
-        package: TravelPackage,
-        price_range: Tuple[float, float]
+        self, package: TravelPackage, price_range: Tuple[float, float]
     ) -> float:
         """Calculate normalized price score (higher is better)."""
         min_price, max_price = price_range
@@ -136,9 +129,7 @@ class PackageAnalyzer:
         return 1 - ((package.price - min_price) / (max_price - min_price))
 
     def _calculate_duration_score(
-        self,
-        package: TravelPackage,
-        duration_range: Tuple[int, int]
+        self, package: TravelPackage, duration_range: Tuple[int, int]
     ) -> float:
         """Calculate normalized duration score (higher is better)."""
         duration = self._get_duration_minutes(package)
@@ -150,7 +141,7 @@ class PackageAnalyzer:
     def _calculate_convenience_score(self, package: TravelPackage) -> float:
         """Calculate convenience score based on stops, time, etc."""
         score = 1.0
-        
+
         # Penalize for stops
         stops = len(package.details.get("stops", []))
         score -= stops * 0.15  # -0.15 per stop
@@ -171,24 +162,20 @@ class PackageAnalyzer:
         return max(0.0, min(1.0, score))
 
     def _calculate_reliability_score(
-        self,
-        package: TravelPackage,
-        preferred_airlines: Optional[List[str]]
+        self, package: TravelPackage, preferred_airlines: Optional[List[str]]
     ) -> float:
         """Calculate reliability score based on airline and provider."""
         score = 0.8  # Base score
 
         # Preferred airline bonus
         if preferred_airlines and package.details.get("airline"):
-            if package.details["airline"].upper() in {a.upper() for a in preferred_airlines}:
+            if package.details["airline"].upper() in {
+                a.upper() for a in preferred_airlines
+            }:
                 score += 0.2
 
         # Provider reliability
-        provider_scores = {
-            "OLA": 0.1,
-            "AERO": 0.1,
-            "DESPEGAR": 0.1
-        }
+        provider_scores = {"OLA": 0.1, "AERO": 0.1, "DESPEGAR": 0.1}
         score += provider_scores.get(package.provider, 0)
 
         return min(1.0, score)
@@ -199,7 +186,7 @@ class PackageAnalyzer:
             "stops_penalty": -0.15 * len(package.details.get("stops", [])),
             "baggage_score": 0.1 if package.details.get("baggage_allowance") else 0,
             "refundable_score": 0.1 if package.details.get("refundable", False) else 0,
-            "time_penalty": -0.1 if self._is_inconvenient_time(package) else 0
+            "time_penalty": -0.1 if self._is_inconvenient_time(package) else 0,
         }
 
     @staticmethod
@@ -219,14 +206,14 @@ class PackageAnalyzer:
         """Convert package duration to minutes."""
         duration_str = package.details.get("duration", "0")
         try:
-            if 'h' in duration_str and 'm' in duration_str:
-                hours, minutes = duration_str.split('h')
-                return int(hours.strip()) * 60 + int(minutes.strip('m').strip())
-            elif 'h' in duration_str:
-                hours = float(duration_str.strip('h').strip())
+            if "h" in duration_str and "m" in duration_str:
+                hours, minutes = duration_str.split("h")
+                return int(hours.strip()) * 60 + int(minutes.strip("m").strip())
+            elif "h" in duration_str:
+                hours = float(duration_str.strip("h").strip())
                 return int(hours * 60)
-            elif 'm' in duration_str:
-                return int(duration_str.strip('m').strip())
+            elif "m" in duration_str:
+                return int(duration_str.strip("m").strip())
             return int(duration_str)  # Assume minutes if no unit
         except (ValueError, TypeError):
             return 0

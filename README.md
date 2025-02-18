@@ -1,44 +1,32 @@
-# Smart Travel Agency 
+# Costa Rotela Travel Agency
 
-Sistema simplificado para agentes de viajes que facilita la búsqueda y generación de presupuestos de viajes.
+Sistema de gestión de presupuestos y búsqueda de vuelos para Costa Rotela Travel Agency.
 
-## Características Principales
+## Características
 
-- **Búsqueda Simple**: Búsqueda rápida de vuelos y paquetes
-- **Presupuestos Básicos**: Generación simple de presupuestos
-- **Interfaz Intuitiva**: UI simple y fácil de usar
-- **Almacenamiento Local**: Base de datos SQLite para persistencia
-- **Proveedor Aero**: Integración con proveedor principal de vuelos
+### 1. Gestión de Presupuestos
+- Creación automática desde paquetes de viaje
+- Almacenamiento persistente en SQLite
+- Exportación a PDF
+- Filtrado y búsqueda avanzada
+- Vista detallada de presupuestos
 
-## Documentación
+### 2. Búsqueda de Vuelos
+- Integración con API Aero
+- Filtros personalizables
+- Sistema de caché para mejor rendimiento
+- Comparación de opciones
+- Creación directa de presupuestos
 
-La documentación del proyecto se encuentra en el directorio `docs/`:
+### 3. Interfaz de Usuario
+- Dashboard con estadísticas
+- Búsqueda rápida de vuelos
+- Actividad reciente
+- Navegación intuitiva
+- Manejo global de errores
+- Diseño responsivo
 
-- `PLAN_SIMPLIFICACION.md`: Plan detallado de simplificación del sistema
-- `ESTADO_EVOLUCION.md`: Estado actual del proyecto y próximos pasos
-- `PLAN_MEJORAS.md`: Plan de mejoras incrementales
-
-## Interfaz de Usuario
-
-La aplicación cuenta con una interfaz web simple construida con Streamlit que proporciona:
-
-1. **Búsqueda de Vuelos**
-   - Formulario simple de búsqueda
-   - Filtros básicos
-   - Visualización de resultados en tabla
-
-2. **Gestión de Presupuestos**
-   - Creación de presupuestos
-   - Lista de presupuestos activos
-   - Exportación simple
-
-## Configuración del Entorno
-
-### Requisitos Previos
-- Python 3.8+
-- pip
-
-### Instalación
+## Instalación
 
 1. Clonar el repositorio:
 ```bash
@@ -46,65 +34,71 @@ git clone https://github.com/costarotela/TravelAgent.git
 cd TravelAgent
 ```
 
-2. Instalar dependencias:
+2. Crear entorno virtual:
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+```
+
+3. Instalar dependencias:
 ```bash
 pip install -r requirements.txt
 ```
 
-## Ejecución
-
-1. Ejecutar la aplicación:
+4. Configurar variables de entorno:
 ```bash
-python run.py
+cp .env.example .env
+# Editar .env con tus credenciales
 ```
 
-2. Abrir en el navegador:
+## Uso
+
+1. Iniciar la aplicación:
+```bash
+streamlit run src/ui/main.py
+```
+
+2. Acceder a través del navegador:
 ```
 http://localhost:8501
 ```
 
-## Estructura del Proyecto
+## Desarrollo
 
+### Estructura del Proyecto
 ```
 TravelAgent/
-├── docs/
-│   ├── PLAN_SIMPLIFICACION.md  # Plan de simplificación
-│   ├── ESTADO_EVOLUCION.md     # Estado actual
-│   └── PLAN_MEJORAS.md         # Plan de mejoras
-├── src/
-│   ├── core/
-│   │   ├── providers/         # Proveedores de viajes
-│   │   └── budget/           # Gestión de presupuestos
-│   ├── ui/                   # Interfaces de usuario
-│   └── utils/               # Utilidades
-├── data/                   # Base de datos SQLite
-└── requirements.txt       # Dependencias del proyecto
+├── docs/                  # Documentación
+├── src/                   # Código fuente
+│   ├── core/             # Lógica de negocio
+│   │   ├── budget/       # Gestión de presupuestos
+│   │   └── providers/    # Proveedores de vuelos
+│   ├── ui/               # Interfaz de usuario
+│   │   └── pages/        # Páginas de la aplicación
+│   └── utils/            # Utilidades
+├── tests/                # Tests
+└── requirements.txt      # Dependencias
 ```
 
-## Componentes Principales
+### Ejecutar Tests
+```bash
+python -m unittest discover tests
+```
 
-### 1. Búsqueda (`search.py`)
-- Formulario de búsqueda simple
-- Filtros básicos
-- Visualización de resultados
+## Contribuir
 
-### 2. Presupuestos (`budget/`)
-- Generación de presupuestos
-- Almacenamiento en SQLite
-- Exportación básica
-
-### 3. Proveedor Aero (`providers/aero.py`)
-- Búsqueda de vuelos
-- Caché en memoria
-- Manejo de errores básico
-
-## Contribución
-
-1. Hacer fork del repositorio
-2. Crear rama para nueva funcionalidad
-3. Hacer commit de los cambios
-4. Crear pull request
+1. Fork el repositorio
+2. Crear rama para feature: `git checkout -b feature/nueva-funcionalidad`
+3. Commit cambios: `git commit -m 'Agregar nueva funcionalidad'`
+4. Push a la rama: `git push origin feature/nueva-funcionalidad`
+5. Crear Pull Request
 
 ## Licencia
 
 Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+## Contacto
+
+- **Email**: support@costarotela.com
+- **Web**: https://costarotela.com
+- **Tel**: +54 (011) 4444-5555

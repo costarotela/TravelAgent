@@ -1,4 +1,5 @@
 """Report generation package."""
+
 from .exporters import ReportExporter
 from .generator import ReportGenerator
 from .models import (
@@ -15,16 +16,16 @@ from .models import (
 )
 
 __all__ = [
-    'BudgetMetrics',
-    'DestinationMetrics',
-    'ProviderMetrics',
-    'Report',
-    'ReportExporter',
-    'ReportFormat',
-    'ReportGenerator',
-    'ReportPeriod',
-    'ReportSection',
-    'ReportTemplate',
-    'ReportType',
-    'SalesMetrics',
+    "BudgetMetrics",
+    "DestinationMetrics",
+    "ProviderMetrics",
+    "Report",
+    "ReportExporter",
+    "ReportFormat",
+    "ReportGenerator",
+    "ReportPeriod",
+    "ReportSection",
+    "ReportTemplate",
+    "ReportType",
+    "SalesMetrics",
 ]

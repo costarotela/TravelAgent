@@ -1,4 +1,5 @@
 """Despegar provider implementation."""
+
 import logging
 from typing import Dict, List, Optional
 from urllib.parse import urlencode
@@ -34,9 +35,9 @@ class DespegarProvider(BaseProvider):
                 "X-API-Key": self.credentials["api_key"],
                 "X-Affiliate-ID": self.credentials["affiliate_id"],
                 "Accept": "application/json",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             },
-            timeout=aiohttp.ClientTimeout(total=30)
+            timeout=aiohttp.ClientTimeout(total=30),
         )
 
     async def search(self, criteria: SearchCriteria) -> List[TravelPackage]:
@@ -46,7 +47,7 @@ class DespegarProvider(BaseProvider):
             async with self._session.get(
                 self.SEARCH_ENDPOINT,
                 params=search_params,
-                headers=self._get_tracking_headers()
+                headers=self._get_tracking_headers(),
             ) as response:
                 response.raise_for_status()
                 data = await response.json()
@@ -63,7 +64,7 @@ class DespegarProvider(BaseProvider):
         try:
             async with self._session.get(
                 f"{self.DETAILS_ENDPOINT}/{package_id}",
-                headers=self._get_tracking_headers()
+                headers=self._get_tracking_headers(),
             ) as response:
                 response.raise_for_status()
                 data = await response.json()
@@ -80,7 +81,7 @@ class DespegarProvider(BaseProvider):
         try:
             async with self._session.get(
                 f"{self.DETAILS_ENDPOINT}/{package_id}{self.AVAILABILITY_ENDPOINT}",
-                headers=self._get_tracking_headers()
+                headers=self._get_tracking_headers(),
             ) as response:
                 response.raise_for_status()
                 data = await response.json()
@@ -118,14 +119,14 @@ class DespegarProvider(BaseProvider):
         return {
             "X-Flow-Id": "search",
             "X-Track-ID": "travel-agent",
-            "X-Device-Type": "API"
+            "X-Device-Type": "API",
         }
 
     def _parse_package(self, data: Dict, include_raw: bool = False) -> TravelPackage:
         """Parse Despegar API response into TravelPackage model."""
         flight_info = data["flight"]
         price_info = data["price"]
-        
+
         return TravelPackage(
             id=data["id"],
             provider="DESPEGAR",
@@ -144,13 +145,10 @@ class DespegarProvider(BaseProvider):
                 "baggage": data.get("baggage", {}),
                 "cancellation_policy": data.get("policies", {}).get("cancellation"),
                 "stops": [
-                    {
-                        "airport": stop["airport"]["code"],
-                        "duration": stop["duration"]
-                    }
+                    {"airport": stop["airport"]["code"], "duration": stop["duration"]}
                     for stop in flight_info.get("stops", [])
                 ],
-                "amenities": data.get("amenities", [])
+                "amenities": data.get("amenities", []),
             },
-            raw_data=data if include_raw else None
+            raw_data=data if include_raw else None,
         )

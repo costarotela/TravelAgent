@@ -1,4 +1,5 @@
 """Main FastAPI application."""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -13,7 +14,7 @@ cache = SimpleCache()
 app = FastAPI(
     title="Travel Agent API",
     description="API for travel provider management",
-    version="0.1.0"
+    version="0.1.0",
 )
 
 # Configurar CORS
@@ -25,10 +26,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy"}
+
 
 @app.get("/status")
 async def get_status():
@@ -36,9 +39,11 @@ async def get_status():
     return {
         "status": "operational",
         "cache_size": len(cache.cache),
-        "uptime": "available in full version"
+        "uptime": "available in full version",
     }
+
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8001)

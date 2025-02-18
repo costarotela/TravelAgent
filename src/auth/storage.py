@@ -1,9 +1,11 @@
 """User data storage management."""
+
 import json
 import os
 from typing import Dict, Optional
 
 from src.auth.models import User, UserRole
+
 
 class UserStorage:
     """Manages user data persistence."""
@@ -18,7 +20,7 @@ class UserStorage:
         """Ensure storage directory and files exist."""
         if not os.path.exists(self.storage_dir):
             os.makedirs(self.storage_dir)
-        
+
         if not os.path.exists(self.users_file):
             self._save_users({})
 
@@ -31,7 +33,7 @@ class UserStorage:
         """Load users from file."""
         if not os.path.exists(self.users_file):
             return {}
-        
+
         with open(self.users_file, "r") as f:
             return json.load(f)
 
@@ -46,7 +48,7 @@ class UserStorage:
             "full_name": user.full_name,
             "disabled": user.disabled,
             "created_at": user.created_at.isoformat(),
-            "last_login": user.last_login.isoformat() if user.last_login else None
+            "last_login": user.last_login.isoformat() if user.last_login else None,
         }
         self._save_users(users)
 
@@ -54,17 +56,17 @@ class UserStorage:
         """Get a user from storage."""
         users = self._load_users()
         user_data = users.get(username)
-        
+
         if not user_data:
             return None
-        
+
         return User(
             username=user_data["username"],
             email=user_data["email"],
             hashed_password=user_data["hashed_password"],
             role=user_data["role"],
             full_name=user_data["full_name"],
-            disabled=user_data["disabled"]
+            disabled=user_data["disabled"],
         )
 
     def get_all_users(self) -> Dict[str, User]:
@@ -77,7 +79,7 @@ class UserStorage:
                 hashed_password=user_data["hashed_password"],
                 role=user_data["role"],
                 full_name=user_data["full_name"],
-                disabled=user_data["disabled"]
+                disabled=user_data["disabled"],
             )
         return users
 
@@ -89,6 +91,7 @@ class UserStorage:
             self._save_users(users)
             return True
         return False
+
 
 # Create a singleton instance
 user_storage = UserStorage()

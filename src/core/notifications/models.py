@@ -1,4 +1,5 @@
 """Models for notification system."""
+
 from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional
@@ -8,6 +9,7 @@ from pydantic import BaseModel, Field
 
 class NotificationType(str, Enum):
     """Types of notifications."""
+
     BUDGET_CREATED = "budget_created"
     BUDGET_UPDATED = "budget_updated"
     BUDGET_APPROVED = "budget_approved"
@@ -20,6 +22,7 @@ class NotificationType(str, Enum):
 
 class NotificationPriority(str, Enum):
     """Priority levels for notifications."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -28,6 +31,7 @@ class NotificationPriority(str, Enum):
 
 class NotificationChannel(str, Enum):
     """Available notification channels."""
+
     EMAIL = "email"
     SMS = "sms"
     PUSH = "push"
@@ -36,6 +40,7 @@ class NotificationChannel(str, Enum):
 
 class NotificationTemplate(BaseModel):
     """Template for notifications."""
+
     id: str
     type: NotificationType
     name: str
@@ -47,6 +52,7 @@ class NotificationTemplate(BaseModel):
 
 class Notification(BaseModel):
     """Notification model."""
+
     id: str
     type: NotificationType
     priority: NotificationPriority
@@ -65,6 +71,7 @@ class Notification(BaseModel):
 
 class NotificationPreference(BaseModel):
     """User preferences for notifications."""
+
     user_id: str
     email: Optional[str] = None
     phone: Optional[str] = None

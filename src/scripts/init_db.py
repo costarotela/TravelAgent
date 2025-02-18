@@ -1,4 +1,5 @@
 """Database initialization script."""
+
 import sys
 import os
 
@@ -7,6 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from src.core.database.base import db
 from src.core.models.travel import TravelPackage, PriceHistory, MarketAnalysis
+
 
 def init_database():
     """Initialize the database and create all tables."""
@@ -18,6 +20,7 @@ def init_database():
     except Exception as e:
         print(f"Error creating database tables: {e}")
         return False
+
 
 if __name__ == "__main__":
     init_database()

@@ -1,4 +1,5 @@
 """Recommendation engine for travel packages."""
+
 import logging
 from dataclasses import dataclass
 from typing import Dict, List, Optional
@@ -12,6 +13,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Recommendation:
     """Recommendation with explanation."""
+
     package: TravelPackage
     score: float
     explanation: str
@@ -23,12 +25,10 @@ class RecommendationEngine:
     """Engine for generating travel package recommendations."""
 
     def __init__(
-        self,
-        analyzer: Optional[PackageAnalyzer] = None,
-        max_alternatives: int = 3
+        self, analyzer: Optional[PackageAnalyzer] = None, max_alternatives: int = 3
     ):
         """Initialize recommendation engine.
-        
+
         Args:
             analyzer: Optional custom package analyzer
             max_alternatives: Maximum number of alternative recommendations
@@ -40,15 +40,15 @@ class RecommendationEngine:
         self,
         packages: List[TravelPackage],
         preferred_airlines: Optional[List[str]] = None,
-        budget: Optional[float] = None
+        budget: Optional[float] = None,
     ) -> List[Recommendation]:
         """Generate recommendations from available packages.
-        
+
         Args:
             packages: List of available packages
             preferred_airlines: Optional list of preferred airlines
             budget: Optional maximum budget
-        
+
         Returns:
             List of recommendations with explanations
         """
@@ -56,25 +56,17 @@ class RecommendationEngine:
             return []
 
         # Analyze packages
-        scored_packages = self.analyzer.analyze_packages(
-            packages,
-            preferred_airlines
-        )
+        scored_packages = self.analyzer.analyze_packages(packages, preferred_airlines)
 
         # Filter by budget if specified
         if budget is not None:
             scored_packages = [
-                sp for sp in scored_packages
-                if sp.package.price <= budget
+                sp for sp in scored_packages if sp.package.price <= budget
             ]
 
         recommendations = []
-        for score in scored_packages[:self.max_alternatives]:
-            recommendation = self._create_recommendation(
-                score,
-                scored_packages,
-                budget
-            )
+        for score in scored_packages[: self.max_alternatives]:
+            recommendation = self._create_recommendation(score, scored_packages, budget)
             recommendations.append(recommendation)
 
         return recommendations
@@ -83,12 +75,12 @@ class RecommendationEngine:
         self,
         score: PackageScore,
         all_scores: List[PackageScore],
-        budget: Optional[float]
+        budget: Optional[float],
     ) -> Recommendation:
         """Create a detailed recommendation for a package."""
         package = score.package
         alternatives = self._find_alternatives(score, all_scores)
-        
+
         explanation = self._generate_explanation(score, budget)
         comparison = self._generate_comparison(score, alternatives)
 
@@ -97,18 +89,16 @@ class RecommendationEngine:
             score=score.total_score,
             explanation=explanation,
             alternatives=[alt.package for alt in alternatives],
-            comparison=comparison
+            comparison=comparison,
         )
 
     def _find_alternatives(
-        self,
-        score: PackageScore,
-        all_scores: List[PackageScore]
+        self, score: PackageScore, all_scores: List[PackageScore]
     ) -> List[PackageScore]:
         """Find alternative packages similar to the recommended one."""
         # Filter out the current package
         others = [s for s in all_scores if s.package.id != score.package.id]
-        
+
         # Find packages with similar characteristics
         similar = []
         for other in others:
@@ -117,17 +107,15 @@ class RecommendationEngine:
 
         # Sort by score and return top alternatives
         similar.sort(key=lambda x: x.total_score, reverse=True)
-        return similar[:self.max_alternatives]
+        return similar[: self.max_alternatives]
 
     def _generate_explanation(
-        self,
-        score: PackageScore,
-        budget: Optional[float]
+        self, score: PackageScore, budget: Optional[float]
     ) -> str:
         """Generate human-readable explanation for recommendation."""
         package = score.package
         details = score.details
-        
+
         explanation_parts = []
 
         # Price analysis
@@ -136,7 +124,7 @@ class RecommendationEngine:
             explanation_parts.append(
                 f"This option is {price_percent:.1f}% of your budget"
             )
-        
+
         # Duration and stops
         stops = len(package.details.get("stops", []))
         if stops == 0:
@@ -161,13 +149,11 @@ class RecommendationEngine:
         return " • ".join(explanation_parts)
 
     def _generate_comparison(
-        self,
-        score: PackageScore,
-        alternatives: List[PackageScore]
+        self, score: PackageScore, alternatives: List[PackageScore]
     ) -> Dict[str, str]:
         """Generate comparison with alternative options."""
         comparison = {}
-        
+
         if not alternatives:
             return comparison
 
@@ -182,12 +168,11 @@ class RecommendationEngine:
         # Duration comparison
         pkg_duration = self.analyzer._get_duration_minutes(score.package)
         alt_durations = [
-            self.analyzer._get_duration_minutes(alt.package)
-            for alt in alternatives
+            self.analyzer._get_duration_minutes(alt.package) for alt in alternatives
         ]
         min_duration = min(alt_durations)
         duration_diff = pkg_duration - min_duration
-        
+
         if duration_diff > 0:
             hours = duration_diff // 60
             minutes = duration_diff % 60

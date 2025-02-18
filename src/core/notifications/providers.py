@@ -1,4 +1,5 @@
 """Notification providers for different channels."""
+
 import logging
 from abc import ABC, abstractmethod
 from typing import Dict, Optional
@@ -28,10 +29,10 @@ class EmailProvider(BaseProvider):
         password: str,
         use_tls: bool = True,
         from_email: Optional[str] = None,
-        reply_to: Optional[str] = None
+        reply_to: Optional[str] = None,
     ):
         """Initialize email provider.
-        
+
         Args:
             smtp_host: SMTP server host
             smtp_port: SMTP server port
@@ -71,14 +72,9 @@ class EmailProvider(BaseProvider):
 class SMSProvider(BaseProvider):
     """Provider for SMS notifications."""
 
-    def __init__(
-        self,
-        api_key: str,
-        api_secret: str,
-        from_number: str
-    ):
+    def __init__(self, api_key: str, api_secret: str, from_number: str):
         """Initialize SMS provider.
-        
+
         Args:
             api_key: API key for SMS service
             api_secret: API secret for SMS service
@@ -110,14 +106,9 @@ class SMSProvider(BaseProvider):
 class PushProvider(BaseProvider):
     """Provider for push notifications."""
 
-    def __init__(
-        self,
-        api_key: str,
-        app_id: str,
-        environment: str = "production"
-    ):
+    def __init__(self, api_key: str, app_id: str, environment: str = "production"):
         """Initialize push notification provider.
-        
+
         Args:
             api_key: API key for push service
             app_id: Application ID
@@ -132,9 +123,7 @@ class PushProvider(BaseProvider):
         try:
             # Here we would implement actual push notification sending
             # For now, just log the action
-            logger.info(
-                f"Would send push notification: {notification.subject}"
-            )
+            logger.info(f"Would send push notification: {notification.subject}")
             return True
         except Exception as e:
             logger.error(f"Failed to send push notification: {e}")
@@ -148,10 +137,10 @@ class WebhookProvider(BaseProvider):
         self,
         webhook_url: str,
         secret_key: Optional[str] = None,
-        headers: Optional[Dict[str, str]] = None
+        headers: Optional[Dict[str, str]] = None,
     ):
         """Initialize webhook provider.
-        
+
         Args:
             webhook_url: URL to send webhooks to
             secret_key: Optional secret key for signing
@@ -167,8 +156,7 @@ class WebhookProvider(BaseProvider):
             # Here we would implement actual webhook sending
             # For now, just log the action
             logger.info(
-                f"Would send webhook to {self.webhook_url}: "
-                f"{notification.subject}"
+                f"Would send webhook to {self.webhook_url}: " f"{notification.subject}"
             )
             return True
         except Exception as e:

@@ -1,4 +1,5 @@
 """Notification system package."""
+
 from .manager import NotificationManager
 from .models import (
     Notification,
@@ -16,15 +17,15 @@ from .providers import (
 )
 
 __all__ = [
-    'EmailProvider',
-    'Notification',
-    'NotificationChannel',
-    'NotificationManager',
-    'NotificationPreference',
-    'NotificationPriority',
-    'NotificationTemplate',
-    'NotificationType',
-    'PushProvider',
-    'SMSProvider',
-    'WebhookProvider',
+    "EmailProvider",
+    "Notification",
+    "NotificationChannel",
+    "NotificationManager",
+    "NotificationPreference",
+    "NotificationPriority",
+    "NotificationTemplate",
+    "NotificationType",
+    "PushProvider",
+    "SMSProvider",
+    "WebhookProvider",
 ]

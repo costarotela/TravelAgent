@@ -1,4 +1,5 @@
 """Dashboard page."""
+
 import streamlit as st
 from datetime import datetime, timedelta
 import pandas as pd
@@ -27,10 +28,7 @@ with col3:
 
 # Add a chart
 st.subheader("Monthly Bookings")
-data = {
-    'Month': ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-    'Bookings': [4, 6, 3, 8, 5]
-}
+data = {"Month": ["Jan", "Feb", "Mar", "Apr", "May"], "Bookings": [4, 6, 3, 8, 5]}
 st.line_chart(data)
 
 if __name__ == "__main__":

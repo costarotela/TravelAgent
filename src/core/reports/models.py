@@ -1,4 +1,5 @@
 """Models for report generation system."""
+
 from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional, Union
@@ -11,6 +12,7 @@ from ..providers import TravelPackage
 
 class ReportFormat(str, Enum):
     """Available report formats."""
+
     PDF = "pdf"
     EXCEL = "excel"
     CSV = "csv"
@@ -20,6 +22,7 @@ class ReportFormat(str, Enum):
 
 class ReportType(str, Enum):
     """Types of reports available."""
+
     SALES = "sales"
     BUDGET = "budget"
     PROVIDER = "provider"
@@ -29,6 +32,7 @@ class ReportType(str, Enum):
 
 class ReportPeriod(str, Enum):
     """Time periods for reports."""
+
     DAILY = "daily"
     WEEKLY = "weekly"
     MONTHLY = "monthly"
@@ -39,6 +43,7 @@ class ReportPeriod(str, Enum):
 
 class ReportMetric(BaseModel):
     """Metric for reports."""
+
     name: str
     value: Union[int, float, str]
     previous_value: Optional[Union[int, float, str]] = None
@@ -49,6 +54,7 @@ class ReportMetric(BaseModel):
 
 class ReportChart(BaseModel):
     """Chart configuration for reports."""
+
     type: str  # pie, bar, line, etc.
     title: str
     data: Dict[str, Union[List[float], List[str]]]
@@ -57,6 +63,7 @@ class ReportChart(BaseModel):
 
 class ReportSection(BaseModel):
     """Section of a report."""
+
     title: str
     description: Optional[str] = None
     metrics: List[ReportMetric] = Field(default_factory=list)
@@ -67,6 +74,7 @@ class ReportSection(BaseModel):
 
 class Report(BaseModel):
     """Complete report model."""
+
     id: str
     type: ReportType
     title: str
@@ -83,6 +91,7 @@ class Report(BaseModel):
 
 class ReportTemplate(BaseModel):
     """Template for report generation."""
+
     id: str
     name: str
     type: ReportType
@@ -95,6 +104,7 @@ class ReportTemplate(BaseModel):
 
 class SalesMetrics(BaseModel):
     """Sales metrics for reports."""
+
     total_sales: float
     total_budgets: int
     conversion_rate: float
@@ -107,6 +117,7 @@ class SalesMetrics(BaseModel):
 
 class ProviderMetrics(BaseModel):
     """Provider performance metrics."""
+
     provider_name: str
     total_searches: int
     successful_searches: int
@@ -120,6 +131,7 @@ class ProviderMetrics(BaseModel):
 
 class DestinationMetrics(BaseModel):
     """Destination analysis metrics."""
+
     destination: str
     total_searches: int
     total_bookings: int
@@ -132,6 +144,7 @@ class DestinationMetrics(BaseModel):
 
 class BudgetMetrics(BaseModel):
     """Budget analysis metrics."""
+
     total_budgets: int
     approved_budgets: int
     rejected_budgets: int

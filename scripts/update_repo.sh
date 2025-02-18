@@ -12,7 +12,7 @@ print_message() {
 }
 
 # Verificar que estamos en el directorio correcto
-if [ ! -d "travel_agent" ]; then
+if [ ! -d "src" ] || [ ! -d "tests" ]; then
     print_message "Error: Ejecutar desde el directorio raíz del proyecto" "$RED"
     exit 1
 fi
@@ -24,7 +24,7 @@ print_message "✓ Dependencias actualizadas" "$GREEN"
 
 # 2. Ejecutar tests
 print_message "Ejecutando tests..." "$YELLOW"
-if ! pytest; then
+if ! python -m unittest discover tests; then
     print_message "✗ Tests fallaron" "$RED"
     exit 1
 fi
@@ -32,12 +32,12 @@ print_message "✓ Tests completados" "$GREEN"
 
 # 3. Verificar estilo de código
 print_message "Verificando estilo de código..." "$YELLOW"
-flake8 travel_agent || true
+flake8 src tests || true
 print_message "✓ Estilo verificado (ignorando errores)" "$GREEN"
 
 # 4. Formatear código
 print_message "Formateando código..." "$YELLOW"
-black travel_agent
+black src tests
 print_message "✓ Código formateado" "$GREEN"
 
 # 5. Verificar cambios en git
@@ -55,7 +55,7 @@ git add .
 print_message "Creando commit..." "$YELLOW"
 read -p "Ingrese mensaje de commit: " commit_message
 if [ -z "$commit_message" ]; then
-    commit_message="chore: Actualización de documentación y dependencias"
+    commit_message="chore: Actualización de documentación y código v1.0.0"
 fi
 git commit -m "$commit_message"
 print_message "✓ Commit creado" "$GREEN"
