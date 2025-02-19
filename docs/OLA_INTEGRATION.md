@@ -1,39 +1,118 @@
 # Integración con OLA.com.ar
 
-## Arquitectura del Scraper
+## Principios de Integración
 
-### Componentes Principales
+### 1. Estabilidad Durante la Sesión
+La integración con OLA.com.ar sigue el principio fundamental de estabilidad durante las sesiones de venta:
+- Los datos se capturan al inicio de la sesión
+- No se realizan actualizaciones durante la interacción vendedor-cliente
+- Las validaciones se posponen hasta el cierre de la sesión
 
-1. **SessionManager** ✅ (IMPRESCINDIBLE)
-   - Manejo de sesiones HTTP
-   - Rotación de User Agents
-   - Sistema anti-bloqueo con backoff exponencial
-   - Delays inteligentes entre requests
-   ```python
-   session_manager = SessionManager(
-       min_delay=2.0,
-       max_delay=5.0,
-       max_retries=3
-   )
-   ```
+### 2. Control del Vendedor
+El vendedor mantiene control total sobre el proceso:
+- Control explícito sobre modificaciones
+- Decisiones informadas sobre cambios
+- Gestión completa de la interacción
 
-2. **ChangeDetector** ⚠️ (PARCIALMENTE NECESARIO)
-   - Detección de cambios críticos en paquetes
-   - Enfoque en cambios de precio y disponibilidad
-   - Análisis de significancia de cambios
-   ```python
-   detector = ChangeDetector()
-   changes = detector.detect_changes(old_package, new_package)
-   if detector.is_significant_change(changes):
-       # Notificar cambios importantes
-   ```
+### 3. Procesamiento Asíncrono
+Las actualizaciones y validaciones se manejan de forma asíncrona:
+- Los cambios se detectan fuera de las sesiones activas
+- Las notificaciones se almacenan para futuras sesiones
+- La consistencia se mantiene durante toda la interacción
 
-3. **OlaScraper** ✅ (IMPRESCINDIBLE)
-   - Login seguro con manejo de errores
-   - Extracción de datos estructurada
-   - Integración con SessionManager y ChangeDetector
+## Componentes Principales
 
-### Modelos de Datos
+### 1. SessionBudgetManager ✅ (IMPRESCINDIBLE)
+- Manejo de sesiones de presupuesto
+- Control de estado durante la venta
+- Aislamiento de datos por sesión
+```python
+session = SessionBudgetManager(
+    storage_manager,
+    event_emitter
+)
+```
+
+### 2. OlaScraper ✅ (IMPRESCINDIBLE)
+- Extracción inicial de datos
+- Captura de información completa
+- Validaciones básicas de datos
+```python
+scraper = OlaScraper(
+    session_manager,
+    cache_manager
+)
+```
+
+### 3. ChangeDetector ⚠️ (PARCIALMENTE NECESARIO)
+- Detección asíncrona de cambios
+- Procesamiento fuera de sesión
+- Notificaciones para futuras interacciones
+```python
+detector = ChangeDetector()
+# Solo se ejecuta fuera de sesiones activas
+changes = await detector.detect_changes_async(old_package, new_package)
+```
+
+## Flujo de Trabajo
+
+### 1. Inicio de Sesión de Venta
+```python
+# 1. Crear sesión de presupuesto
+session_id = await session_manager.create_session(vendor_id, customer_id)
+
+# 2. Capturar datos iniciales
+initial_data = await scraper.get_package_data(package_id)
+await session_manager.add_package_to_session(session_id, initial_data)
+```
+
+### 2. Durante la Sesión
+```python
+# Los datos permanecen estables
+session_data = await session_manager.get_session_data(session_id)
+
+# Modificaciones controladas por el vendedor
+await session_manager.modify_package_in_session(
+    session_id,
+    package_id,
+    vendor_modifications
+)
+```
+
+### 3. Cierre de Sesión
+```python
+# 1. Finalizar sesión y crear presupuesto
+budget = await session_manager.finalize_session(session_id)
+
+# 2. Validar cambios (asíncrono)
+asyncio.create_task(detector.validate_changes_after_session(budget))
+```
+
+## Consideraciones de Implementación
+
+### Prioridades
+1. ✅ IMPRESCINDIBLE
+   - SessionBudgetManager
+   - Extracción básica de datos
+   - Validaciones esenciales
+
+2. ⚠️ PARCIALMENTE NECESARIO
+   - Detección de cambios asíncrona
+   - Sistema de notificaciones
+   - Caché de datos frecuentes
+
+3. ❌ OMITIBLE
+   - Validaciones en tiempo real
+   - Optimizaciones de rendimiento
+   - Análisis predictivo
+
+### Métricas de Éxito
+1. Tiempo de creación de sesión < 2 segundos
+2. Tiempo de respuesta en modificaciones < 1 segundo
+3. Zero interrupciones durante sesión activa
+4. 100% consistencia de datos durante la sesión
+
+## Modelos de Datos
 
 ```python
 class PaqueteOLA:

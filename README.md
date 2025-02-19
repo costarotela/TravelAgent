@@ -1,50 +1,75 @@
 # Smart Travel Agency - Sistema de Gestión B2B
 
-## Descripción
-Sistema de gestión para agencias de viajes enfocado en B2B (Business to Business). Proporciona herramientas para la gestión eficiente de presupuestos, análisis de precios y gestión de proveedores. Utiliza técnicas de web scraping para recolectar datos de proveedores mayoristas.
+## Objetivo Principal
+Facilitar la elaboración y gestión de presupuestos de viaje, priorizando la estabilidad durante la interacción vendedor-cliente y garantizando el control total del vendedor sobre el proceso.
+
+## Principios Fundamentales
+
+### 1. Estabilidad Durante la Sesión
+- Los datos permanecen estables durante toda la sesión de venta
+- Las actualizaciones no interrumpen sesiones activas
+- Las modificaciones son controladas exclusivamente por el vendedor
+
+### 2. Control del Vendedor
+- Control total sobre el proceso de venta
+- Decisiones explícitas sobre modificaciones
+- Gestión completa de la interacción con el cliente
+
+### 3. Procesamiento Asíncrono
+- Las validaciones y actualizaciones se procesan fuera de la sesión de venta
+- Los cambios se notifican para futuras interacciones
+- La consistencia de datos se mantiene durante toda la sesión
 
 ## Componentes Principales
 
-### 1. Motor de Reglas de Negocio
-- Evaluación y aplicación de reglas comerciales
-- Gestión de márgenes y descuentos
-- Validaciones automáticas
+### 1. Gestión de Sesiones de Venta (✅ IMPRESCINDIBLE)
+- Control de estado durante la interacción con cliente
+- Aislamiento de datos por sesión
+- Modificaciones controladas por vendedor
 
-### 2. Sistema de Actualización de Presupuestos
-- Detección de cambios en precios y disponibilidad
-- Recálculo automático de presupuestos
-- Historial de cambios
+### 2. Sistema de Presupuestos (✅ IMPRESCINDIBLE)
+- Elaboración dinámica con asistencia del vendedor
+- Construcción basada en datos de proveedores
+- Capacidad de reconstrucción y modificación
 
-### 3. Sistema de Análisis de Precios y Proveedores
-- Análisis de tendencias de precios
-- Predicción de variaciones
-- Evaluación de rendimiento de proveedores
-- Métricas de calidad y confiabilidad
-- Recomendaciones para gestión de proveedores
+### 3. Actualización de Datos (⚠️ PARCIALMENTE NECESARIO)
+- Detección asíncrona de cambios
+- Notificaciones para futuras sesiones
+- Procesamiento fuera de sesiones activas
 
-### 4. Interfaz de Vendedor
-- Dashboard de actualizaciones en tiempo real
-- Editor de presupuestos
-- Visualización de análisis y métricas
+### 4. Interfaz de Vendedor (✅ IMPRESCINDIBLE)
+- Editor de presupuestos intuitivo
+- Visualización clara de datos
+- Control total sobre modificaciones
 
-### 5. Módulo de Web Scraping
-- Recolección automática de datos mediante browser automation y scraping avanzado
-- Procesamiento y comparación de paquetes turísticos
-- Sistema anti-bloqueo y manejo de sesiones
-- Gestión inteligente de caché y recursos
+### 5. Módulo de Web Scraping (⚠️ PARCIALMENTE NECESARIO)
+- Recolección inicial de datos
+- Actualizaciones asíncronas
+- Sistema anti-bloqueo
 
-## Usuarios Principales
+## Métricas de Éxito
 
-### Vendedores/Agentes
-- Gestión de presupuestos
-- Seguimiento de cambios de precios
-- Aplicación de reglas de negocio
+### 1. Experiencia del Vendedor
+- Tiempo de creación de sesión < 2 segundos
+- Tiempo de respuesta en modificaciones < 1 segundo
+- Zero interrupciones durante sesión activa
 
-### Administradores
-- Configuración de reglas comerciales
-- Gestión de proveedores
-- Monitoreo de rendimiento
-- Análisis de métricas
+### 2. Calidad de Datos
+- 100% consistencia durante la sesión
+- Validación completa al cierre
+- Notificaciones efectivas de cambios
+
+### 3. Rendimiento del Sistema
+- Disponibilidad del sistema > 99.9%
+- Tiempo de reconstrucción < 5 segundos
+- Procesamiento asíncrono eficiente
+
+## Documentación Relacionada
+
+- [Arquitectura](docs/ARQUITECTURA.md)
+- [Integración OLA](docs/OLA_INTEGRATION.md)
+- [Interfaz de Vendedor](docs/VENDOR_INTERFACE.md)
+- [Motor de Presupuestos](docs/BUDGET_ENGINE.md)
 
 ## Requisitos Técnicos
 

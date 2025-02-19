@@ -105,6 +105,139 @@ El `BudgetUpdateEngine` proporciona:
 - Caché inteligente para optimizar rendimiento
 - Manejo de errores y reintentos
 
+## Motor de Presupuestos
+
+## Objetivo Principal
+Proporcionar un motor robusto para la elaboración y gestión de presupuestos que priorice la estabilidad durante la interacción vendedor-cliente.
+
+## Principios Fundamentales
+
+### 1. Estabilidad Durante la Sesión
+- Datos inmutables durante la interacción con cliente
+- Modificaciones controladas por el vendedor
+- Sin interrupciones por actualizaciones externas
+
+### 2. Control del Vendedor
+- Control total sobre modificaciones
+- Decisiones informadas sobre cambios
+- Gestión completa del proceso
+
+### 3. Procesamiento Asíncrono
+- Validaciones post-sesión
+- Actualizaciones diferidas
+- Notificaciones no intrusivas
+
+## Componentes Principales
+
+### 1. Gestor de Sesiones de Presupuesto (✅ IMPRESCINDIBLE)
+```python
+class BudgetSession:
+    def __init__(self, session_id: str):
+        self.data_snapshot = {}  # Datos estables durante la sesión
+        self.modifications = []  # Cambios controlados
+        self.validation_queue = []  # Validaciones pendientes
+```
+
+### 2. Motor de Cálculo (✅ IMPRESCINDIBLE)
+```python
+class BudgetCalculator:
+    def calculate(self, snapshot: dict, modifications: list) -> Budget:
+        """Calcula presupuesto basado en snapshot y modificaciones."""
+        pass
+
+    def validate_modifications(self, modifications: list) -> bool:
+        """Valida cambios propuestos por el vendedor."""
+        pass
+```
+
+### 3. Sistema de Validación Asíncrona (⚠️ PARCIALMENTE NECESARIO)
+```python
+class AsyncValidator:
+    def schedule_validation(self, budget: Budget):
+        """Programa validación post-sesión."""
+        pass
+
+    def process_validation_queue(self):
+        """Procesa validaciones pendientes."""
+        pass
+```
+
+### 4. Gestor de Estado (✅ IMPRESCINDIBLE)
+- Control de estado de sesión
+- Persistencia de modificaciones
+- Recuperación de snapshots
+
+### 5. Sistema de Notificaciones (❌ OMITIBLE)
+- Notificaciones asíncronas
+- Priorización de mensajes
+- Control de timing
+
+## Flujos de Trabajo
+
+### 1. Creación de Presupuesto
+```python
+# 1. Iniciar sesión con snapshot de datos
+session = BudgetSession.create(vendor_id, customer_id)
+session.set_initial_data(current_data_snapshot)
+
+# 2. Realizar modificaciones
+modification = session.modify_package(package_id, changes)
+if modification.is_valid():
+    session.apply_modification(modification)
+
+# 3. Finalizar y validar
+budget = session.finalize()
+async_validator.schedule_validation(budget)
+```
+
+### 2. Reconstrucción de Presupuesto
+```python
+# 1. Cargar sesión existente
+session = BudgetSession.load(session_id)
+
+# 2. Aplicar modificaciones adicionales
+session.apply_modifications(new_modifications)
+
+# 3. Recalcular y validar
+updated_budget = session.recalculate()
+```
+
+## Métricas de Rendimiento
+
+### 1. Tiempos de Respuesta
+- Creación de sesión < 1 segundo
+- Cálculos en tiempo real < 500ms
+- Reconstrucción < 2 segundos
+
+### 2. Precisión
+- 100% consistencia durante sesión
+- Validación completa post-sesión
+- Trazabilidad de modificaciones
+
+### 3. Estabilidad
+- Zero interrupciones durante sesión
+- Recuperación automática de estado
+- Persistencia garantizada
+
+## Integración con Otros Módulos
+
+### 1. Interfaz de Vendedor
+- Comunicación síncrona durante sesión
+- Feedback inmediato de cambios
+- Estado consistente
+
+### 2. Sistema de Datos
+- Capturas de estado inicial
+- Actualizaciones post-sesión
+- Sincronización controlada
+
+## Próximas Mejoras
+
+### 1. Optimizaciones 
+- Caché inteligente
+- Precálculo de escenarios
+- Análisis predictivo
+
 ## Ejemplo de Uso
 
 ```python

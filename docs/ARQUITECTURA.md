@@ -1,34 +1,56 @@
 # Arquitectura SmartTravelAgent
 
 ## Visión General
+SmartTravelAgent es un sistema diseñado para automatizar y optimizar el proceso de elaboración de presupuestos de viaje, priorizando la estabilidad durante la interacción vendedor-cliente y garantizando el control total del vendedor sobre el proceso.
 
-SmartTravelAgent es un sistema diseñado para automatizar y optimizar el proceso de elaboración de presupuestos de viaje, con énfasis en la extracción y procesamiento de datos en tiempo real.
+## Principios Fundamentales
+
+### 1. Estabilidad Durante la Sesión
+- Los datos permanecen estables durante toda la sesión de venta
+- Las actualizaciones no interrumpen sesiones activas
+- Las modificaciones son controladas exclusivamente por el vendedor
+
+### 2. Control del Vendedor
+- Control total sobre el proceso de venta
+- Decisiones explícitas sobre modificaciones
+- Gestión completa de la interacción con el cliente
+
+### 3. Procesamiento Asíncrono
+- Las validaciones y actualizaciones se procesan fuera de la sesión de venta
+- Los cambios se notifican para futuras interacciones
+- La consistencia de datos se mantiene durante toda la sesión
 
 ## Componentes del Sistema
 
 ### 1. Core (agent_core/)
 
-#### 1.1 Scrapers 
-- **Base Framework** (IMPRESCINDIBLE)
+#### 1.1 Session Management (✅ IMPRESCINDIBLE)
+```
+session_budget_manager.py
+session_state_manager.py
+```
+- Manejo de sesiones de venta
+- Control de estado durante la sesión
+- Aislamiento de datos por sesión
+
+#### 1.2 Scrapers (⚠️ PARCIALMENTE NECESARIO)
+- **Base Framework**
   ```
   base.py
-  session_manager.py
   change_detector.py
   ```
-  - Manejo de sesiones y anti-bloqueo
   - Detección de cambios en datos
   - Framework base para todos los scrapers
 
-- **Implementaciones Específicas**
-  ```
-  ola_scraper.py
-  [otros_proveedores]_scraper.py
-  ```
-  - Lógica específica para cada proveedor
-  - Selectores y mapeo de datos
-  - Manejo de autenticación
+#### 1.3 Validación (❌ OMITIBLE DURANTE SESIÓN)
+```
+realtime_validator.py
+```
+- Validaciones asíncronas
+- Procesamiento post-sesión
+- Notificaciones controladas
 
-#### 1.2 Schemas
+#### 1.3 Schemas
 - **Modelos de Datos**
   ```
   travel.py

@@ -1,153 +1,144 @@
 # Sistema de Preferencias
 
-## Descripción General
+## Objetivo Principal
+Gestionar las preferencias del sistema de manera que garanticen la estabilidad durante las sesiones de venta, permitiendo modificaciones controladas por el vendedor.
 
-El Sistema de Preferencias es un componente central que permite personalizar la experiencia tanto para clientes como para vendedores. Sus principales funciones son:
-- Almacenar y gestionar preferencias de usuarios
-- Aplicar reglas definidas por vendedores
-- Personalizar presupuestos según preferencias
-- Aplicar filtros automáticos a resultados
+## Principios Fundamentales
 
-## Arquitectura
+### 1. Estabilidad Durante la Sesión
+- Preferencias inmutables durante la interacción
+- Modificaciones controladas por el vendedor
+- Sin interrupciones por actualizaciones
 
-### 1. Modelos (`models.py`)
+### 2. Control del Vendedor
+- Control total sobre preferencias de sesión
+- Decisiones informadas sobre cambios
+- Gestión completa de configuraciones
 
-#### PreferenceType
-Tipos de preferencias soportados:
-- `BUDGET`: Preferencias de presupuesto
-- `TRAVEL`: Preferencias de viaje
-- `NOTIFICATION`: Preferencias de notificación
-- `DISPLAY`: Preferencias de visualización
-- `VENDOR`: Preferencias del vendedor
-- `FILTER`: Filtros personalizados
+### 3. Procesamiento Asíncrono
+- Actualizaciones diferidas
+- Validaciones post-sesión
+- Notificaciones no intrusivas
 
-#### UserPreferences
-- Almacena preferencias por usuario
-- Mantiene historial de actualizaciones
-- Incluye metadatos y trazabilidad
+## Componentes Principales
 
-#### VendorRule
-- Define reglas configurables por vendedores
-- Sistema de prioridades
-- Condiciones y acciones personalizables
-
-#### FilterConfig
-- Configuración de filtros automáticos
-- Criterios flexibles de filtrado
-- Metadatos para tracking
-
-### 2. Gestor de Preferencias (`manager.py`)
-
-El `PreferenceManager` proporciona:
-- Gestión de preferencias de usuario
-- Aplicación de reglas de vendedor
-- Filtrado automático de resultados
-- Integración con métricas
-
-## Características Principales
-
-### 1. Gestión de Preferencias
+### 1. Gestor de Preferencias de Sesión (✅ IMPRESCINDIBLE)
 ```python
-# Ejemplo de uso
-manager = PreferenceManager(storage_backend)
-
-# Establecer preferencia
-await manager.set_preference(
-    user_id="user123",
-    pref_type=PreferenceType.TRAVEL,
-    key="preferred_destinations",
-    value=["Cancún", "Punta Cana"],
-)
-
-# Obtener preferencias
-prefs = await manager.get_user_preferences("user123")
+class SessionPreferences:
+    def __init__(self, session_id: str):
+        self.preferences_snapshot = {}  # Preferencias fijas durante sesión
+        self.modifications = []         # Cambios controlados
+        self.pending_updates = []       # Actualizaciones diferidas
 ```
 
-### 2. Reglas de Vendedor
+### 2. Motor de Preferencias (✅ IMPRESCINDIBLE)
 ```python
-# Definir regla
-rule = VendorRule(
-    name="high_value_client",
-    description="Descuento para clientes premium",
-    preference_type=PreferenceType.BUDGET,
-    conditions={"client_type": "premium"},
-    actions={
-        "set_preference": {
-            "key": "discount_percentage",
-            "value": 10
-        }
-    },
-    priority=1,
-)
+class PreferenceEngine:
+    def apply_preferences(self, data: dict, preferences: dict) -> dict:
+        """Aplica preferencias a los datos."""
+        pass
 
-# Agregar regla
-manager.add_vendor_rule(rule)
-
-# Aplicar reglas
-await manager.apply_vendor_rules(
-    user_id="user123",
-    context={"client_type": "premium"},
-)
+    def validate_preferences(self, preferences: dict) -> bool:
+        """Valida cambios en preferencias."""
+        pass
 ```
 
-### 3. Filtros Automáticos
+### 3. Sistema de Actualización (⚠️ PARCIALMENTE NECESARIO)
 ```python
-# Configurar filtro
-filter_config = FilterConfig(
-    name="price_range",
-    description="Filtrar por rango de precio",
-    filter_type="price",
-    criteria={
-        "min": 1000,
-        "max": 5000
-    },
-)
+class PreferenceUpdater:
+    def schedule_update(self, preferences: dict):
+        """Programa actualización post-sesión."""
+        pass
 
-# Agregar filtro
-manager.add_filter_config(filter_config)
-
-# Aplicar filtros
-filtered_data = manager.apply_filters(
-    data=packages,
-    user_id="user123",
-)
+    def process_updates(self):
+        """Procesa actualizaciones pendientes."""
+        pass
 ```
 
-## Integración con Otros Sistemas
+## Tipos de Preferencias
 
-### 1. Con el Sistema de Recolección
-- Filtrado automático de resultados
-- Priorización según preferencias
-- Personalización de búsquedas
+### 1. Preferencias de Sesión (✅ IMPRESCINDIBLE)
+- Filtros activos
+- Ordenamiento
+- Vista de datos
+- Configuración temporal
 
-### 2. Con el Motor de Presupuestos
-- Ajuste de márgenes según perfil
-- Aplicación de descuentos automáticos
-- Personalización de versiones
+### 2. Preferencias de Usuario (✅ IMPRESCINDIBLE)
+- Configuración personal
+- Filtros guardados
+- Vistas preferidas
+- Accesos rápidos
 
-### 3. Con el Sistema de Notificaciones
-- Preferencias de comunicación
-- Umbrales personalizados
-- Canales preferidos
+### 3. Preferencias del Sistema (⚠️ PARCIALMENTE NECESARIO)
+- Configuración global
+- Valores por defecto
+- Límites y restricciones
 
-## Monitoreo y Métricas
+## Flujos de Trabajo
 
-- `preference_updates_total`: Actualizaciones de preferencias
-- `preference_processing_time`: Tiempo de procesamiento
+### 1. Inicio de Sesión
+```python
+# 1. Cargar preferencias iniciales
+preferences = SessionPreferences.create(user_id)
+preferences.load_user_preferences()
+
+# 2. Aplicar a la sesión
+session.apply_preferences(preferences.get_snapshot())
+```
+
+### 2. Durante la Sesión
+```python
+# Modificar preferencias (controlado por vendedor)
+modification = preferences.modify({
+    'filter': new_filter,
+    'sort': new_sort
+})
+
+if modification.is_valid():
+    session.apply_preference_modification(modification)
+```
+
+### 3. Finalización
+```python
+# 1. Guardar preferencias modificadas
+preferences.save_modifications()
+
+# 2. Programar actualizaciones
+updater.schedule_preference_updates(preferences)
+```
+
+## Métricas de Rendimiento
+
+### 1. Tiempos de Respuesta
+- Carga de preferencias < 500ms
+- Aplicación de cambios < 200ms
+- Guardado < 1 segundo
+
+### 2. Precisión
+- 100% consistencia durante sesión
+- Validación completa post-sesión
+- Sin pérdida de preferencias
+
+### 3. Estabilidad
+- Zero interrupciones durante sesión
+- Recuperación automática
+- Persistencia garantizada
+
+## Integración con Otros Módulos
+
+### 1. Interfaz de Vendedor
+- Controles intuitivos
+- Feedback inmediato
+- Estado consistente
+
+### 2. Motor de Presupuestos
+- Aplicación de preferencias
+- Validaciones básicas
+- Sincronización controlada
 
 ## Próximas Mejoras
 
-1. **Aprendizaje Automático**
-   - Inferencia de preferencias
-   - Recomendaciones personalizadas
-   - Optimización automática
-
-2. **Segmentación Avanzada**
-   - Perfiles de usuario dinámicos
-   - Reglas basadas en segmentos
-   - Personalización por mercado
-
-3. **Integración y Extensibilidad**
-   - API para gestión de preferencias
-   - Plugins personalizados
-   - Sincronización multi-dispositivo
+### 1. Optimizaciones (❌ OMITIBLE)
+- Caché inteligente
+- Preferencias predictivas
+- Análisis de uso

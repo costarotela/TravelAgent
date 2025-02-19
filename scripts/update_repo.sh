@@ -60,7 +60,70 @@ fi
 git commit -m "$commit_message"
 print_message "✓ Commit creado" "$GREEN"
 
-# 8. Push a repositorio
+# 8. Verificar documentación
+print_message "Verificando documentación..." "$YELLOW"
+
+# Directorios principales
+DOCS_DIR="docs"
+MAIN_README="README.md"
+
+# Lista de archivos críticos a verificar
+CRITICAL_FILES=(
+    "$MAIN_README"
+    "$DOCS_DIR/ARQUITECTURA.md"
+    "$DOCS_DIR/OLA_INTEGRATION.md"
+    "$DOCS_DIR/VENDOR_INTERFACE.md"
+    "$DOCS_DIR/BUDGET_ENGINE.md"
+    "$DOCS_DIR/BUSINESS_RULES.md"
+    "$DOCS_DIR/PREFERENCE_SYSTEM.md"
+)
+
+# Principios fundamentales a verificar
+PRINCIPLES=(
+    "Estabilidad Durante la Sesión"
+    "Procesamiento Asíncrono"
+    "Control del Vendedor"
+)
+
+# Función para verificar principios en un archivo
+check_principles() {
+    local file=$1
+    echo "Verificando $file..."
+    
+    for principle in "${PRINCIPLES[@]}"; do
+        if grep -q "$principle" "$file"; then
+            echo "✅ Principio '$principle' encontrado"
+        else
+            echo "⚠️ Principio '$principle' NO encontrado"
+        fi
+    done
+    echo
+}
+
+# Verificar todos los archivos críticos
+for file in "${CRITICAL_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        check_principles "$file"
+    else
+        echo "⚠️ Archivo no encontrado: $file"
+    fi
+done
+
+# Verificar estructura de priorización
+echo "Verificando estructura de priorización..."
+for file in "${CRITICAL_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        if grep -q "IMPRESCINDIBLE\|PARCIALMENTE NECESARIO\|OMITIBLE" "$file"; then
+            echo "✅ Estructura de priorización encontrada en $file"
+        else
+            echo "⚠️ Estructura de priorización NO encontrada en $file"
+        fi
+    fi
+done
+
+print_message "✓ Documentación verificada" "$GREEN"
+
+# 9. Push a repositorio
 print_message "Subiendo cambios..." "$YELLOW"
 if ! git push origin main; then
     print_message "✗ Error al subir cambios" "$RED"
