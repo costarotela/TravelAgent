@@ -27,10 +27,10 @@ class DespegarProviderUpdater(BaseProviderUpdater):
             # Navigate to search page
             url = f"{self.config.base_url}/paquetes?destino={destination}"
             await self.browser.navigate(url)
-            
+
             # Wait for packages to load
             await self.browser.wait_for_element(".package-card", timeout=10)
-            
+
             # Extract data
             script = """
             () => {
@@ -61,12 +61,12 @@ class DespegarProviderUpdater(BaseProviderUpdater):
             }
             """
             raw_data = await self.browser.execute_script(script)
-            
+
             # Log success
             logger.info(
                 f"Successfully fetched {len(raw_data)} packages from Despegar for {destination}"
             )
-            
+
             return raw_data
 
         except Exception as e:
@@ -94,11 +94,11 @@ class DespegarProviderUpdater(BaseProviderUpdater):
                             dates.append(date)
                         except ValueError:
                             logger.warning(f"Could not parse date: {date_str}")
-                
+
                 # Parse price
                 price_str = item.get("price", "0").replace(".", "").replace(",", ".")
                 price = float(price_str)
-                
+
                 # Create normalized package
                 package = PackageData(
                     provider="Despegar",
@@ -118,9 +118,9 @@ class DespegarProviderUpdater(BaseProviderUpdater):
                     },
                 )
                 normalized.append(package)
-                
+
             except Exception as e:
                 logger.error(f"Error normalizing Despegar package: {str(e)}")
                 continue
-        
+
         return normalized

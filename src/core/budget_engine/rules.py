@@ -94,9 +94,7 @@ class RuleEngine:
 
         return changes
 
-    def apply_rules(
-        self, budget: Budget, changes: List[BudgetChange]
-    ) -> BudgetVersion:
+    def apply_rules(self, budget: Budget, changes: List[BudgetChange]) -> BudgetVersion:
         """Apply business rules based on detected changes.
 
         Args:

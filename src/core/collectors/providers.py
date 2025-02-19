@@ -54,7 +54,7 @@ class BaseProviderUpdater(ABC):
             Collection result with normalized data
         """
         start_time = datetime.utcnow()
-        
+
         try:
             # Check cache first
             cache_key = f"{self.config.name}:{destination}"
@@ -74,7 +74,9 @@ class BaseProviderUpdater(ABC):
                 provider=self.config.name,
                 destination=destination,
                 packages=normalized_data,
-                duration_ms=int((datetime.utcnow() - start_time).total_seconds() * 1000),
+                duration_ms=int(
+                    (datetime.utcnow() - start_time).total_seconds() * 1000
+                ),
             )
 
             # Update cache
@@ -96,7 +98,7 @@ class BaseProviderUpdater(ABC):
         except Exception as e:
             error_msg = f"Error fetching data from {self.config.name}: {str(e)}"
             logger.error(error_msg)
-            
+
             # Update error metrics
             METRICS["collector_errors"].labels(
                 provider=self.config.name,
@@ -109,7 +111,9 @@ class BaseProviderUpdater(ABC):
                 provider=self.config.name,
                 destination=destination,
                 error=error_msg,
-                duration_ms=int((datetime.utcnow() - start_time).total_seconds() * 1000),
+                duration_ms=int(
+                    (datetime.utcnow() - start_time).total_seconds() * 1000
+                ),
             )
 
     @abstractmethod

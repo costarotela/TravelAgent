@@ -105,10 +105,10 @@ class DataCollector:
         try:
             # Apply rate limiting
             await asyncio.sleep(updater.config.rate_limit_interval)
-            
+
             # Fetch data
             result = await updater.fetch_data(destination)
-            
+
             # Log result
             if result.success:
                 logger.info(
@@ -119,7 +119,7 @@ class DataCollector:
                 logger.error(
                     f"Failed to collect data from {updater.config.name}: {result.error}"
                 )
-            
+
             return result
 
         except Exception as e:
@@ -132,10 +132,7 @@ class DataCollector:
         Returns:
             Dictionary mapping provider names to task done status
         """
-        return {
-            name: task.done()
-            for name, task in self._collection_tasks.items()
-        }
+        return {name: task.done() for name, task in self._collection_tasks.items()}
 
     async def close(self):
         """Close all provider updaters."""

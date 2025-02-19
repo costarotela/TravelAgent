@@ -41,7 +41,9 @@ class ChangeNotifier:
         total_eliminados = stats.get("total_eliminados", 0)
         total_changes = total_nuevos + total_actualizados
 
-        logger.info(f"Procesando reporte de cambios: {total_changes} cambios detectados")
+        logger.info(
+            f"Procesando reporte de cambios: {total_changes} cambios detectados"
+        )
 
         # Notificar cambios significativos si superan el umbral
         if total_changes >= self.threshold:
@@ -53,9 +55,13 @@ class ChangeNotifier:
         if total_nuevos > 0:
             self._notify_new_packages(total_nuevos, report.get("nuevos", []))
         if total_actualizados > 0:
-            self._notify_updated_packages(total_actualizados, report.get("actualizados", []))
+            self._notify_updated_packages(
+                total_actualizados, report.get("actualizados", [])
+            )
         if total_eliminados > 0:
-            self._notify_deleted_packages(total_eliminados, report.get("eliminados", []))
+            self._notify_deleted_packages(
+                total_eliminados, report.get("eliminados", [])
+            )
 
     def _notify_significant_changes(
         self, nuevos: int, actualizados: int, eliminados: int

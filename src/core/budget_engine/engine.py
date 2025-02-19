@@ -89,8 +89,7 @@ class BudgetUpdateEngine:
             client_email=client_email,
             current_version=1,
             versions=[initial_version],
-            valid_until=datetime.utcnow()
-            + datetime.timedelta(days=valid_days),
+            valid_until=datetime.utcnow() + datetime.timedelta(days=valid_days),
             notes=notes,
             metadata=metadata or {},
         )
@@ -116,18 +115,14 @@ class BudgetUpdateEngine:
 
         try:
             # Map current packages by ID
-            current_packages = {
-                p.package_id: p for p in budget.current.packages
-            }
+            current_packages = {p.package_id: p for p in budget.current.packages}
 
             # Detect all changes
             changes = []
             for new_pkg in new_packages:
                 if old_pkg := current_packages.get(new_pkg.package_id):
                     # Package exists, check for changes
-                    pkg_changes = self.rule_engine.evaluate_changes(
-                        old_pkg, new_pkg
-                    )
+                    pkg_changes = self.rule_engine.evaluate_changes(old_pkg, new_pkg)
                     changes.extend(pkg_changes)
                 else:
                     # New package
@@ -195,9 +190,7 @@ class BudgetUpdateEngine:
 
         return budget
 
-    def _send_notifications(
-        self, budget: Budget, changes: List[BudgetChange]
-    ) -> None:
+    def _send_notifications(self, budget: Budget, changes: List[BudgetChange]) -> None:
         """Send notifications for significant changes.
 
         Args:
@@ -225,7 +218,5 @@ class BudgetUpdateEngine:
             self.notification_manager.send_notification(
                 recipient=budget.client_email,
                 subject=f"Important changes to your travel budget {budget.id}",
-                content=self._format_change_notification(
-                    budget, significant_changes
-                ),
+                content=self._format_change_notification(budget, significant_changes),
             )

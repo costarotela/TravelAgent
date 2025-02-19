@@ -18,9 +18,7 @@ class PriceTracker:
         """
         with db.get_session() as session:
             history = PriceHistory(
-                package_id=package.id,
-                price=package.price,
-                currency=package.currency
+                package_id=package.id, price=package.price, currency=package.currency
             )
             session.add(history)
 
@@ -34,7 +32,7 @@ class PriceTracker:
             Basic price history or None if not found
         """
         cache_key = f"price_history:{package_id}"
-        
+
         # Try cache first
         cached = await cache.get(cache_key)
         if cached:
@@ -57,12 +55,9 @@ class PriceTracker:
                 "currency": history[0].currency,
                 "last_updated": history[0].created_at.isoformat(),
                 "recent_prices": [
-                    {
-                        "price": h.price,
-                        "date": h.created_at.isoformat()
-                    }
+                    {"price": h.price, "date": h.created_at.isoformat()}
                     for h in history
-                ]
+                ],
             }
 
             # Cache for 1 hour

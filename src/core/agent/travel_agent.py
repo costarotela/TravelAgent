@@ -16,7 +16,7 @@ class TravelAgent(AgentCore):
     def __init__(self):
         """Initialize travel agent with notification system."""
         super().__init__()
-        
+
         # Configuración de notificaciones
         email_config = {
             "smtp_host": "smtp.tuempresa.com",
@@ -26,22 +26,22 @@ class TravelAgent(AgentCore):
             "use_tls": True,
             "from_email": "notificaciones@tuempresa.com",
         }
-        
+
         webhook_config = {
             "webhook_url": "https://hooks.slack.com/services/XXXX/XXXX/XXXX",
             "secret_key": "your-secret-key",
         }
-        
+
         # Inicializar proveedores de notificaciones
         email_provider = EmailProvider(**email_config)
         webhook_provider = WebhookProvider(**webhook_config)
-        
+
         # Inicializar manager de notificaciones
         self.notification_manager = NotificationManager(
             email_provider=email_provider,
             webhook_provider=webhook_provider,
         )
-        
+
         # Inicializar notificador de cambios
         self.change_notifier = ChangeNotifier(
             notification_manager=self.notification_manager,
@@ -124,8 +124,18 @@ class TravelAgent(AgentCore):
                     {"id": "pkg3", "destino": destino, "precio": 800},
                 ],
                 "actualizados": [
-                    {"id": "pkg4", "destino": destino, "precio_anterior": 900, "precio_nuevo": 950},
-                    {"id": "pkg5", "destino": destino, "precio_anterior": 1100, "precio_nuevo": 1050},
+                    {
+                        "id": "pkg4",
+                        "destino": destino,
+                        "precio_anterior": 900,
+                        "precio_nuevo": 950,
+                    },
+                    {
+                        "id": "pkg5",
+                        "destino": destino,
+                        "precio_anterior": 1100,
+                        "precio_nuevo": 1050,
+                    },
                 ],
                 "eliminados": [
                     {"id": "pkg6", "destino": destino, "ultimo_precio": 1300},

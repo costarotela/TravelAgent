@@ -95,9 +95,7 @@ class VersionManager:
             self.version_cache[version.id] = version
 
             # Update metrics
-            METRICS["version_operations"].labels(
-                operation_type="create"
-            ).inc()
+            METRICS["version_operations"].labels(operation_type="create").inc()
 
             return version
 
@@ -145,9 +143,7 @@ class VersionManager:
         self.branch_cache[branch.id] = branch
 
         # Update metrics
-        METRICS["version_operations"].labels(
-            operation_type="create_branch"
-        ).inc()
+        METRICS["version_operations"].labels(operation_type="create_branch").inc()
 
         return branch
 
@@ -178,8 +174,7 @@ class VersionManager:
 
             if not source or not target:
                 return MergeResult(
-                    success=False,
-                    metadata={"error": "Version not found"}
+                    success=False, metadata={"error": "Version not found"}
                 )
 
             # Get changes since common ancestor
@@ -194,16 +189,14 @@ class VersionManager:
             )
 
             # Find conflicts
-            conflicts = self._find_conflicts(
-                source_changes, target_changes
-            )
+            conflicts = self._find_conflicts(source_changes, target_changes)
 
             # If there are conflicts and strategy is manual, return them
             if conflicts and strategy == MergeStrategy.MANUAL:
                 return MergeResult(
                     success=False,
                     conflicts=conflicts,
-                    metadata={"status": "conflicts_detected"}
+                    metadata={"status": "conflicts_detected"},
                 )
 
             # Apply merge strategy
@@ -232,7 +225,7 @@ class VersionManager:
                 success=True,
                 merged_version_id=merged_version.id,
                 changes_applied=merged_changes,
-                metadata={"status": "merged_successfully"}
+                metadata={"status": "merged_successfully"},
             )
 
         finally:
@@ -263,9 +256,7 @@ class VersionManager:
 
         return None
 
-    async def get_version_graph(
-        self, budget_id: str
-    ) -> VersionGraph:
+    async def get_version_graph(self, budget_id: str) -> VersionGraph:
         """Get version graph for a budget.
 
         Args:
@@ -283,10 +274,7 @@ class VersionManager:
 
         # Add nodes (versions)
         for version in versions:
-            G.add_node(
-                version.id,
-                data=version.dict(exclude={"changes"})
-            )
+            G.add_node(version.id, data=version.dict(exclude={"changes"}))
 
         # Add edges (parent relationships)
         for version in versions:
@@ -296,19 +284,9 @@ class VersionManager:
         # Convert to serializable format
         return VersionGraph(
             budget_id=budget_id,
-            nodes=[
-                {
-                    "id": node,
-                    "data": G.nodes[node]["data"]
-                }
-                for node in G.nodes()
-            ],
+            nodes=[{"id": node, "data": G.nodes[node]["data"]} for node in G.nodes()],
             edges=[
-                {
-                    "source": source,
-                    "target": target
-                }
-                for source, target in G.edges()
+                {"source": source, "target": target} for source, target in G.edges()
             ],
             branches=[branch.dict() for branch in branches],
         )
@@ -331,17 +309,11 @@ class VersionManager:
         ancestor_id = await self._find_common_ancestor(
             base_version_id, target_version_id
         )
-        base_changes = await self._get_changes_since(
-            base_version_id, ancestor_id
-        )
-        target_changes = await self._get_changes_since(
-            target_version_id, ancestor_id
-        )
+        base_changes = await self._get_changes_since(base_version_id, ancestor_id)
+        target_changes = await self._get_changes_since(target_version_id, ancestor_id)
 
         # Create summary
-        summary = self._create_diff_summary(
-            base_changes, target_changes
-        )
+        summary = self._create_diff_summary(base_changes, target_changes)
 
         return VersionDiff(
             base_version_id=base_version_id,
@@ -350,34 +322,24 @@ class VersionManager:
             summary=summary,
         )
 
-    async def _get_next_version_number(
-        self, budget_id: str
-    ) -> int:
+    async def _get_next_version_number(self, budget_id: str) -> int:
         """Get next version number for a budget."""
         versions = await self._get_budget_versions(budget_id)
         if not versions:
             return 1
         return max(v.number for v in versions) + 1
 
-    async def _get_budget_versions(
-        self, budget_id: str
-    ) -> List[Version]:
+    async def _get_budget_versions(self, budget_id: str) -> List[Version]:
         """Get all versions for a budget."""
         if self.storage:
-            versions_data = await self.storage.get_budget_versions(
-                budget_id
-            )
+            versions_data = await self.storage.get_budget_versions(budget_id)
             return [Version.parse_obj(data) for data in versions_data]
         return []
 
-    async def _get_budget_branches(
-        self, budget_id: str
-    ) -> List[Branch]:
+    async def _get_budget_branches(self, budget_id: str) -> List[Branch]:
         """Get all branches for a budget."""
         if self.storage:
-            branches_data = await self.storage.get_budget_branches(
-                budget_id
-            )
+            branches_data = await self.storage.get_budget_branches(budget_id)
             return [Branch.parse_obj(data) for data in branches_data]
         return []
 
@@ -390,9 +352,7 @@ class VersionManager:
         common = v1_ancestors.intersection(v2_ancestors)
         return max(common, key=lambda x: self.version_cache[x].number)
 
-    async def _get_ancestor_ids(
-        self, version_id: str
-    ) -> Set[str]:
+    async def _get_ancestor_ids(self, version_id: str) -> Set[str]:
         """Get set of ancestor IDs for a version."""
         ancestors = set()
         current = await self.get_version(version_id)
@@ -424,12 +384,10 @@ class VersionManager:
         """Find conflicts between two sets of changes."""
         conflicts = []
         source_fields = {
-            (change.type, change.field): change
-            for change in source_changes
+            (change.type, change.field): change for change in source_changes
         }
         target_fields = {
-            (change.type, change.field): change
-            for change in target_changes
+            (change.type, change.field): change for change in target_changes
         }
 
         # Find overlapping fields
@@ -437,12 +395,14 @@ class VersionManager:
             source_change = source_fields[key]
             target_change = target_fields[key]
             if source_change.new_value != target_change.new_value:
-                conflicts.append({
-                    "field": key[1],
-                    "type": key[0],
-                    "source_change": source_change.dict(),
-                    "target_change": target_change.dict(),
-                })
+                conflicts.append(
+                    {
+                        "field": key[1],
+                        "type": key[0],
+                        "source_change": source_change.dict(),
+                        "target_change": target_change.dict(),
+                    }
+                )
 
         return conflicts
 
@@ -458,10 +418,7 @@ class VersionManager:
             return source_changes + target_changes
 
         # Create map of conflicting fields
-        conflict_fields = {
-            (c["type"], c["field"]): c
-            for c in conflicts
-        }
+        conflict_fields = {(c["type"], c["field"]): c for c in conflicts}
 
         # Apply strategy
         merged = []
@@ -475,9 +432,7 @@ class VersionManager:
                         merged.append(change)
                     elif strategy == MergeStrategy.THEIRS:
                         conflict = conflict_fields[key]
-                        merged.append(Change.parse_obj(
-                            conflict["target_change"]
-                        ))
+                        merged.append(Change.parse_obj(conflict["target_change"]))
                     used_fields.add(key)
             else:
                 merged.append(change)
@@ -506,8 +461,6 @@ class VersionManager:
             summary["modified_fields"].add(change.field)
 
         # Convert set to list for JSON serialization
-        summary["modified_fields"] = list(
-            summary["modified_fields"]
-        )
+        summary["modified_fields"] = list(summary["modified_fields"])
 
         return summary

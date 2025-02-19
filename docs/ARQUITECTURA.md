@@ -1,108 +1,169 @@
-# Arquitectura del Sistema
+# Arquitectura SmartTravelAgent
 
-## Objetivo Principal
-El SmartTravelAgent tiene un único propósito central: **la elaboración dinámica de presupuestos de viaje con asistencia al vendedor**.
+## Visión General
 
-## Estructura Core
+SmartTravelAgent es un sistema diseñado para automatizar y optimizar el proceso de elaboración de presupuestos de viaje, con énfasis en la extracción y procesamiento de datos en tiempo real.
 
-### 1. Módulo de Presupuestos (`src/core/budget/`)
-El corazón del sistema, enfocado en la creación y gestión de presupuestos.
+## Componentes del Sistema
 
-#### Components Clave:
-- `budget_engine/`: Motor de construcción de presupuestos
-- `price_tracker.py`: Seguimiento simple de precios
-  ```python
-  # Ejemplo de uso:
-  price_tracker.track_price(package)  # Registra precio actual
-  history = price_tracker.get_price_history(package_id)  # Obtiene historial básico
+### 1. Core (agent_core/)
+
+#### 1.1 Scrapers 
+- **Base Framework** (IMPRESCINDIBLE)
   ```
-- `rules.py`: Reglas básicas para presupuestos
-  ```python
-  # Ejemplo de uso:
-  rules.apply_margin(price, client_type)  # Aplica margen según tipo de cliente
-  rules.validate_budget_items(items)  # Validación básica
+  base.py
+  session_manager.py
+  change_detector.py
   ```
+  - Manejo de sesiones y anti-bloqueo
+  - Detección de cambios en datos
+  - Framework base para todos los scrapers
 
-### 2. Extracción de Datos (`src/core/collectors/` y `src/core/browsers/`)
-Enfocado en obtener datos actualizados de proveedores.
+- **Implementaciones Específicas**
+  ```
+  ola_scraper.py
+  [otros_proveedores]_scraper.py
+  ```
+  - Lógica específica para cada proveedor
+  - Selectores y mapeo de datos
+  - Manejo de autenticación
 
-- `collectors/`: Recolección de datos de APIs
-- `browsers/`: Web scraping cuando sea necesario
+#### 1.2 Schemas
+- **Modelos de Datos**
+  ```
+  travel.py
+  providers.py
+  ```
+  - Estructuras de datos validadas
+  - Modelos Pydantic
+  - Conversión y normalización
 
-### 3. Integración con Proveedores (`src/core/providers/`)
-Conexión directa con proveedores de servicios.
+### 2. API y Servicios
 
-### 4. Interfaz del Vendedor
-Herramientas para que el vendedor interactúe con el sistema.
+#### 2.1 Endpoints REST
+- `/api/v1/packages/search`
+- `/api/v1/packages/compare`
+- `/api/v1/budgets/create`
+- `/api/v1/budgets/update`
 
-## Alineación con Objetivos
+#### 2.2 Servicios Asíncronos
+- Actualización de precios
+- Monitoreo de cambios
+- Notificaciones
 
-1. **Elaboración de Presupuestos**
-   - ✓ `budget_engine/`: Construcción de presupuestos
-   - ✓ `rules.py`: Reglas de negocio simples
-   - ✓ `price_tracker.py`: Seguimiento de precios
+### 3. Interfaz de Usuario
 
-2. **Construcción Dinámica con Asistencia**
-   - ✓ Interfaz interactiva para el vendedor
-   - ✓ Validación en tiempo real
-   - ✓ Sugerencias basadas en disponibilidad
+#### 3.1 Dashboard Principal
+- Vista general de presupuestos
+- Alertas y notificaciones
+- Métricas clave
 
-3. **Adaptación a Cambios**
-   - ✓ Actualización continua de precios
-   - ✓ Seguimiento de disponibilidad
-   - ✓ Caché para rendimiento
+#### 3.2 Módulo de Búsqueda
+- Búsqueda de paquetes
+- Filtros y ordenamiento
+- Comparación de opciones
 
-4. **Extracción de Datos en Tiempo Real**
-   - ✓ Collectors para APIs
-   - ✓ Browsers para web scraping
-   - ✓ Sistema de caché
+#### 3.3 Gestión de Presupuestos
+- Creación y edición
+- Historial de cambios
+- Exportación de documentos
 
-5. **Interfaz del Vendedor**
-   - ✓ Dashboard interactivo
-   - ✓ Validación inmediata
-   - ✓ Sugerencias de optimización
+## Priorización de Desarrollo
 
-6. **Reconstrucción de Presupuestos**
-   - ✓ Versionamiento de presupuestos
-   - ✓ Historial de cambios
-   - ✓ Comparación de versiones
+### 1. IMPRESCINDIBLE 
+- Framework base de scraping
+- Manejo de sesiones y anti-bloqueo
+- Modelos de datos core
+- Endpoints básicos de API
 
-## Reglas de Desarrollo
+### 2. PARCIALMENTE NECESARIO 
+- Sistema simple de detección de cambios
+- Notificaciones básicas
+- UI elementos esenciales
 
-1. **Mantener la Simplicidad**
-   - Evitar análisis complejos innecesarios
-   - Enfocarse en la funcionalidad esencial
-   - Priorizar la experiencia del vendedor
+### 3. OMITIBLE 
+- Optimizaciones avanzadas
+- Caché complejo
+- Características no críticas
 
-2. **Enfoque en Presupuestos**
-   - Cada función debe contribuir a la creación de presupuestos
-   - Evitar funcionalidades que no apoyen este objetivo
-   - Mantener el foco en la asistencia al vendedor
+## Flujo de Datos
 
-3. **Datos Actualizados**
-   - Priorizar la actualización de precios y disponibilidad
-   - Usar caché de manera efectiva
-   - Mantener tiempos de respuesta rápidos
+```mermaid
+graph TD
+    A[Proveedores] -->|Scraping| B[Core]
+    B -->|Procesamiento| C[API]
+    C -->|Datos| D[UI]
+    D -->|Interacción| E[Usuario]
+    E -->|Solicitudes| C
+```
 
-4. **Experiencia del Vendedor**
-   - Interfaz intuitiva
-   - Respuestas rápidas
-   - Validación en tiempo real
+## Consideraciones Técnicas
 
-## NO Incluido en el Alcance
+### 1. Seguridad
+- Manejo seguro de credenciales
+- Rate limiting
+- Validación de datos
 
-Para evitar desviaciones, estos elementos NO son parte del sistema:
-- ❌ Análisis complejo de mercado
-- ❌ Predicciones avanzadas de precios
-- ❌ Análisis de comportamiento de proveedores
-- ❌ Sistemas complejos de reglas de negocio
-- ❌ Análisis de riesgo avanzado
+### 2. Rendimiento
+- Scraping eficiente
+- Procesamiento asíncrono
+- Optimización de consultas
 
-## Mantenimiento del Enfoque
+### 3. Mantenibilidad
+- Código modular
+- Pruebas automatizadas
+- Documentación actualizada
 
-Antes de agregar nueva funcionalidad, preguntar:
-1. ¿Ayuda directamente en la creación de presupuestos?
-2. ¿Mejora la experiencia del vendedor?
-3. ¿Es necesario para la actualización de datos?
+## Pruebas
 
-Si la respuesta es NO a todas, probablemente está fuera del alcance.
+### 1. Unit Tests
+```bash
+python -m pytest tests/
+```
+- Componentes individuales
+- Mocking de servicios externos
+- Validación de modelos
+
+### 2. Integration Tests
+```bash
+python -m pytest tests/integration/
+```
+- Flujos completos
+- Interacción entre componentes
+- Casos de uso reales
+
+## Despliegue
+
+### 1. Desarrollo
+```bash
+python -m uvicorn main:app --reload
+```
+
+### 2. Producción
+```bash
+docker-compose up -d
+```
+
+## Monitoreo
+
+### 1. Logs
+- Nivel INFO: Operaciones normales
+- Nivel WARNING: Cambios significativos
+- Nivel ERROR: Fallos y excepciones
+
+### 2. Métricas
+- Tiempo de respuesta
+- Tasa de éxito en scraping
+- Uso de recursos
+
+## Mantenimiento
+
+### 1. Actualizaciones Regulares
+- Selectores de scraping
+- User agents
+- Dependencias
+
+### 2. Backups
+- Datos de presupuestos
+- Configuraciones
+- Logs históricos

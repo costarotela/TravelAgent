@@ -50,10 +50,10 @@ class CacheEntry:
         self.expires_at = expires_at
         self.last_access = datetime.now()
         self.access_count = 0
-        
+
         # Comprimir datos si es necesario
         if compress and isinstance(value, (dict, list)):
-            json_data = json.dumps(value).encode('utf-8')
+            json_data = json.dumps(value).encode("utf-8")
             self.compressed = True
             self.value = zlib.compress(json_data)
             self.original_size = len(json_data)
@@ -88,7 +88,9 @@ class SmartCache:
         self._default_ttl = default_ttl
         self._change_patterns: Dict[str, float] = {}
         self._max_size = max_size_mb * 1024 * 1024  # Convertir a bytes
-        self._compression_threshold = compression_threshold_kb * 1024  # Convertir a bytes
+        self._compression_threshold = (
+            compression_threshold_kb * 1024
+        )  # Convertir a bytes
         self.logger = logging.getLogger(__name__)
 
     def get(self, key: str) -> Optional[Any]:
@@ -121,9 +123,9 @@ class SmartCache:
 
         # Descomprimir si es necesario
         if entry.compressed:
-            json_data = zlib.decompress(entry.value).decode('utf-8')
+            json_data = zlib.decompress(entry.value).decode("utf-8")
             return json.loads(json_data)
-        
+
         return entry.value
 
     def set(
@@ -146,14 +148,14 @@ class SmartCache:
             ttl = self._get_dynamic_ttl(key)
 
         expires_at = datetime.now() + timedelta(seconds=ttl)
-        
+
         # Determinar si se debe comprimir
         value_size = sys.getsizeof(value)
         should_compress = value_size > self._compression_threshold
 
         # Crear entrada
         entry = CacheEntry(value, expires_at, priority, compress=should_compress)
-        
+
         # Verificar espacio disponible
         if self._get_total_size() + entry.compressed_size > self._max_size:
             self._cleanup_by_size(entry.compressed_size)
@@ -161,11 +163,17 @@ class SmartCache:
         self._cache[key] = entry
 
         # Actualizar métricas
-        METRICS["cache_size"].labels(cache_type="smart_cache").set(self._get_total_size())
+        METRICS["cache_size"].labels(cache_type="smart_cache").set(
+            self._get_total_size()
+        )
         if entry.compressed:
             ratio = entry.original_size / entry.compressed_size
-            METRICS["cache_compression_ratio"].labels(cache_type="smart_cache").observe(ratio)
-        METRICS["cache_entry_size"].labels(cache_type="smart_cache").observe(entry.compressed_size)
+            METRICS["cache_compression_ratio"].labels(cache_type="smart_cache").observe(
+                ratio
+            )
+        METRICS["cache_entry_size"].labels(cache_type="smart_cache").observe(
+            entry.compressed_size
+        )
 
     def _get_total_size(self) -> int:
         """
@@ -184,13 +192,13 @@ class SmartCache:
             needed_space: Espacio necesario en bytes
         """
         start_time = datetime.now()
-        
+
         # Ordenar entradas por prioridad (menor) y último acceso (más antiguo)
         entries = sorted(
             self._cache.items(),
-            key=lambda x: (x[1].priority, x[1].last_access, -x[1].access_count)
+            key=lambda x: (x[1].priority, x[1].last_access, -x[1].access_count),
         )
-        
+
         freed_space = 0
         for key, entry in entries:
             if freed_space >= needed_space:
@@ -201,8 +209,12 @@ class SmartCache:
                 del self._change_patterns[key]
 
         cleanup_time = (datetime.now() - start_time).total_seconds()
-        METRICS["cache_cleanup_time"].labels(cache_type="smart_cache").observe(cleanup_time)
-        self.logger.info(f"Limpieza de caché completada en {cleanup_time:.2f}s, liberado {freed_space} bytes")
+        METRICS["cache_cleanup_time"].labels(cache_type="smart_cache").observe(
+            cleanup_time
+        )
+        self.logger.info(
+            f"Limpieza de caché completada en {cleanup_time:.2f}s, liberado {freed_space} bytes"
+        )
 
     def _get_dynamic_ttl(self, key: str) -> int:
         """
@@ -271,12 +283,16 @@ class SmartCache:
         """
         total_entries = len(self._cache)
         total_size = self._get_total_size()
-        compressed_entries = sum(1 for entry in self._cache.values() if entry.compressed)
-        
+        compressed_entries = sum(
+            1 for entry in self._cache.values() if entry.compressed
+        )
+
         return {
             "total_entries": total_entries,
             "total_size_bytes": total_size,
             "compressed_entries": compressed_entries,
             "memory_usage_percent": (total_size / self._max_size) * 100,
-            "average_entry_size": total_size / total_entries if total_entries > 0 else 0,
+            "average_entry_size": (
+                total_size / total_entries if total_entries > 0 else 0
+            ),
         }

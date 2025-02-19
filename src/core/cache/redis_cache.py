@@ -1,4 +1,5 @@
 """Redis cache implementation."""
+
 import json
 import aioredis
 from typing import Any, Optional
@@ -14,7 +15,7 @@ class RedisCache:
     async def init(self):
         """Initialize Redis connection."""
         if not self._redis:
-            self._redis = await aioredis.create_redis_pool('redis://localhost')
+            self._redis = await aioredis.create_redis_pool("redis://localhost")
 
     async def cleanup(self):
         """Cleanup Redis connection."""
@@ -25,10 +26,10 @@ class RedisCache:
 
     async def get(self, key: str) -> Optional[Any]:
         """Get value from cache.
-        
+
         Args:
             key: Cache key
-            
+
         Returns:
             Cached value or None if not found
         """
@@ -41,14 +42,9 @@ class RedisCache:
 
         return json.loads(value)
 
-    async def set(
-        self,
-        key: str,
-        value: Any,
-        expire: Optional[int] = None
-    ) -> None:
+    async def set(self, key: str, value: Any, expire: Optional[int] = None) -> None:
         """Set value in cache.
-        
+
         Args:
             key: Cache key
             value: Value to cache
@@ -57,15 +53,11 @@ class RedisCache:
         if not self._redis:
             return
 
-        await self._redis.set(
-            key,
-            json.dumps(value),
-            expire=expire
-        )
+        await self._redis.set(key, json.dumps(value), expire=expire)
 
     async def delete(self, key: str) -> None:
         """Delete value from cache.
-        
+
         Args:
             key: Cache key to delete
         """

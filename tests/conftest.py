@@ -1,37 +1,45 @@
-"""Test configuration."""
+"""
+Configuración de pruebas y fixtures compartidos.
+"""
+
 import pytest
-import asyncio
-from src.core.database.base import db
-from src.core.cache.redis_cache import cache
+from unittest.mock import MagicMock, AsyncMock
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create event loop for tests."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+# Mock de caché para pruebas
+@pytest.fixture
+def mock_cache():
+    cache = MagicMock()
+    cache.get = AsyncMock(return_value=None)
+    cache.set = AsyncMock()
+    return cache
 
 
-@pytest.fixture(autouse=True)
-async def setup_database():
-    """Setup test database."""
-    # Setup
-    await db.init()
-    
-    yield
-    
-    # Cleanup
-    await db.cleanup()
+# Mock de base de datos para pruebas
+@pytest.fixture
+def mock_db():
+    db = MagicMock()
+    db.execute = AsyncMock()
+    db.fetch = AsyncMock(return_value=[])
+    return db
 
 
-@pytest.fixture(autouse=True)
-async def setup_cache():
-    """Setup test cache."""
-    # Setup
-    await cache.init()
-    
-    yield
-    
-    # Cleanup
-    await cache.cleanup()
+# Mock de logger para pruebas
+@pytest.fixture
+def mock_logger():
+    return MagicMock()
+
+
+# Mock de métricas para pruebas
+@pytest.fixture
+def mock_metrics():
+    return MagicMock()
+
+
+# Mock de eventos para pruebas
+@pytest.fixture
+def mock_events():
+    events = MagicMock()
+    events.emit = AsyncMock()
+    events.subscribe = MagicMock()
+    return events

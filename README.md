@@ -1,7 +1,7 @@
 # Smart Travel Agency - Sistema de Gestión B2B
 
 ## Descripción
-Sistema de gestión para agencias de viajes enfocado en B2B (Business to Business). Proporciona herramientas para la gestión eficiente de presupuestos, análisis de precios y gestión de proveedores.
+Sistema de gestión para agencias de viajes enfocado en B2B (Business to Business). Proporciona herramientas para la gestión eficiente de presupuestos, análisis de precios y gestión de proveedores. Utiliza técnicas de web scraping para recolectar datos de proveedores mayoristas.
 
 ## Componentes Principales
 
@@ -27,6 +27,12 @@ Sistema de gestión para agencias de viajes enfocado en B2B (Business to Busines
 - Editor de presupuestos
 - Visualización de análisis y métricas
 
+### 5. Módulo de Web Scraping
+- Recolección automática de datos mediante browser automation y scraping avanzado
+- Procesamiento y comparación de paquetes turísticos
+- Sistema anti-bloqueo y manejo de sesiones
+- Gestión inteligente de caché y recursos
+
 ## Usuarios Principales
 
 ### Vendedores/Agentes
@@ -48,6 +54,10 @@ Sistema de gestión para agencias de viajes enfocado en B2B (Business to Busines
 - Pandas & NumPy: Manipulación de datos
 - Streamlit: Interfaz de usuario
 - SQLAlchemy: Gestión de base de datos
+- Selenium WebDriver
+- Chrome/Chromium
+- Redis (para caché)
+- Sistema de proxies
 
 ### Instalación
 ```bash
@@ -58,6 +68,12 @@ pip install -r requirements.txt
 1. Copiar `.env.example` a `.env`
 2. Configurar variables de entorno
 3. Inicializar base de datos: `python scripts/init_db.py`
+4. Configurar credenciales en `.env`:
+```env
+PROXY_LIST_PATH=./config/proxies.txt
+USER_AGENTS_PATH=./config/user_agents.txt
+REDIS_URL=redis://localhost:6379
+```
 
 ## Uso
 
@@ -68,6 +84,11 @@ python -m src.main
 
 ### Acceder a la Interfaz
 Abrir navegador en `http://localhost:8501`
+
+### Monitorear Actividad
+```bash
+python -m smart_travel_agent --monitor
+```
 
 ## Documentación Adicional
 - [Guía de Usuario](docs/user_guide.md)
@@ -80,3 +101,11 @@ Abrir navegador en `http://localhost:8501`
 3. Commit cambios: `git commit -am 'Agregar nueva funcionalidad'`
 4. Push a la rama: `git push origin feature/nueva-funcionalidad`
 5. Crear Pull Request
+
+## Licencia
+
+Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE.md](LICENSE.md) para detalles.
+
+## Advertencia Legal
+
+Este software debe ser utilizado de acuerdo con los términos y condiciones de los sitios web objetivo y las leyes aplicables. El uso de técnicas de scraping debe respetar las políticas de uso de cada sitio.

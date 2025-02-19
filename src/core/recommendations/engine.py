@@ -50,9 +50,7 @@ class AnalysisEngine:
         # TODO: Implement model loading
         pass
 
-    async def analyze_price(
-        self, context: AnalysisContext
-    ) -> PriceAnalysis:
+    async def analyze_price(self, context: AnalysisContext) -> PriceAnalysis:
         """Analyze price trends and variations.
 
         Args:
@@ -71,9 +69,7 @@ class AnalysisEngine:
             self.price_model.fit(df)
 
             # Hacer predicciones
-            future = self.price_model.make_future_dataframe(
-                periods=30
-            )
+            future = self.price_model.make_future_dataframe(periods=30)
             forecast = self.price_model.predict(future)
 
             # Analizar tendencias
@@ -83,9 +79,7 @@ class AnalysisEngine:
             )
 
             # Determinar confianza
-            confidence = self._calculate_confidence(
-                forecast, context.historical_prices
-            )
+            confidence = self._calculate_confidence(forecast, context.historical_prices)
 
             analysis = PriceAnalysis(
                 item_id=context.package_data["id"],
@@ -98,9 +92,7 @@ class AnalysisEngine:
             )
 
             # Update metrics
-            METRICS["analysis_operations"].labels(
-                analysis_type="price"
-            ).inc()
+            METRICS["analysis_operations"].labels(analysis_type="price").inc()
 
             return analysis
 
@@ -127,9 +119,7 @@ class AnalysisEngine:
 
         try:
             # Obtener datos del proveedor
-            supplier_data = self._get_supplier_data(
-                supplier_id, context.supplier_data
-            )
+            supplier_data = self._get_supplier_data(supplier_id, context.supplier_data)
             if not supplier_data:
                 raise ValueError(f"Supplier {supplier_id} not found")
 
@@ -146,14 +136,10 @@ class AnalysisEngine:
             )
 
             # Generar recomendaciones
-            recommendations = self._generate_supplier_recommendations(
-                metrics, history
-            )
+            recommendations = self._generate_supplier_recommendations(metrics, history)
 
             # Determinar confianza
-            confidence = self._calculate_supplier_confidence(
-                metrics, history
-            )
+            confidence = self._calculate_supplier_confidence(metrics, history)
 
             analysis = SupplierAnalysis(
                 supplier_id=supplier_id,
@@ -165,9 +151,7 @@ class AnalysisEngine:
             )
 
             # Update metrics
-            METRICS["analysis_operations"].labels(
-                analysis_type="supplier"
-            ).inc()
+            METRICS["analysis_operations"].labels(analysis_type="supplier").inc()
 
             return analysis
 
@@ -182,35 +166,32 @@ class AnalysisEngine:
         """Prepare historical price data for analysis."""
         # Convertir a DataFrame
         df = pd.DataFrame(historical_prices)
-        
+
         # Asegurar formato correcto para Prophet
-        df = df.rename(columns={
-            "timestamp": "ds",
-            "price": "y"
-        })
-        
+        df = df.rename(columns={"timestamp": "ds", "price": "y"})
+
         # Ordenar por fecha
         df = df.sort_values("ds")
-        
+
         # Agregar features adicionales
         df["is_weekend"] = df["ds"].dt.dayofweek.isin([5, 6])
         df["month"] = df["ds"].dt.month
         df["day_of_week"] = df["ds"].dt.dayofweek
-        
+
         return df
 
-    def _analyze_price_trend(
-        self, forecast: pd.DataFrame
-    ) -> PriceTrend:
+    def _analyze_price_trend(self, forecast: pd.DataFrame) -> PriceTrend:
         """Analyze price trend from forecast."""
         # Calcular cambio porcentual
         total_change = (
-            forecast["yhat"].iloc[-1] - forecast["yhat"].iloc[0]
-        ) / forecast["yhat"].iloc[0] * 100
-        
+            (forecast["yhat"].iloc[-1] - forecast["yhat"].iloc[0])
+            / forecast["yhat"].iloc[0]
+            * 100
+        )
+
         # Calcular volatilidad
         volatility = forecast["yhat"].std() / forecast["yhat"].mean()
-        
+
         # Determinar tendencia
         if volatility > 0.15:  # Más de 15% de volatilidad
             return PriceTrend.VOLATILE
@@ -227,9 +208,7 @@ class AnalysisEngine:
         """Calculate expected price variation."""
         # Calcular variación esperada
         future_price = forecast["yhat"].iloc[-1]
-        variation = (
-            (future_price - current_price) / current_price
-        ) * 100
+        variation = ((future_price - current_price) / current_price) * 100
         return variation
 
     def _calculate_confidence(
@@ -239,16 +218,14 @@ class AnalysisEngine:
     ) -> ConfidenceLevel:
         """Calculate confidence level."""
         # Calcular error medio
-        mape = np.mean(np.abs(
-            forecast["yhat"] - forecast["y"]
-        ) / forecast["y"]) * 100
-        
+        mape = np.mean(np.abs(forecast["yhat"] - forecast["y"]) / forecast["y"]) * 100
+
         # Calcular R²
         r2 = 1 - (
-            np.sum((forecast["y"] - forecast["yhat"]) ** 2) /
-            np.sum((forecast["y"] - forecast["y"].mean()) ** 2)
+            np.sum((forecast["y"] - forecast["yhat"]) ** 2)
+            / np.sum((forecast["y"] - forecast["y"].mean()) ** 2)
         )
-        
+
         # Determinar nivel de confianza
         if mape < 10 and r2 > 0.8:
             return ConfidenceLevel.HIGH
@@ -257,19 +234,17 @@ class AnalysisEngine:
         else:
             return ConfidenceLevel.LOW
 
-    def _get_trend_factors(
-        self, forecast: pd.DataFrame
-    ) -> List[str]:
+    def _get_trend_factors(self, forecast: pd.DataFrame) -> List[str]:
         """Get factors influencing trend."""
         factors = []
-        
+
         # Analizar componentes de la predicción
         components = ["trend", "weekly", "yearly"]
-        
+
         for component in components:
             # Calcular importancia del componente
             importance = np.std(forecast[component]) / np.std(forecast["yhat"])
-            
+
             if importance > 0.1:  # Más de 10% de importancia
                 if component == "trend":
                     factors.append("tendencia_general")
@@ -277,13 +252,13 @@ class AnalysisEngine:
                     factors.append("patron_semanal")
                 elif component == "yearly":
                     factors.append("estacionalidad")
-        
+
         # Analizar eventos especiales
         if "holidays" in forecast.columns:
             holiday_effect = np.std(forecast["holidays"]) / np.std(forecast["yhat"])
             if holiday_effect > 0.05:
                 factors.append("eventos_especiales")
-        
+
         return factors
 
     def _get_supplier_data(
@@ -294,12 +269,12 @@ class AnalysisEngine:
         """Get supplier data by ID."""
         if not supplier_data:
             return None
-        
+
         suppliers = supplier_data.get("suppliers", [])
         for supplier in suppliers:
             if supplier["id"] == supplier_id:
                 return supplier
-        
+
         return None
 
     def _calculate_supplier_metrics(
@@ -316,7 +291,7 @@ class AnalysisEngine:
         )
         quality = supplier.get("rating", 0) / 5.0
         response_time = self._calculate_response_time(supplier)
-        
+
         return SupplierMetrics(
             reliability_score=reliability,
             price_competitiveness=competitiveness,
@@ -324,9 +299,7 @@ class AnalysisEngine:
             response_time=response_time,
         )
 
-    def _calculate_reliability_score(
-        self, supplier: Dict[str, Any]
-    ) -> float:
+    def _calculate_reliability_score(self, supplier: Dict[str, Any]) -> float:
         """Calculate supplier reliability score."""
         # Factores de confiabilidad
         factors = {
@@ -334,20 +307,17 @@ class AnalysisEngine:
             "cancellation_rate": 1 - supplier.get("cancellation_rate", 0),
             "response_rate": supplier.get("response_rate", 0),
         }
-        
+
         # Pesos de los factores
         weights = {
             "on_time_delivery": 0.4,
             "cancellation_rate": 0.4,
             "response_rate": 0.2,
         }
-        
+
         # Calcular score ponderado
-        score = sum(
-            factors[k] * weights[k]
-            for k in factors.keys()
-        )
-        
+        score = sum(factors[k] * weights[k] for k in factors.keys())
+
         return max(0, min(1, score))  # Normalizar a [0,1]
 
     def _calculate_price_competitiveness(
@@ -359,36 +329,33 @@ class AnalysisEngine:
         """Calculate price competitiveness score."""
         if not market_data:
             return 0.5
-        
+
         # Obtener precios del mercado
         market_prices = [
-            s["price"]
-            for s in market_data.get("services", {}).get(service_type, [])
+            s["price"] for s in market_data.get("services", {}).get(service_type, [])
         ]
-        
+
         if not market_prices:
             return 0.5
-        
+
         # Calcular posición relativa
         avg_price = np.mean(market_prices)
         if avg_price == 0:
             return 0.5
-        
+
         ratio = supplier["price"] / avg_price
-        
+
         # Convertir ratio a score (menor precio = mejor score)
         score = 1 - min(1, max(0, ratio - 0.5))
-        
+
         return score
 
-    def _calculate_response_time(
-        self, supplier: Dict[str, Any]
-    ) -> float:
+    def _calculate_response_time(self, supplier: Dict[str, Any]) -> float:
         """Calculate average response time in hours."""
         response_times = supplier.get("response_times", [])
         if not response_times:
             return 24.0  # Valor por defecto
-        
+
         return np.mean(response_times)
 
     def _analyze_historical_performance(
@@ -398,18 +365,20 @@ class AnalysisEngine:
     ) -> List[Dict[str, Any]]:
         """Analyze historical performance."""
         history = []
-        
+
         # Obtener historial
         performance = supplier.get("performance_history", [])
-        
+
         for entry in performance:
             analysis = {
                 "timestamp": entry["timestamp"],
                 "metrics": {
-                    "reliability": self._calculate_reliability_score({
-                        **supplier,
-                        **entry,
-                    }),
+                    "reliability": self._calculate_reliability_score(
+                        {
+                            **supplier,
+                            **entry,
+                        }
+                    ),
                     "competitiveness": self._calculate_price_competitiveness(
                         {**supplier, **entry},
                         supplier["service_type"],
@@ -420,7 +389,7 @@ class AnalysisEngine:
                 "events": entry.get("events", []),
             }
             history.append(analysis)
-        
+
         return history
 
     def _generate_supplier_recommendations(
@@ -430,43 +399,30 @@ class AnalysisEngine:
     ) -> List[str]:
         """Generate recommendations for supplier management."""
         recommendations = []
-        
+
         # Analizar métricas actuales
         if metrics.reliability_score < 0.7:
-            recommendations.append(
-                "Revisar acuerdos de nivel de servicio"
-            )
-        
+            recommendations.append("Revisar acuerdos de nivel de servicio")
+
         if metrics.price_competitiveness < 0.4:
-            recommendations.append(
-                "Negociar mejores tarifas"
-            )
-        
+            recommendations.append("Negociar mejores tarifas")
+
         if metrics.service_quality < 0.6:
-            recommendations.append(
-                "Evaluar calidad del servicio"
-            )
-        
+            recommendations.append("Evaluar calidad del servicio")
+
         if metrics.response_time > 24:
-            recommendations.append(
-                "Mejorar tiempos de respuesta"
-            )
-        
+            recommendations.append("Mejorar tiempos de respuesta")
+
         # Analizar tendencias
         if history:
             recent = history[-3:]  # Últimos 3 períodos
-            
+
             # Detectar tendencias negativas
             for metric in ["reliability", "competitiveness", "quality"]:
-                values = [
-                    h["metrics"][metric]
-                    for h in recent
-                ]
+                values = [h["metrics"][metric] for h in recent]
                 if all(a > b for a, b in zip(values, values[1:])):
-                    recommendations.append(
-                        f"Investigar caída en {metric}"
-                    )
-        
+                    recommendations.append(f"Investigar caída en {metric}")
+
         return recommendations
 
     def _calculate_supplier_confidence(
@@ -477,28 +433,29 @@ class AnalysisEngine:
         """Calculate confidence in supplier analysis."""
         if not history:
             return ConfidenceLevel.LOW
-        
+
         # Calcular estabilidad de métricas
         recent = history[-6:]  # Últimos 6 períodos
         stds = []
-        
+
         for metric in ["reliability", "competitiveness", "quality"]:
             values = [h["metrics"][metric] for h in recent]
             if values:
                 stds.append(np.std(values))
-        
+
         if not stds:
             return ConfidenceLevel.LOW
-        
+
         # Determinar confianza basada en estabilidad
         avg_std = np.mean(stds)
-        
+
         if avg_std < 0.1:  # Muy estable
             return ConfidenceLevel.HIGH
         elif avg_std < 0.2:  # Moderadamente estable
             return ConfidenceLevel.MEDIUM
         else:  # Inestable
             return ConfidenceLevel.LOW
+
 
 class BudgetRecommender:
     """Simple recommender for budget creation and optimization."""
@@ -529,12 +486,10 @@ class BudgetRecommender:
         """
         # Find potential savings
         savings = self._find_potential_savings(current_budget, available_packages)
-        
+
         # Find alternative packages
         alternatives = self._find_alternatives(
-            current_budget,
-            available_packages,
-            target_price
+            current_budget, available_packages, target_price
         )
 
         # Generate explanation
@@ -544,83 +499,87 @@ class BudgetRecommender:
             budget=current_budget,
             explanation=explanation,
             alternatives=alternatives,
-            savings_potential=savings
+            savings_potential=savings,
         )
 
     def _find_potential_savings(
-        self,
-        budget: Budget,
-        available_packages: List[TravelPackage]
+        self, budget: Budget, available_packages: List[TravelPackage]
     ) -> float:
         """Find potential savings in current budget."""
         total_savings = 0.0
-        
+
         # Compare each budget item with available packages
         for item in budget.items:
             cheaper_options = [
-                p for p in available_packages
+                p
+                for p in available_packages
                 if p.service_type == item.service_type and p.price < item.price
             ]
             if cheaper_options:
                 total_savings += item.price - min(p.price for p in cheaper_options)
-        
+
         return total_savings
 
     def _find_alternatives(
         self,
         budget: Budget,
         available_packages: List[TravelPackage],
-        target_price: Optional[float]
+        target_price: Optional[float],
     ) -> List[TravelPackage]:
         """Find alternative packages that could improve the budget."""
         alternatives = []
-        
+
         for item in budget.items:
             # Find packages of the same type
             similar_packages = [
-                p for p in available_packages
-                if p.service_type == item.service_type
+                p for p in available_packages if p.service_type == item.service_type
             ]
-            
+
             # Sort by price if target_price exists, otherwise by availability
             if target_price:
                 similar_packages.sort(key=lambda p: abs(p.price - target_price))
             else:
-                similar_packages.sort(key=lambda p: getattr(p, "availability", 0), reverse=True)
-            
+                similar_packages.sort(
+                    key=lambda p: getattr(p, "availability", 0), reverse=True
+                )
+
             # Add top alternatives
-            alternatives.extend(similar_packages[:self.max_alternatives])
-            
-        return alternatives[:self.max_alternatives]
+            alternatives.extend(similar_packages[: self.max_alternatives])
+
+        return alternatives[: self.max_alternatives]
 
     def _generate_explanation(
         self,
         savings: float,
         alternatives: List[TravelPackage],
-        target_price: Optional[float]
+        target_price: Optional[float],
     ) -> str:
         """Generate simple explanation for the recommendation."""
         explanation = []
-        
+
         if savings > 0:
             explanation.append(f"Potential savings found: ${savings:.2f}")
-        
+
         if alternatives:
             explanation.append("\nAlternative packages available:")
             for alt in alternatives:
                 explanation.append(f"- {alt.service_type}: ${alt.price:.2f}")
-        
+
         if target_price and alternatives:
             closest_alt = min(alternatives, key=lambda p: abs(p.price - target_price))
             price_diff = abs(closest_alt.price - target_price)
-            explanation.append(f"\nClosest to target price (${target_price:.2f}): ${closest_alt.price:.2f}")
+            explanation.append(
+                f"\nClosest to target price (${target_price:.2f}): ${closest_alt.price:.2f}"
+            )
             explanation.append(f"Difference: ${price_diff:.2f}")
-        
+
         return "\n".join(explanation)
+
 
 @dataclass
 class BudgetRecommendation:
     """Simple budget recommendation."""
+
     budget: Budget
     explanation: str
     alternatives: List[TravelPackage]

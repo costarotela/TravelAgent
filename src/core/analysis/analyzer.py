@@ -4,14 +4,17 @@ from typing import Dict, List, Optional
 from dataclasses import dataclass
 from src.core.models.travel import TravelPackage
 
+
 @dataclass
 class PackageScore:
     """Basic score for a travel package."""
+
     package: TravelPackage
     total_score: float
     price_score: float
     availability_score: float
     details: Dict[str, float]
+
 
 class PackageAnalyzer:
     """Simple analyzer for evaluating travel packages for budgets."""
@@ -32,7 +35,9 @@ class PackageAnalyzer:
         if sum(weights) != 1.0:
             raise ValueError("Weights must sum to 1.0")
 
-    def analyze_package(self, package: TravelPackage, market_avg_price: float) -> PackageScore:
+    def analyze_package(
+        self, package: TravelPackage, market_avg_price: float
+    ) -> PackageScore:
         """Analyze a single package for budget creation.
 
         Args:
@@ -48,8 +53,8 @@ class PackageAnalyzer:
 
         # Calculate total score
         total_score = (
-            self.price_weight * price_score +
-            self.availability_weight * availability_score
+            self.price_weight * price_score
+            + self.availability_weight * availability_score
         )
 
         return PackageScore(
@@ -59,8 +64,10 @@ class PackageAnalyzer:
             availability_score=availability_score,
             details={
                 "price_comparison": package.price / market_avg_price,
-                "availability": package.availability if hasattr(package, "availability") else 1.0
-            }
+                "availability": (
+                    package.availability if hasattr(package, "availability") else 1.0
+                ),
+            },
         )
 
     def _calculate_price_score(self, price: float, market_avg: float) -> float:

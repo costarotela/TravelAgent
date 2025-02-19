@@ -112,9 +112,7 @@ class PreferenceManager:
                 source=source,
             ).inc()
 
-            logger.info(
-                f"Updated preference {pref_type}.{key} for user {user_id}"
-            )
+            logger.info(f"Updated preference {pref_type}.{key} for user {user_id}")
             return prefs
 
         finally:
@@ -196,13 +194,9 @@ class PreferenceManager:
                 continue
 
             try:
-                filtered_data = self._apply_filter(
-                    filtered_data, config, user_id
-                )
+                filtered_data = self._apply_filter(filtered_data, config, user_id)
             except Exception as e:
-                logger.error(
-                    f"Error applying filter {config.name}: {str(e)}"
-                )
+                logger.error(f"Error applying filter {config.name}: {str(e)}")
 
         return filtered_data
 
@@ -226,9 +220,7 @@ class PreferenceManager:
                     return False
             return True
         except Exception as e:
-            logger.error(
-                f"Error evaluating conditions for rule {rule.name}: {str(e)}"
-            )
+            logger.error(f"Error evaluating conditions for rule {rule.name}: {str(e)}")
             return False
 
     def _apply_filter(
@@ -251,22 +243,17 @@ class PreferenceManager:
             min_price = config.criteria.get("min")
             max_price = config.criteria.get("max")
             if min_price is not None:
-                data = [
-                    item for item in data
-                    if item.get("price", 0) >= min_price
-                ]
+                data = [item for item in data if item.get("price", 0) >= min_price]
             if max_price is not None:
-                data = [
-                    item for item in data
-                    if item.get("price", 0) <= max_price
-                ]
+                data = [item for item in data if item.get("price", 0) <= max_price]
 
         elif config.filter_type == "date":
             start_date = config.criteria.get("start")
             end_date = config.criteria.get("end")
             if start_date and end_date:
                 data = [
-                    item for item in data
+                    item
+                    for item in data
                     if start_date <= item.get("date", "") <= end_date
                 ]
 
@@ -274,8 +261,7 @@ class PreferenceManager:
             destinations = config.criteria.get("destinations", [])
             if destinations:
                 data = [
-                    item for item in data
-                    if item.get("destination") in destinations
+                    item for item in data if item.get("destination") in destinations
                 ]
 
         return data

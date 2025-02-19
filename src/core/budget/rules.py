@@ -10,9 +10,9 @@ class BudgetRules:
     def __init__(self):
         """Initialize budget rules with basic margins."""
         self.base_margins = {
-            "regular": 0.15,    # 15% margen regular
+            "regular": 0.15,  # 15% margen regular
             "corporate": 0.10,  # 10% margen corporativo
-            "vip": 0.20        # 20% margen VIP
+            "vip": 0.20,  # 20% margen VIP
         }
 
     def apply_margin(self, price: float, client_type: str = "regular") -> float:
@@ -68,10 +68,7 @@ class BudgetRules:
         return errors
 
     def adjust_price_for_season(
-        self,
-        price: float,
-        date: str,
-        service_type: str
+        self, price: float, date: str, service_type: str
     ) -> float:
         """Simple seasonal price adjustment.
 
@@ -85,9 +82,9 @@ class BudgetRules:
         """
         # Ajustes básicos por temporada
         season_multipliers = {
-            "high": 1.2,    # Temporada alta
+            "high": 1.2,  # Temporada alta
             "medium": 1.1,  # Temporada media
-            "low": 1.0      # Temporada baja
+            "low": 1.0,  # Temporada baja
         }
 
         # Determinar temporada (implementación simple)
@@ -98,7 +95,7 @@ class BudgetRules:
 
     def _determine_season(self, date: str, service_type: str) -> str:
         """Simple season determination.
-        
+
         This is a basic implementation that could be expanded based on
         actual business rules.
         """

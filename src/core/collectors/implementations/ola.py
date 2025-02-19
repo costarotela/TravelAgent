@@ -27,10 +27,10 @@ class OLAProviderUpdater(BaseProviderUpdater):
             # Navigate to search page
             url = f"{self.config.base_url}/busqueda?destino={destination}"
             await self.browser.navigate(url)
-            
+
             # Wait for packages to load
             await self.browser.wait_for_element(".ola-package", timeout=10)
-            
+
             # Extract data
             script = """
             () => {
@@ -54,12 +54,12 @@ class OLAProviderUpdater(BaseProviderUpdater):
             }
             """
             raw_data = await self.browser.execute_script(script)
-            
+
             # Log success
             logger.info(
                 f"Successfully fetched {len(raw_data)} packages from OLA for {destination}"
             )
-            
+
             return raw_data
 
         except Exception as e:
@@ -83,11 +83,11 @@ class OLAProviderUpdater(BaseProviderUpdater):
                     datetime.strptime(date.strip(), "%d/%m/%Y")
                     for date in item.get("dates", [])
                 ]
-                
+
                 # Parse price (remove currency symbol and convert to float)
                 price_str = item.get("price", "0").replace("$", "").replace(",", "")
                 price = float(price_str)
-                
+
                 # Create normalized package
                 package = PackageData(
                     provider="OLA",
@@ -104,9 +104,9 @@ class OLAProviderUpdater(BaseProviderUpdater):
                     },
                 )
                 normalized.append(package)
-                
+
             except Exception as e:
                 logger.error(f"Error normalizing OLA package: {str(e)}")
                 continue
-        
+
         return normalized
