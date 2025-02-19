@@ -1,16 +1,19 @@
-"""Página de presupuestos."""
+"""Página de presupuestos con asistencia al vendedor."""
 
 import streamlit as st
 from datetime import datetime, timedelta
-from typing import Optional, List
+from typing import Optional, List, Dict
 import pandas as pd
 from fpdf import FPDF
 import io
 
 from src.core.budget.storage import BudgetStorage
 from src.core.budget.models import Budget
+from src.core.budget.suggestions import SuggestionEngine
+from src.core.budget.analysis import BudgetAnalyzer
 from src.utils.database import Database
 from src.utils.monitoring import monitor
+from decimal import Decimal
 
 
 def update_budget_status(budget_id: str, new_status: str) -> bool:
@@ -140,107 +143,262 @@ def filter_budgets(budgets: List[Budget], filters: dict) -> List[Budget]:
     return filtered
 
 
+def get_real_time_suggestions(budget: Budget) -> Dict[str, List[str]]:
+    """Obtener sugerencias en tiempo real basadas en el presupuesto actual."""
+    suggestion_engine = SuggestionEngine()
+    return suggestion_engine.get_suggestions(budget)
+
+
+def analyze_budget_competitiveness(budget: Budget) -> Dict[str, any]:
+    """Analizar la competitividad del presupuesto."""
+    analyzer = BudgetAnalyzer()
+    return analyzer.analyze_competitiveness(budget)
+
+
 def show_budget_details(budget: Budget, is_selected: bool = False):
-    """Mostrar detalles de un presupuesto."""
-    # Container principal
-    with st.container():
-        # Título y estado
-        col1, col2, col3 = st.columns([2, 1, 1])
+    """Mostrar detalles de un presupuesto con asistencia al vendedor."""
+    with st.expander("📋 Detalles del Presupuesto", expanded=is_selected):
+        # Información básica
+        col1, col2, col3 = st.columns(3)
         with col1:
-            st.subheader(f"Presupuesto #{budget.id}")
+            st.write("🆔 ID:", budget.id)
         with col2:
-            st.caption(f"Creado: {budget.created_at.strftime('%d/%m/%Y')}")
+            st.write("👤 Cliente:", budget.customer_name or "Sin especificar")
         with col3:
-            status_colors = {
-                "draft": "🟡 Borrador",
-                "accepted": "🟢 Aceptado",
-                "rejected": "🔴 Rechazado",
-            }
-            st.write(status_colors.get(budget.status, "Estado desconocido"))
+            st.write("📅 Creado:", budget.created_at.strftime("%d/%m/%Y"))
 
-        # Datos del cliente y fechas
-        col1, col2 = st.columns(2)
-        with col1:
-            if not budget.customer_name and is_selected:
-                with st.form(key=f"customer_form_{budget.id}"):
-                    customer_name = st.text_input("Nombre del Cliente")
-                    if st.form_submit_button("Guardar"):
-                        if customer_name:
-                            budget.customer_name = customer_name
-                            BudgetStorage(Database()).update_budget(budget)
-                            monitor.log_metric("budget_customer_updated", 1)
-                            st.rerun()
-            else:
-                st.write(f"**Cliente:** {budget.customer_name or 'Sin especificar'}")
-
-        with col2:
-            st.write(f"**Válido hasta:** {budget.valid_until.strftime('%d/%m/%Y')}")
-
-        # Detalles del viaje
-        for item in budget.items:
-            with st.expander("Detalles del Viaje", expanded=is_selected):
-                col1, col2 = st.columns(2)
-                with col1:
-                    details = item.details.get("flight_details", {})
-                    st.write(f"**Vuelo:** {details.get('flight_number', 'N/A')}")
-                    st.write(f"**Aerolínea:** {details.get('airline', 'N/A')}")
-                    st.write(f"**Clase:** {details.get('cabin_class', 'N/A')}")
-                    st.write(f"**Equipaje:** {details.get('baggage', 'N/A')}")
-
-                with col2:
-                    st.write(f"**Origen:** {item.description.split(' - ')[0]}")
-                    st.write(f"**Destino:** {item.description.split(' - ')[1]}")
-                    st.write(
-                        f"**Fecha ida:** {item.details['departure_date'].strftime('%d/%m/%Y %H:%M')}"
-                    )
-                    if item.details.get("return_date"):
-                        st.write(
-                            f"**Fecha vuelta:** {item.details['return_date'].strftime('%d/%m/%Y %H:%M')}"
-                        )
-
-        # Precios
-        with st.container():
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric(
-                    "Precio por pasajero",
-                    f"${budget.items[0].unit_price} {budget.items[0].currency}",
+        # Necesidades del Cliente
+        with st.expander("👥 Necesidades del Cliente", expanded=True):
+            # Preferencias principales
+            st.write("🎯 Preferencias Principales")
+            preferences_col1, preferences_col2 = st.columns(2)
+            
+            with preferences_col1:
+                budget.preferences = budget.preferences or {}
+                
+                # Presupuesto máximo
+                max_budget = st.number_input(
+                    "💰 Presupuesto Máximo",
+                    value=float(budget.preferences.get("max_budget", 0)),
+                    step=100.0,
+                    key=f"max_budget_{budget.id}"
                 )
-            with col2:
-                total = sum(item.total_price for item in budget.items)
-                st.metric("Total", f"${total} {budget.items[0].currency}")
+                budget.preferences["max_budget"] = max_budget
+                
+                # Flexibilidad de fechas
+                date_flexibility = st.select_slider(
+                    "📅 Flexibilidad de Fechas",
+                    options=["Ninguna", "±1 día", "±2 días", "±3 días", "±1 semana"],
+                    value=budget.preferences.get("date_flexibility", "Ninguna"),
+                    key=f"date_flex_{budget.id}"
+                )
+                budget.preferences["date_flexibility"] = date_flexibility
 
-        # Acciones
-        if is_selected:
-            st.markdown("---")
-            col1, col2, col3 = st.columns(3)
+            with preferences_col2:
+                # Prioridad del cliente
+                priority = st.radio(
+                    "🎯 Prioridad del Cliente",
+                    options=["Mejor precio", "Mejor horario", "Mejor aerolínea"],
+                    index=["Mejor precio", "Mejor horario", "Mejor aerolínea"].index(
+                        budget.preferences.get("priority", "Mejor precio")
+                    ),
+                    key=f"priority_{budget.id}"
+                )
+                budget.preferences["priority"] = priority
+                
+                # Servicios adicionales
+                services = st.multiselect(
+                    "✨ Servicios Adicionales",
+                    options=["Seguro de viaje", "Traslados", "Excursiones", "Alquiler de auto"],
+                    default=budget.preferences.get("additional_services", []),
+                    key=f"services_{budget.id}"
+                )
+                budget.preferences["additional_services"] = services
 
-            # Botones de estado
-            if budget.status == "draft":
-                with col1:
-                    if st.button(
-                        "✅ Aceptar", key=f"accept_{budget.id}", type="primary"
-                    ):
-                        if update_budget_status(budget.id, "accepted"):
-                            st.success("¡Presupuesto aceptado!")
-                            st.rerun()
-                with col2:
-                    if st.button("❌ Rechazar", key=f"reject_{budget.id}"):
-                        if update_budget_status(budget.id, "rejected"):
-                            st.error("Presupuesto rechazado")
-                            st.rerun()
+            # Notas específicas
+            notes = st.text_area(
+                "📝 Notas Específicas",
+                value=budget.preferences.get("notes", ""),
+                key=f"notes_{budget.id}"
+            )
+            budget.preferences["notes"] = notes
 
-            # Exportar
-            with col3:
-                pdf_data = export_budget_to_pdf(budget)
-                if pdf_data:
+            # Guardar cambios en preferencias
+            if st.button("💾 Guardar Preferencias", key=f"save_pref_{budget.id}"):
+                try:
+                    storage = BudgetStorage(Database())
+                    storage.update_budget(budget)
+                    st.success("Preferencias guardadas correctamente")
+                    # Actualizar sugerencias basadas en nuevas preferencias
+                    suggestions = get_real_time_suggestions(budget)
+                except Exception as e:
+                    st.error(f"Error al guardar preferencias: {str(e)}")
+
+        # Asistente en tiempo real (ahora con sugerencias basadas en preferencias)
+        with st.expander("🤖 Asistente en Tiempo Real", expanded=True):
+            suggestions = get_real_time_suggestions(budget)
+            
+            # Sugerencias basadas en preferencias
+            if budget.preferences.get("max_budget"):
+                total_price = sum(item.total_price for item in budget.items)
+                if total_price > budget.preferences["max_budget"]:
+                    st.warning(f"⚠️ El presupuesto actual (${total_price}) excede el máximo establecido (${budget.preferences['max_budget']})")
+                    if suggestions.get("optimizations"):
+                        st.info("💡 Opciones para reducir el presupuesto:")
+                        for opt in suggestions["optimizations"]:
+                            st.write(f"- {opt}")
+
+            # Resto de sugerencias...
+            if suggestions.get("optimizations"):
+                st.write("💡 Sugerencias de Optimización:")
+                for suggestion in suggestions["optimizations"]:
+                    st.info(suggestion)
+            
+            # Alertas y advertencias
+            if suggestions.get("warnings"):
+                st.write("⚠️ Puntos de Atención:")
+                for warning in suggestions["warnings"]:
+                    st.warning(warning)
+            
+            # Oportunidades
+            if suggestions.get("opportunities"):
+                st.write("🎯 Oportunidades:")
+                for opportunity in suggestions["opportunities"]:
+                    st.success(opportunity)
+
+        # Análisis de competitividad
+        with st.expander("📊 Análisis de Competitividad"):
+            analysis = analyze_budget_competitiveness(budget)
+            
+            # Mostrar métricas clave
+            metrics_col1, metrics_col2, metrics_col3 = st.columns(3)
+            with metrics_col1:
+                st.metric(
+                    "Precio vs Mercado",
+                    f"{analysis['price_difference']}%",
+                    delta=analysis['price_trend']
+                )
+            with metrics_col2:
+                st.metric(
+                    "Margen Estimado",
+                    f"{analysis['estimated_margin']}%",
+                    delta=analysis['margin_trend']
+                )
+            with metrics_col3:
+                st.metric(
+                    "Score Competitivo",
+                    analysis['competitive_score'],
+                    delta=analysis['score_trend']
+                )
+
+        # Detalles del viaje con comparativas y ajustes
+        st.write("✈️ Detalles del Viaje")
+        for i, item in enumerate(budget.items):
+            with st.expander(f"{item.type.title()} - {item.description}", expanded=True):
+                # Ajustes del ítem
+                adjust_col1, adjust_col2 = st.columns(2)
+                with adjust_col1:
+                    # Permitir ajustar precio
+                    new_price = st.number_input(
+                        "💰 Precio",
+                        value=float(item.unit_price),
+                        step=10.0,
+                        key=f"price_{item.id}"
+                    )
+                    if new_price != float(item.unit_price):
+                        item.unit_price = Decimal(str(new_price))
+                        
+                    # Permitir ajustar cantidad
+                    new_quantity = st.number_input(
+                        "🔢 Cantidad",
+                        value=item.quantity,
+                        min_value=1,
+                        step=1,
+                        key=f"quantity_{item.id}"
+                    )
+                    if new_quantity != item.quantity:
+                        item.quantity = new_quantity
+
+                with adjust_col2:
+                    # Mostrar total actualizado
+                    st.write("💵 Total:", f"${item.unit_price * item.quantity} {item.currency}")
+                    
+                    # Permitir agregar descuentos
+                    discount = st.number_input(
+                        "🏷️ Descuento (%)",
+                        value=float(item.details.get("discount", 0)),
+                        min_value=0.0,
+                        max_value=100.0,
+                        step=5.0,
+                        key=f"discount_{item.id}"
+                    )
+                    if discount > 0:
+                        item.details["discount"] = discount
+                        discounted_total = item.total_price * (1 - Decimal(str(discount)) / 100)
+                        st.write("💰 Total con descuento:", f"${discounted_total} {item.currency}")
+
+                # Detalles específicos según tipo
+                if item.type == "flight":
+                    flight_col1, flight_col2 = st.columns(2)
+                    with flight_col1:
+                        # Permitir ajustar clase
+                        new_class = st.selectbox(
+                            "💺 Clase",
+                            options=["Economy", "Premium Economy", "Business", "First"],
+                            index=["Economy", "Premium Economy", "Business", "First"].index(
+                                item.details.get("flight_details", {}).get("cabin_class", "Economy")
+                            ),
+                            key=f"class_{item.id}"
+                        )
+                        if new_class != item.details.get("flight_details", {}).get("cabin_class"):
+                            item.details["flight_details"]["cabin_class"] = new_class
+
+                    with flight_col2:
+                        # Permitir ajustar equipaje
+                        new_baggage = st.selectbox(
+                            "🧳 Equipaje",
+                            options=["Sin equipaje", "Equipaje de mano", "23kg", "32kg"],
+                            index=["Sin equipaje", "Equipaje de mano", "23kg", "32kg"].index(
+                                item.details.get("flight_details", {}).get("baggage", "23kg")
+                            ),
+                            key=f"baggage_{item.id}"
+                        )
+                        if new_baggage != item.details.get("flight_details", {}).get("baggage"):
+                            item.details["flight_details"]["baggage"] = new_baggage
+
+                # Botón para guardar cambios del ítem
+                if st.button("💾 Guardar Cambios", key=f"save_item_{item.id}"):
+                    try:
+                        storage = BudgetStorage(Database())
+                        storage.update_budget(budget)
+                        st.success("Cambios guardados correctamente")
+                    except Exception as e:
+                        st.error(f"Error al guardar cambios: {str(e)}")
+
+        # Acciones del presupuesto
+        action_col1, action_col2, action_col3, action_col4 = st.columns(4)
+        with action_col1:
+            if st.button("💾 Guardar", key=f"save_{budget.id}"):
+                if update_budget_status(budget.id, "saved"):
+                    st.success("Presupuesto guardado")
+        with action_col2:
+            if st.button("📤 Exportar PDF", key=f"export_{budget.id}"):
+                pdf_bytes = export_budget_to_pdf(budget)
+                if pdf_bytes:
                     st.download_button(
-                        "📥 Descargar PDF",
-                        pdf_data,
+                        "⬇️ Descargar PDF",
+                        pdf_bytes,
                         f"presupuesto_{budget.id}.pdf",
                         "application/pdf",
-                        use_container_width=True,
                     )
+        with action_col3:
+            if st.button("✅ Aprobar", key=f"approve_{budget.id}"):
+                if update_budget_status(budget.id, "approved"):
+                    st.success("Presupuesto aprobado")
+        with action_col4:
+            if st.button("❌ Rechazar", key=f"reject_{budget.id}"):
+                if update_budget_status(budget.id, "rejected"):
+                    st.success("Presupuesto rechazado")
 
 
 def render_budgets_page():
