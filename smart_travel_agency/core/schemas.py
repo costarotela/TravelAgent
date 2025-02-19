@@ -1,131 +1,120 @@
-"""
-Esquemas de datos del sistema.
+"""Esquemas para el SmartTravelAgent."""
 
-Define los modelos de datos principales usando Pydantic.
-"""
-
-from typing import List, Dict, Any, Optional
+from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
-from pydantic import BaseModel, Field
+from typing import Dict, List, Optional, Tuple, Union
 
-
-class Provider(str, Enum):
-    """Proveedores soportados."""
-
-    OLA = "OLA"
-    AERO = "AERO"
-    DESPEGAR = "DESPEGAR"
-
-
-class AlertType(str, Enum):
-    """Tipos de alertas."""
-
-    PRICE_DROP = "price_drop"
-    PRICE_RISE = "price_rise"
-    OPPORTUNITY = "opportunity"
-    AVAILABILITY = "availability"
-
-
-class PriorityLevel(str, Enum):
-    """Niveles de prioridad."""
-
-    ALTA = "alta"
-    MEDIA = "media"
-    BAJA = "baja"
-
-
-class SearchCriteria(BaseModel):
-    """Criterios de búsqueda."""
-
-    destination: str
-    start_date: datetime
-    end_date: datetime
-    budget: Optional[float] = None
-    passengers: int = 1
-    room_type: Optional[str] = None
-    meal_plan: Optional[str] = None
-    required_services: List[str] = Field(default_factory=list)
-    excluded_services: List[str] = Field(default_factory=list)
-
-
-class TravelPackage(BaseModel):
-    """Paquete turístico."""
-
+@dataclass
+class Hotel:
+    """Esquema de hotel."""
     id: str
-    provider: Provider
-    title: str
+    name: str
+    stars: int
+    review_score: float
+    amenities: List[str]
+    popularity_index: float
+
+@dataclass
+class TravelPackage:
+    """Esquema de paquete de viaje."""
+    id: str
+    hotel: Hotel
     destination: str
-    description: str
-    price: float
-    currency: str = "USD"
+    check_in: datetime
+    nights: int
+    total_price: float
+    cancellation_policy: str
+    modification_policy: str
+    payment_options: List[str]
+
+@dataclass
+class CompetitivePosition:
+    """Posición competitiva de un paquete."""
+    price_percentile: float
+    quality_percentile: float
+    flexibility_percentile: float
+    position: str  # value_leader, premium, budget, standard
+
+@dataclass
+class MarketAnalysis:
+    """Análisis de mercado."""
+    price_analysis: Dict[str, float]
+    quality_analysis: Dict[str, Union[float, List[float]]]
+    flexibility_analysis: Dict[str, Union[float, List[float]]]
+    seasonality_analysis: Dict[str, Union[float, str]]
+
+@dataclass
+class ComparisonResult:
+    """Resultado de comparación de paquetes."""
+    target_id: str
+    position: CompetitivePosition
+    opportunities: List[Dict[str, str]]
+    metadata: Dict[str, str] = field(default_factory=dict)
+
+@dataclass
+class PricingStrategy:
+    """Estrategia de pricing."""
+    type: str  # competitive, value_based, dynamic
+    parameters: Dict[str, Union[float, str]] = field(default_factory=dict)
+
+@dataclass
+class DemandForecast:
+    """Pronóstico de demanda."""
+    destination: str
     start_date: datetime
     end_date: datetime
-    duration: int
-    availability: float
-    included_services: List[str]
-    excluded_services: List[str]
-    room_type: str
-    meal_plan: Optional[str] = None
-    cancellation_policy: Optional[str] = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    daily_demand: List[Tuple[datetime, float]]
+    confidence: float
+    metadata: Dict[str, Union[int, str]] = field(default_factory=dict)
 
+@dataclass
+class PriceFactors:
+    """Factores que afectan el precio."""
+    base_cost: float
+    margin: float
+    seasonality: float
+    demand: float
+    competition: float
+    quality: float
 
-class PriceAlert(BaseModel):
-    """Alerta de precio."""
+@dataclass
+class OptimizationResult:
+    """Resultado de optimización de precios."""
+    original_price: float
+    optimized_price: float
+    margin: float
+    roi: float
+    factors: Dict[str, float]
+    metadata: Dict[str, str] = field(default_factory=dict)
 
-    type: AlertType
-    package_id: str
-    message: str
-    data: Dict[str, Any]
-    timestamp: datetime = Field(default_factory=datetime.now)
+@dataclass
+class CustomerProfile:
+    """Perfil de cliente."""
+    id: str
+    preferences: Dict[str, Union[Tuple[float, float], int, List[str]]]
+    constraints: Dict[str, Union[float, Tuple[datetime, datetime]]]
+    interests: List[str]
+    history: List[Dict[str, str]]
 
+@dataclass
+class PackageVector:
+    """Vector de características de un paquete."""
+    price_score: float
+    quality_score: float
+    location_score: float
+    amenities_score: float
+    activities_score: float
 
-class Recommendation(BaseModel):
-    """Recomendación para un paquete."""
+@dataclass
+class RecommendationScore:
+    """Score de recomendación."""
+    total_score: float
+    components: Dict[str, float]
 
-    type: str
-    priority: PriorityLevel
-    message: str
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-
-
-class PackageAnalysis(BaseModel):
-    """Análisis de un paquete."""
-
-    package_id: str
-    score: float
-    price_analysis: Dict[str, Any]
-    criteria_match: float
-    services_analysis: Dict[str, Any]
-    recommendations: List[Recommendation]
-    timestamp: datetime = Field(default_factory=datetime.now)
-
-
-class Opportunity(BaseModel):
-    """Oportunidad detectada."""
-
-    type: str
+@dataclass
+class Recommendation:
+    """Recomendación de paquete."""
     package: TravelPackage
-    savings: float
-    score: float
-    valid_until: datetime
-    description: str
-    conditions: List[str]
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-
-
-class Budget(BaseModel):
-    """Presupuesto generado."""
-
-    id: str
-    search_criteria: SearchCriteria
-    packages: List[TravelPackage]
-    total_cost: float
-    currency: str = "USD"
-    savings: float = 0
-    status: str = "draft"
-    notes: List[str] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=datetime.now)
-    updated_at: datetime = Field(default_factory=datetime.now)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    score: RecommendationScore
+    reason: str
+    metadata: Dict[str, Union[float, str]] = field(default_factory=dict)

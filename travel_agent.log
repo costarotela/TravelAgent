@@ -1,4 +1,0 @@
-2025-02-17 10:12:25,915 - travel_agent - ERROR - Error: Object of type AeroProvider is not JSON serializable
-2025-02-17 10:18:49,466 - travel_agent - ERROR - Error: Object of type AeroProvider is not JSON serializable
-2025-02-17 10:23:31,150 - travel_agent - ERROR - Error: Object of type AeroProvider is not JSON serializable
-2025-02-17 10:27:11,946 - travel_agent - ERROR - Error: Object of type AeroProvider is not JSON serializable

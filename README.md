@@ -1,136 +1,148 @@
-# Smart Travel Agency - Sistema de Gestión B2B
+# Smart Travel Agency
 
-## Objetivo Principal
-Facilitar la elaboración y gestión de presupuestos de viaje, priorizando la estabilidad durante la interacción vendedor-cliente y garantizando el control total del vendedor sobre el proceso.
+Sistema inteligente de asistencia para la elaboración de presupuestos de viajes que combina:
+- Extracción y análisis automatizado de datos de proveedores
+- Optimización multi-pasada de presupuestos
+- Control total del vendedor sobre el proceso
+- Estabilidad garantizada durante sesiones de venta
+
+El sistema actúa como un asistente digital que trabaja "tras bambalinas" realizando múltiples pasadas de búsqueda, análisis y optimización, mientras mantiene la interfaz estable para la interacción vendedor-cliente.
 
 ## Principios Fundamentales
 
-### 1. Estabilidad Durante la Sesión
-- Los datos permanecen estables durante toda la sesión de venta
-- Las actualizaciones no interrumpen sesiones activas
-- Las modificaciones son controladas exclusivamente por el vendedor
+1. **Estabilidad en Sesión Activa**
+   - Los datos capturados al inicio de la sesión permanecen estables
+   - Modificaciones controladas solo por el vendedor
+   - Sin interrupciones por actualizaciones externas
 
-### 2. Control del Vendedor
-- Control total sobre el proceso de venta
-- Decisiones explícitas sobre modificaciones
-- Gestión completa de la interacción con el cliente
+2. **Gestión de Actualizaciones**
+   - Procesamiento después de finalizada la sesión
+   - No interfieren con sesiones activas
+   - Notificación para futuras interacciones
 
-### 3. Procesamiento Asíncrono
-- Las validaciones y actualizaciones se procesan fuera de la sesión de venta
-- Los cambios se notifican para futuras interacciones
-- La consistencia de datos se mantiene durante toda la sesión
+## Configuración del Entorno
 
-## Componentes Principales
-
-### 1. Gestión de Sesiones de Venta (✅ IMPRESCINDIBLE)
-- Control de estado durante la interacción con cliente
-- Aislamiento de datos por sesión
-- Modificaciones controladas por vendedor
-
-### 2. Sistema de Presupuestos (✅ IMPRESCINDIBLE)
-- Elaboración dinámica con asistencia del vendedor
-- Construcción basada en datos de proveedores
-- Capacidad de reconstrucción y modificación
-
-### 3. Actualización de Datos (⚠️ PARCIALMENTE NECESARIO)
-- Detección asíncrona de cambios
-- Notificaciones para futuras sesiones
-- Procesamiento fuera de sesiones activas
-
-### 4. Interfaz de Vendedor (✅ IMPRESCINDIBLE)
-- Editor de presupuestos intuitivo
-- Visualización clara de datos
-- Control total sobre modificaciones
-
-### 5. Módulo de Web Scraping (⚠️ PARCIALMENTE NECESARIO)
-- Recolección inicial de datos
-- Actualizaciones asíncronas
-- Sistema anti-bloqueo
-
-## Métricas de Éxito
-
-### 1. Experiencia del Vendedor
-- Tiempo de creación de sesión < 2 segundos
-- Tiempo de respuesta en modificaciones < 1 segundo
-- Zero interrupciones durante sesión activa
-
-### 2. Calidad de Datos
-- 100% consistencia durante la sesión
-- Validación completa al cierre
-- Notificaciones efectivas de cambios
-
-### 3. Rendimiento del Sistema
-- Disponibilidad del sistema > 99.9%
-- Tiempo de reconstrucción < 5 segundos
-- Procesamiento asíncrono eficiente
-
-## Documentación Relacionada
-
-- [Arquitectura](docs/ARQUITECTURA.md)
-- [Integración OLA](docs/OLA_INTEGRATION.md)
-- [Interfaz de Vendedor](docs/VENDOR_INTERFACE.md)
-- [Motor de Presupuestos](docs/BUDGET_ENGINE.md)
-
-## Requisitos Técnicos
-
-### Dependencias Principales
-- Python 3.8+
-- Prophet: Análisis de series temporales
-- Pandas & NumPy: Manipulación de datos
-- Streamlit: Interfaz de usuario
-- SQLAlchemy: Gestión de base de datos
-- Selenium WebDriver
-- Chrome/Chromium
-- Redis (para caché)
-- Sistema de proxies
-
-### Instalación
+1. Crear y activar entorno conda:
 ```bash
-pip install -r requirements.txt
+conda env create -f environment.yml
+conda activate travel-agent
 ```
 
-### Configuración
-1. Copiar `.env.example` a `.env`
-2. Configurar variables de entorno
-3. Inicializar base de datos: `python scripts/init_db.py`
-4. Configurar credenciales en `.env`:
-```env
-PROXY_LIST_PATH=./config/proxies.txt
-USER_AGENTS_PATH=./config/user_agents.txt
-REDIS_URL=redis://localhost:6379
-```
-
-## Uso
-
-### Iniciar Sistema
+2. Variables de entorno:
 ```bash
-python -m src.main
+cp .env.example .env
+# Editar .env con las configuraciones necesarias
 ```
 
-### Acceder a la Interfaz
-Abrir navegador en `http://localhost:8501`
+## Estructura del Proyecto
 
-### Monitorear Actividad
+```
+SmartTravelAgency/
+├── src/                    # Código fuente principal
+│   ├── api/               # API REST endpoints
+│   ├── auth/              # Autenticación
+│   ├── core/              # Lógica de negocio
+│   ├── dashboard/         # Interfaz de gestión
+│   └── utils/             # Utilidades
+├── agent_core/            # Núcleo del agente
+│   ├── managers/          # Gestores de servicios
+│   ├── schemas/           # Modelos de datos
+│   └── scrapers/          # Integración proveedores
+└── tests/                 # Tests
+```
+
+## Uso de la API
+
+### 1. Autenticación
+
 ```bash
-python -m smart_travel_agent --monitor
+# Obtener token
+curl -X POST "http://localhost:8000/api/v1/token" \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -d "username=test&password=test"
 ```
 
-## Documentación Adicional
-- [Guía de Usuario](docs/user_guide.md)
-- [Manual de Administrador](docs/admin_guide.md)
-- [API Reference](docs/api_reference.md)
+### 2. Gestión de Sesiones
 
-## Contribuir
+```bash
+# Crear sesión
+curl -X POST "http://localhost:8000/api/v1/sessions/create" \
+     -H "Authorization: Bearer <token>" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "vendor_id": "V1",
+       "customer_id": "C1"
+     }'
+
+# Agregar paquete
+curl -X POST "http://localhost:8000/api/v1/sessions/<session_id>/packages" \
+     -H "Authorization: Bearer <token>" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "provider": "OLA",
+       "package_id": "PKG123",
+       "details": {...}
+     }'
+```
+
+## Desarrollo
+
+### Tests
+```bash
+pytest tests/
+```
+
+### Linting
+```bash
+flake8 src/ agent_core/
+```
+
+### Documentación
+```bash
+# Generar documentación
+cd docs && make html
+```
+
+## Monitoreo
+
+### Endpoints de Estado
+- `/health`: Estado básico del sistema
+- `/status`: Métricas y estado detallado
+
+### Logs
+- Ubicación: `logs/travel_agent.log`
+- Rotación automática
+- Niveles configurables en .env
+
+## Seguridad
+
+1. **Autenticación**
+   - OAuth2 con JWT
+   - Tokens con expiración
+   - Contraseñas hasheadas (bcrypt)
+
+2. **Autorización**
+   - Todas las rutas protegidas
+   - Control de acceso por roles
+   - Validación en cada capa
+
+## Próximas Mejoras
+
+- [ ] Sistema de usuarios en base de datos
+- [ ] Roles y permisos granulares
+- [ ] Rate limiting
+- [ ] Logging de seguridad mejorado
+- [ ] Nuevos proveedores de viajes
+- [ ] Mejoras en UI del dashboard
+
+## Contribución
+
 1. Fork del repositorio
-2. Crear rama para feature: `git checkout -b feature/nueva-funcionalidad`
-3. Commit cambios: `git commit -am 'Agregar nueva funcionalidad'`
-4. Push a la rama: `git push origin feature/nueva-funcionalidad`
+2. Crear rama feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit cambios (`git commit -am 'Agregar nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
 5. Crear Pull Request
 
 ## Licencia
 
-Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE.md](LICENSE.md) para detalles.
-
-## Advertencia Legal
-
-Este software debe ser utilizado de acuerdo con los términos y condiciones de los sitios web objetivo y las leyes aplicables. El uso de técnicas de scraping debe respetar las políticas de uso de cada sitio.
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
