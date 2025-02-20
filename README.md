@@ -1,171 +1,195 @@
-# SmartTravelAgent 🌍✈️
+# SmartTravelAgency 
 
-Sistema inteligente para la elaboración y gestión de presupuestos de viaje que combina:
-- Extracción y análisis automatizado de datos de proveedores
-- Optimización multi-pasada de presupuestos
-- Control total del vendedor sobre el proceso
-- Estabilidad garantizada durante sesiones de venta
+Sistema inteligente para agencias de viajes que facilita la creación, gestión y optimización de presupuestos de viaje.
 
-El sistema actúa como un asistente digital que trabaja "tras bambalinas" realizando múltiples pasadas de búsqueda, análisis y optimización, mientras mantiene la interfaz estable para la interacción vendedor-cliente.
+## Objetivos Principales
 
-## 🎯 Objetivos Principales
+1. **Elaboración Dinámica de Presupuestos**
+   - Integración con múltiples proveedores
+   - Optimización automática de precios
+   - Sistema flexible de preferencias
 
-1. **Elaboración de Presupuestos**
-   - Basados en información de proveedores
-   - Construcción dinámica con asistencia del vendedor
-   - Optimización inteligente de precios y márgenes
+2. **Procesamiento en Tiempo Real**
+   - Web scraping inteligente
+   - Integración con APIs de proveedores
+   - Actualización dinámica de precios
 
-2. **Adaptabilidad en Tiempo Real**
-   - Adaptación a cambios de proveedores
-   - Procesamiento de datos en tiempo real
-   - Manejo de preferencias del cliente
-   - Sin interrupciones en sesiones activas
+3. **Adaptabilidad**
+   - Configuración flexible de proveedores
+   - Sistema de preferencias multinivel
+   - Reglas de negocio personalizables
 
-3. **Experiencia del Vendedor**
-   - Interfaz interactiva y amigable
-   - Control total sobre el proceso
-   - Reconstrucción de presupuestos
-   - Estabilidad garantizada
+4. **Control del Vendedor**
+   - Interfaz interactiva
+   - Gestión de preferencias personalizadas
+   - Historial y métricas de éxito
 
-## Principios Fundamentales
+## Arquitectura
 
-1. **Estabilidad en Sesión Activa**
-   - Los datos capturados al inicio de la sesión permanecen estables
-   - Modificaciones controladas solo por el vendedor
-   - Sin interrupciones por actualizaciones externas
-
-2. **Gestión de Actualizaciones**
-   - Procesamiento después de finalizada la sesión
-   - No interfieren con sesiones activas
-   - Notificación para futuras interacciones
-
-## Configuración del Entorno
-
-1. Crear y activar entorno conda:
-```bash
-conda env create -f environment.yml
-conda activate travel-agent
+### Core
+```
+smart_travel_agency/
+├── core/
+│   ├── providers/           # Integración con proveedores
+│   │   ├── scrapers/       # Web scrapers específicos
+│   │   │   ├── ola_scraper.py
+│   │   │   └── aero_scraper.py
+│   │   ├── manager.py      # Gestión de proveedores
+│   │   └── config.py       # Configuración de scrapers
+│   ├── analysis/
+│   │   └── price_optimizer/ # Optimización de precios
+│   ├── budget/             # Gestión de presupuestos
+│   ├── vendors/            # Gestión de vendedores
+│   │   └── preferences.py  # Sistema de preferencias
+│   └── services/           # Servicios principales
+│       └── package_service.py
 ```
 
-2. Variables de entorno:
-```bash
-cp .env.example .env
-# Editar .env con las configuraciones necesarias
+## Componentes Principales
+
+### 1. Sistema de Proveedores
+- **ProviderIntegrationManager**: Coordina búsquedas entre proveedores
+- **Scrapers**: Implementaciones específicas para cada proveedor
+  - OlaScraper
+  - AeroScraper
+- **Configuración**: Sistema flexible para configurar cada scraper
+
+### 2. Optimización de Precios
+- **PriceOptimizer**: Optimiza precios basado en:
+  - Factores de mercado
+  - Demanda y estacionalidad
+  - Competencia
+  - Calidad del servicio
+
+### 3. Sistema de Preferencias
+- **Nivel Base**: Preferencias estándar de proveedores
+  - Aerolíneas preferidas
+  - Ratings mínimos
+  - Tipos de habitación
+  
+- **Nivel Negocio**: Reglas de la empresa
+  - Márgenes y comisiones
+  - Perfiles de cliente
+  - Ajustes estacionales
+  
+- **Nivel Vendedor**: Preferencias personalizadas
+  - Combinaciones exitosas
+  - Notas y observaciones
+  - Métricas de rendimiento
+
+### 4. Gestión de Paquetes
+- **PackageService**: Servicio principal que:
+  - Integra proveedores y optimización
+  - Valida y construye paquetes
+  - Aplica preferencias y reglas
+
+## Uso
+
+### Configuración de Proveedores
+```python
+from smart_travel_agency.core.services import PackageService
+
+service = PackageService.get_instance()
+await service.initialize_providers({
+    "ola": {
+        "username": "user1",
+        "password": "pass1"
+    },
+    "aero": {
+        "username": "user2",
+        "password": "pass2"
+    }
+})
 ```
 
-## Estructura del Proyecto
-
-```
-SmartTravelAgency/
-├── src/                    # Código fuente principal
-│   ├── api/               # API REST endpoints
-│   ├── auth/              # Autenticación
-│   ├── core/              # Lógica de negocio
-│   ├── dashboard/         # Interfaz de gestión
-│   └── utils/             # Utilidades
-├── agent_core/            # Núcleo del agente
-│   ├── managers/          # Gestores de servicios
-│   ├── schemas/           # Modelos de datos
-│   └── scrapers/          # Integración proveedores
-└── tests/                 # Tests
+### Búsqueda y Optimización
+```python
+result = await service.search_and_optimize_packages(
+    destination="MIA",
+    start_date=datetime.now() + timedelta(days=30),
+    end_date=datetime.now() + timedelta(days=37),
+    adults=2,
+    children=1
+)
 ```
 
-## Documentación Adicional
+### Gestión de Preferencias
+```python
+from smart_travel_agency.core.vendors.preferences import (
+    PreferenceManager, VendorPreferences, BasePreferences
+)
 
-- [Características y Estado](docs/FEATURES.md): Estado actual del proyecto y funcionalidades implementadas
-- [Guía de Desarrollo](docs/DEVELOPMENT.md): Procesos de desarrollo, actualización y control de calidad
+manager = PreferenceManager()
 
-## Uso de la API
+# Configurar preferencias de vendedor
+preferences = VendorPreferences(
+    vendor_id="V001",
+    name="Juan Pérez",
+    base=BasePreferences(
+        preferred_airlines=["LATAM", "AA"],
+        min_rating=4.0
+    )
+)
 
-### 1. Autenticación
-
-```bash
-# Obtener token
-curl -X POST "http://localhost:8000/api/v1/token" \
-     -H "Content-Type: application/x-www-form-urlencoded" \
-     -d "username=test&password=test"
+manager.update_vendor_preferences(preferences)
 ```
 
-### 2. Gestión de Sesiones
+## Métricas y Monitoreo
 
-```bash
-# Crear sesión
-curl -X POST "http://localhost:8000/api/v1/sessions/create" \
-     -H "Authorization: Bearer <token>" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "vendor_id": "V1",
-       "customer_id": "C1"
-     }'
+- **Éxito de Búsquedas**: Tasa de éxito por proveedor
+- **Optimización**: Mejora en márgenes
+- **Rendimiento**: Tiempos de respuesta
+- **Vendedores**: Métricas por vendedor
 
-# Agregar paquete
-curl -X POST "http://localhost:8000/api/v1/sessions/<session_id>/packages" \
-     -H "Authorization: Bearer <token>" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "provider": "OLA",
-       "package_id": "PKG123",
-       "details": {...}
-     }'
-```
+## Seguridad
+
+- Credenciales en variables de entorno
+- Rotación de User-Agents
+- Rate limiting configurable
+- Validación de datos
 
 ## Desarrollo
+
+### Requisitos
+- Python 3.8+
+- aiohttp
+- BeautifulSoup4
+- Prometheus client
+
+### Instalación
+```bash
+pip install -r requirements.txt
+```
 
 ### Tests
 ```bash
 pytest tests/
 ```
 
-### Linting
-```bash
-flake8 src/ agent_core/
-```
+## Notas de Implementación
 
-### Documentación
-```bash
-# Generar documentación
-cd docs && make html
-```
+1. **Scrapers**
+   - Implementar manejo de errores robusto
+   - Considerar caché para optimizar rendimiento
+   - Mantener configuración flexible
 
-## Monitoreo
+2. **Optimización**
+   - Refinar algoritmos de pricing
+   - Implementar más factores de mercado
+   - Mejorar predicciones de demanda
 
-### Endpoints de Estado
-- `/health`: Estado básico del sistema
-- `/status`: Métricas y estado detallado
-
-### Logs
-- Ubicación: `logs/travel_agent.log`
-- Rotación automática
-- Niveles configurables en .env
-
-## Seguridad
-
-1. **Autenticación**
-   - OAuth2 con JWT
-   - Tokens con expiración
-   - Contraseñas hasheadas (bcrypt)
-
-2. **Autorización**
-   - Todas las rutas protegidas
-   - Control de acceso por roles
-   - Validación en cada capa
-
-## Próximas Mejoras
-
-- [ ] Sistema de usuarios en base de datos
-- [ ] Roles y permisos granulares
-- [ ] Rate limiting
-- [ ] Logging de seguridad mejorado
-- [ ] Nuevos proveedores de viajes
-- [ ] Mejoras en UI del dashboard
+3. **Preferencias**
+   - Expandir perfiles de cliente
+   - Agregar más reglas de negocio
+   - Mejorar sistema de reconstrucción
 
 ## Contribución
 
-1. Fork del repositorio
-2. Crear rama feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit cambios (`git commit -am 'Agregar nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Crear Pull Request
+1. Fork el repositorio
+2. Crea una rama (`git checkout -b feature/mejora`)
+3. Commit tus cambios (`git commit -am 'Agrega mejora'`)
+4. Push a la rama (`git push origin feature/mejora`)
+5. Crea un Pull Request
 
 ## Licencia
 

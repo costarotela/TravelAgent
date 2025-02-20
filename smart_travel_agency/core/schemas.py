@@ -2,8 +2,11 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from decimal import Decimal
 from typing import Dict, List, Optional, Tuple, Union
 from uuid import UUID, uuid4
+
+from pydantic import BaseModel, Field, validator
 
 
 @dataclass
@@ -16,7 +19,7 @@ class Flight:
     arrival_time: datetime
     flight_number: str
     airline: str
-    price: float
+    price: Decimal
     passengers: int
     flight_id: UUID = field(default_factory=uuid4)
 
@@ -28,11 +31,16 @@ class Accommodation:
     hotel_id: str
     name: str
     room_type: str
-    price_per_night: float
+    price_per_night: Decimal
     nights: int
     check_in: datetime
     check_out: datetime
     accommodation_id: UUID = field(default_factory=uuid4)
+
+    @property
+    def total_price(self) -> Decimal:
+        """Calcula el precio total del alojamiento."""
+        return self.price_per_night * self.nights
 
 
 @dataclass
@@ -41,10 +49,20 @@ class Activity:
 
     activity_id: str
     name: str
-    price: float
+    price: Decimal
     duration: timedelta
     participants: int
     date: datetime
+    included: bool = True
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+
+    def __post_init__(self):
+        """Inicializa los campos calculados."""
+        if not self.start_time:
+            self.start_time = self.date
+        if not self.end_time:
+            self.end_time = self.date + self.duration
 
 
 @dataclass
@@ -66,7 +84,7 @@ class TravelPackage:
     destination: str
     start_date: datetime
     end_date: datetime
-    price: float
+    price: Decimal
     currency: str
     provider: str
     description: str
@@ -78,6 +96,37 @@ class TravelPackage:
     cancellation_policy: Optional[str] = None
     modification_policy: Optional[str] = None
     payment_options: Optional[List[str]] = None
+    margin: Decimal = Decimal("0.15")
+    is_refundable: bool = False
+
+    @property
+    def total_price(self) -> Decimal:
+        """Calcula el precio total del paquete."""
+        from .services import PackageService
+        return PackageService.calculate_total_price(self)
+
+    @property
+    def check_in_date(self) -> datetime:
+        """Obtiene la fecha de check-in."""
+        from .services import PackageService
+        return PackageService.get_instance().calculate_check_in_date(self)
+
+    @property
+    def check_out_date(self) -> datetime:
+        """Obtiene la fecha de check-out."""
+        from .services import PackageService
+        return PackageService.get_instance().calculate_check_out_date(self)
+
+    @property
+    def nights(self) -> int:
+        """Obtiene el número de noches."""
+        from .services import PackageService
+        return PackageService.get_instance().calculate_nights(self)
+
+    def is_valid(self) -> bool:
+        """Valida el paquete."""
+        from .services import PackageService
+        return PackageService.get_instance().validate_package(self)
 
 
 @dataclass
