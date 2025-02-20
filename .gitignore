@@ -1,7 +1,19 @@
 # Git ignore file
 venv/
+.venv/
 __pycache__/
 *.pyc
 .env
 .pytest_cache/
 .coverage
+.pre-commit-config.yaml.bak
+*.bak
+*.rtf
+BACK_SYSTEM/
+coverage.xml
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
