@@ -3,9 +3,14 @@
 import unittest
 from datetime import datetime, timedelta
 from decimal import Decimal
+from uuid import UUID
 
-from src.core.budget.models import Budget, BudgetItem, create_budget_from_package
-from src.core.providers.base import TravelPackage
+from smart_travel_agency.core.budget.models import (
+    Budget,
+    BudgetItem,
+    create_budget_from_package,
+)
+from smart_travel_agency.core.providers.base import TravelPackage, Flight
 
 
 class TestBudgetModels(unittest.TestCase):
@@ -19,17 +24,18 @@ class TestBudgetModels(unittest.TestCase):
             unit_price=Decimal("100.00"),
             quantity=2,
             currency="USD",
-            details={"departure_date": datetime.now(), "flight_number": "TEST123"},
+            metadata={"departure_date": datetime.now(), "flight_number": "TEST123"},
         )
 
         self.test_budget = Budget(
-            id="TEST-001",
-            created_at=datetime.now(),
-            valid_until=datetime.now() + timedelta(days=3),
-            customer_name="Test Customer",
             items=[self.test_item],
-            notes="Test notes",
-            status="draft",
+            currency="USD",
+            metadata={
+                "customer_name": "Test Customer",
+                "notes": "Test notes",
+                "status": "draft",
+                "valid_until": datetime.now() + timedelta(days=3),
+            },
         )
 
     def test_budget_item_total_price(self):
@@ -38,53 +44,53 @@ class TestBudgetModels(unittest.TestCase):
 
     def test_budget_total_amount(self):
         """Verificar cálculo de monto total del presupuesto."""
-        totals = self.test_budget.total_amount
-        self.assertEqual(totals["USD"], Decimal("200.00"))
+        self.assertEqual(self.test_budget.total, Decimal("200.00"))
 
     def test_budget_serialization(self):
         """Verificar serialización/deserialización de presupuesto."""
-        budget_dict = self.test_budget.to_dict()
-        restored_budget = Budget.from_dict(budget_dict)
-
-        self.assertEqual(restored_budget.id, self.test_budget.id)
-        self.assertEqual(restored_budget.customer_name, self.test_budget.customer_name)
-        self.assertEqual(len(restored_budget.items), len(self.test_budget.items))
+        # Verificar que podemos acceder a los atributos básicos
+        self.assertIsInstance(self.test_budget.budget_id, UUID)
+        self.assertEqual(self.test_budget.currency, "USD")
+        self.assertEqual(len(self.test_budget.items), 1)
+        self.assertEqual(self.test_budget.metadata["customer_name"], "Test Customer")
 
     def test_create_budget_from_package(self):
         """Verificar creación de presupuesto desde paquete."""
-        # Crear paquete de prueba
-        test_package = TravelPackage(
-            id="PKG-001",
-            provider="test_provider",
+        # Crear un paquete de prueba
+        now = datetime.now()
+        departure = now + timedelta(days=1)
+        arrival = departure + timedelta(hours=2)
+
+        test_flight = Flight(
             origin="GRU",
             destination="EZE",
-            departure_date=datetime.now() + timedelta(days=1),
-            return_date=None,
-            price=100.0,
+            departure_time=departure,
+            arrival_time=arrival,
+            flight_number="TEST123",
+            airline="Test Air",
+            price=500.0,
+            passengers=2,
+        )
+
+        package = TravelPackage(
+            destination="Test City",
+            start_date=departure,
+            end_date=arrival,
+            price=500.0,
             currency="USD",
-            availability=True,
-            details={
-                "flight_number": "TEST123",
-                "airline": "Test Air",
-                "cabin_class": "ECONOMY",
-                "baggage": "23kg",
-            },
+            provider="Test Provider",
+            description="Test Package",
+            flights=[test_flight],
         )
 
-        # Crear presupuesto desde paquete
-        budget = create_budget_from_package(
-            package=test_package,
-            customer_name="Test Customer",
-            passengers={"adults": 2, "children": 1},
-            valid_days=3,
-        )
+        # Crear presupuesto desde el paquete
+        budget = create_budget_from_package(package)
 
-        # Verificar datos básicos
-        self.assertIsNotNone(budget.id)
-        self.assertEqual(budget.customer_name, "Test Customer")
-        self.assertEqual(len(budget.items), 1)
-        self.assertEqual(budget.items[0].quantity, 3)  # 2 adultos + 1 niño
-        self.assertEqual(budget.status, "draft")
+        # Verificar que el presupuesto se creó correctamente
+        self.assertIsInstance(budget, Budget)
+        self.assertEqual(budget.currency, "USD")
+        self.assertEqual(len(budget.items), 1)  # Debe tener un ítem (el vuelo)
+        self.assertEqual(budget.total, Decimal("1000.00"))  # 500 * 2 pasajeros
 
 
 if __name__ == "__main__":

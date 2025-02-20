@@ -154,7 +154,7 @@ class BudgetCalculator:
 
                 # Crear componente base
                 component = PriceComponent(
-                    package_id=package.id,
+                    id=package.id,
                     description=package.description,
                     base_cost=costs["base_cost"],
                     additional_costs=costs.get("additional_costs", {}),
@@ -200,9 +200,7 @@ class BudgetCalculator:
         try:
             for component in components:
                 # Obtener margen recomendado
-                recommended = await self.memory.get_recommended_margin(
-                    component.package_id
-                )
+                recommended = await self.memory.get_recommended_margin(component.id)
 
                 # Validar límites
                 margin = max(
@@ -232,7 +230,7 @@ class BudgetCalculator:
         try:
             for component in components:
                 # Obtener datos de mercado
-                market_data = await self.memory.get_market_data(component.package_id)
+                market_data = await self.memory.get_market_data(component.id)
 
                 # Calcular margen dinámico
                 if market_data.get("high_demand"):

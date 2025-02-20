@@ -1,2 +1,4 @@
+agent_core
 smart_travel_agency
+src
 tests

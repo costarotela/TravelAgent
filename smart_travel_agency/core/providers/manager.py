@@ -129,53 +129,47 @@ class ProviderIntegrationManager:
 
         self.logger.info(f"Proveedor {provider_id} registrado")
 
-    async def start_monitoring(self, package_ids: List[str], provider_id: str) -> None:
-        """
-        Iniciar monitoreo de paquetes.
+    async def start_monitoring(self, ids: List[str], provider_id: str) -> None:
+        """Iniciar monitoreo de paquetes.
 
         Args:
-            package_ids: Lista de IDs de paquetes
+            ids: Lista de IDs de paquetes
             provider_id: ID del proveedor
         """
-        if provider_id not in self.providers:
-            raise ValueError(f"Proveedor {provider_id} no registrado")
+        try:
+            for id in ids:
+                monitor_key = f"{provider_id}:{id}"
+                if monitor_key not in self._active_monitors:
+                    self._active_monitors[monitor_key] = asyncio.create_task(
+                        self._monitor_package(id, provider_id)
+                    )
+                    self.logger.info(f"Iniciado monitoreo para {monitor_key}")
 
-        for package_id in package_ids:
-            monitor_key = f"{provider_id}:{package_id}"
+        except Exception as e:
+            self.logger.error(f"Error iniciando monitoreo: {e}")
+            raise
 
-            if monitor_key in self._active_monitors:
-                continue
-
-            self._active_monitors[monitor_key] = asyncio.create_task(
-                self._monitor_package(package_id, provider_id)
-            )
-
-            ACTIVE_MONITORS.labels(provider_id=provider_id).inc()
-
-    async def stop_monitoring(self, package_ids: List[str], provider_id: str) -> None:
-        """
-        Detener monitoreo de paquetes.
+    async def stop_monitoring(self, ids: List[str], provider_id: str) -> None:
+        """Detener monitoreo de paquetes.
 
         Args:
-            package_ids: Lista de IDs de paquetes
+            ids: Lista de IDs de paquetes
             provider_id: ID del proveedor
         """
-        for package_id in package_ids:
-            monitor_key = f"{provider_id}:{package_id}"
-
+        for id in ids:
+            monitor_key = f"{provider_id}:{id}"
             if monitor_key in self._active_monitors:
                 self._active_monitors[monitor_key].cancel()
                 del self._active_monitors[monitor_key]
-                ACTIVE_MONITORS.labels(provider_id=provider_id).dec()
+                self.logger.info(f"Detenido monitoreo para {monitor_key}")
 
     async def get_package_data(
-        self, package_id: str, provider_id: str, force_refresh: bool = False
+        self, id: str, provider_id: str, force_refresh: bool = False
     ) -> Optional[TravelPackage]:
-        """
-        Obtener datos actualizados de paquete.
+        """Obtener datos actualizados de paquete.
 
         Args:
-            package_id: ID del paquete
+            id: ID del paquete
             provider_id: ID del proveedor
             force_refresh: Forzar actualización
 
@@ -188,7 +182,7 @@ class ProviderIntegrationManager:
             if not provider:
                 raise ValueError(f"Proveedor {provider_id} no registrado")
 
-            package_data = await provider.get_package_details(package_id)
+            package_data = await provider.get_package_details(id)
 
             if package_data:
                 # Registrar métricas
@@ -247,16 +241,16 @@ class ProviderIntegrationManager:
 
         return packages
 
-    async def _monitor_package(self, package_id: str, provider_id: str) -> None:
+    async def _monitor_package(self, id: str, provider_id: str) -> None:
         """Monitorear cambios en paquete."""
         while True:
             try:
-                previous_data = await self.get_package_data(package_id, provider_id)
+                previous_data = await self.get_package_data(id, provider_id)
 
                 await asyncio.sleep(self.update_interval)
 
                 current_data = await self.get_package_data(
-                    package_id, provider_id, force_refresh=True
+                    id, provider_id, force_refresh=True
                 )
 
                 if not current_data or not previous_data:
@@ -272,14 +266,12 @@ class ProviderIntegrationManager:
                         )
 
                     # Registrar para optimización
-                    await self._register_optimization_data(
-                        package_id, provider_id, changes
-                    )
+                    await self._register_optimization_data(id, provider_id, changes)
 
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                self.logger.error(f"Error monitoring package {package_id}: {str(e)}")
+                self.logger.error(f"Error monitoring package {id}: {str(e)}")
                 await asyncio.sleep(self.update_interval)
 
     async def _search_provider(
@@ -360,13 +352,13 @@ class ProviderIntegrationManager:
         return changes
 
     async def _register_optimization_data(
-        self, package_id: str, provider_id: str, changes: Dict[str, Any]
+        self, id: str, provider_id: str, changes: Dict[str, Any]
     ) -> None:
         """
         Registrar datos para optimización.
 
         Args:
-            package_id: ID del paquete
+            id: ID del paquete
             provider_id: ID del proveedor
             changes: Cambios detectados
         """

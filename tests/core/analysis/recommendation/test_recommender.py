@@ -34,13 +34,17 @@ def sample_hotel():
 @pytest.fixture
 def sample_package(sample_hotel):
     """Paquete de prueba."""
+    now = datetime.now()
     return TravelPackage(
         id="pkg1",
         hotel=sample_hotel,
         destination="Test City",
-        check_in=datetime.now(),
-        nights=5,
-        total_price=1000.0,
+        start_date=now,
+        end_date=now + timedelta(days=5),
+        price=1000.0,
+        currency="USD",
+        provider="TestProvider",
+        description="Test package",
         cancellation_policy="free",
         modification_policy="flexible",
         payment_options=["credit", "debit", "cash"],
@@ -49,7 +53,7 @@ def sample_package(sample_hotel):
 
 @pytest.fixture
 def sample_packages(sample_hotel):
-    """Lista de paquetes de prueba."""
+    """Paquetes de prueba."""
     base_date = datetime.now()
     return [
         TravelPackage(
@@ -57,22 +61,25 @@ def sample_packages(sample_hotel):
             hotel=Hotel(
                 id=f"hotel{i}",
                 name=f"Test Hotel {i}",
-                stars=3 + i % 3,
-                review_score=7.5 + i % 3,
+                stars=3 + i,
+                review_score=7.5 + i,
                 amenities=["wifi", "pool"] if i < 2 else ["wifi", "pool", "spa", "gym"],
                 popularity_index=0.6 + i * 0.1,
             ),
             destination="Test City",
-            check_in=base_date + timedelta(days=i),
-            nights=5,
-            total_price=800.0 + i * 100,
+            start_date=base_date + timedelta(days=i),
+            end_date=base_date + timedelta(days=i + 5),
+            price=800.0 + i * 100,
+            currency="USD",
+            provider=f"TestProvider{i}",
+            description=f"Test package {i}",
             cancellation_policy="free" if i % 2 == 0 else "paid",
             modification_policy="flexible" if i % 2 == 0 else "strict",
             payment_options=(
                 ["credit", "debit"] if i < 2 else ["credit", "debit", "cash"]
             ),
         )
-        for i in range(10)
+        for i in range(5)
     ]
 
 

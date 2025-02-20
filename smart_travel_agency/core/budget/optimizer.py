@@ -273,13 +273,13 @@ class BudgetOptimizer:
             if goal == OptimizationGoal.MAXIMIZE_MARGIN:
                 # Calcular margen promedio
                 total_cost = sum(pkg.cost for pkg in budget.packages)
-                total_price = sum(pkg.price for pkg in budget.packages)
-                return (total_price - total_cost) / total_price
+                total_revenue = sum(pkg.price for pkg in budget.packages)
+                return (total_revenue - total_cost) / total_revenue
 
             elif goal == OptimizationGoal.MAXIMIZE_COMPETITIVENESS:
                 # Usar inverso del precio total
-                total_price = sum(pkg.price for pkg in budget.packages)
-                return 1.0 / total_price
+                total_revenue = sum(pkg.price for pkg in budget.packages)
+                return 1.0 / total_revenue
 
             else:  # BALANCE_PRICE_QUALITY
                 # Combinar margen y precio
@@ -366,23 +366,15 @@ class BudgetOptimizer:
     ) -> bool:
         """Validar una restricción específica."""
         try:
-            if constraint.type == "max_price":
-                total_price = sum(pkg.price for pkg in budget.packages)
-                return total_price <= constraint.value
+            if constraint.type == OptimizationConstraintType.MAX_PRICE:
+                total_revenue = sum(pkg.price for pkg in budget.packages)
+                return total_revenue <= constraint.value
 
-            elif constraint.type == "min_margin":
+            elif constraint.type == OptimizationConstraintType.MIN_MARGIN:
                 total_cost = sum(pkg.cost for pkg in budget.packages)
-                total_price = sum(pkg.price for pkg in budget.packages)
-                margin = (total_price - total_cost) / total_price
+                total_revenue = sum(pkg.price for pkg in budget.packages)
+                margin = (total_revenue - total_cost) / total_revenue
                 return margin >= constraint.value
-
-            elif constraint.type == "max_price_change":
-                price_changes = [
-                    abs((pkg.price - pkg.original_price) / pkg.original_price)
-                    for pkg in budget.packages
-                    if hasattr(pkg, "original_price")
-                ]
-                return all(change <= constraint.value for change in price_changes)
 
             return True
 

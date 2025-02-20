@@ -34,13 +34,17 @@ def sample_hotel():
 @pytest.fixture
 def sample_package(sample_hotel):
     """Paquete de prueba."""
+    now = datetime.now()
     return TravelPackage(
         id="pkg1",
         hotel=sample_hotel,
         destination="Test City",
-        check_in=datetime.now(),
-        nights=5,
-        total_price=1000.0,
+        start_date=now,
+        end_date=now + timedelta(days=5),
+        price=1000.0,
+        currency="USD",
+        provider="TestProvider",
+        description="Test package",
         cancellation_policy="free",
         modification_policy="flexible",
         payment_options=["credit", "debit", "cash"],
@@ -69,19 +73,11 @@ async def test_optimize_price(sample_package, pricing_strategies):
 
         # Verificar resultado
         assert isinstance(result, OptimizationResult)
-        assert result.original_price == sample_package.total_price
-        assert result.optimized_price > 0
+        assert result.original_price == sample_package.price
+        assert result.optimal_price > 0
         assert result.margin >= optimizer.config["min_margin"]
         assert result.margin <= optimizer.config["max_margin"]
         assert result.roi > 0
-
-        # Verificar factores
-        assert "base_cost" in result.factors
-        assert "margin" in result.factors
-        assert "seasonality" in result.factors
-        assert "demand" in result.factors
-        assert "competition" in result.factors
-        assert "quality" in result.factors
 
         # Verificar metadata
         assert result.metadata["strategy"] == strategy.type

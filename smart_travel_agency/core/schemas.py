@@ -1,8 +1,50 @@
 """Esquemas para el SmartTravelAgent."""
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple, Union
+from uuid import UUID, uuid4
+
+
+@dataclass
+class Flight:
+    """Esquema de vuelo."""
+
+    origin: str
+    destination: str
+    departure_time: datetime
+    arrival_time: datetime
+    flight_number: str
+    airline: str
+    price: float
+    passengers: int
+    flight_id: UUID = field(default_factory=uuid4)
+
+
+@dataclass
+class Accommodation:
+    """Esquema de alojamiento."""
+
+    hotel_id: str
+    name: str
+    room_type: str
+    price_per_night: float
+    nights: int
+    check_in: datetime
+    check_out: datetime
+    accommodation_id: UUID = field(default_factory=uuid4)
+
+
+@dataclass
+class Activity:
+    """Esquema de actividad."""
+
+    activity_id: str
+    name: str
+    price: float
+    duration: timedelta
+    participants: int
+    date: datetime
 
 
 @dataclass
@@ -21,15 +63,21 @@ class Hotel:
 class TravelPackage:
     """Esquema de paquete de viaje."""
 
-    id: str
-    hotel: Hotel
     destination: str
-    check_in: datetime
-    nights: int
-    total_price: float
-    cancellation_policy: str
-    modification_policy: str
-    payment_options: List[str]
+    start_date: datetime
+    end_date: datetime
+    price: float
+    currency: str
+    provider: str
+    description: str
+    hotel: Optional[Hotel] = None
+    flights: Optional[List[Flight]] = None
+    accommodation: Optional[Accommodation] = None
+    activities: Optional[List[Activity]] = None
+    id: UUID = field(default_factory=uuid4)
+    cancellation_policy: Optional[str] = None
+    modification_policy: Optional[str] = None
+    payment_options: Optional[List[str]] = None
 
 
 @dataclass
@@ -67,7 +115,7 @@ class PricingStrategy:
     """Estrategia de pricing."""
 
     type: str  # competitive, value_based, dynamic
-    parameters: Dict[str, Union[float, str]] = field(default_factory=dict)
+    params: Dict[str, Union[float, str]] = field(default_factory=dict)
 
 
 @dataclass
@@ -92,6 +140,7 @@ class PriceFactors:
     demand: float
     competition: float
     quality: float
+    flexibility: float
 
 
 @dataclass
@@ -99,10 +148,10 @@ class OptimizationResult:
     """Resultado de optimización de precios."""
 
     original_price: float
-    optimized_price: float
+    optimal_price: float
     margin: float
     roi: float
-    factors: Dict[str, float]
+    strategy: PricingStrategy
     metadata: Dict[str, str] = field(default_factory=dict)
 
 

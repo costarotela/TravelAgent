@@ -1,133 +1,171 @@
-comp# Nueva Arquitectura SmartTravelAgent
+# Nueva Arquitectura SmartTravelAgent
 
 ## Visión General
 SmartTravelAgent es un sistema avanzado de asistencia para la elaboración de presupuestos de viaje que combina la potencia del procesamiento automatizado con el control humano del vendedor. El sistema realiza múltiples pasadas de optimización mientras mantiene la estabilidad durante la interacción vendedor-cliente.
 
+## Principios Arquitectónicos
+
+1. **Estabilidad en Sesión**
+   - Aislamiento de datos por sesión
+   - Sin interrupciones por actualizaciones
+   - Control total del vendedor
+
+2. **Procesamiento Asíncrono**
+   - Operaciones lentas no bloquean
+   - Actualizaciones en background
+   - Caché y fallbacks robustos
+
+3. **Adaptabilidad**
+   - Cambios de proveedores manejados
+   - Preferencias del cliente integradas
+   - Reconstrucción de presupuestos
+
 ## Componentes Principales
 
-### 1. Core Engine (✅ IMPRESCINDIBLE)
+### 1. Core Engine (✅ IMPLEMENTADO)
 
-#### 1.1 Data Collection Engine
-```
-smart_travel_agency/core/collectors/
-├── browser_automation/    # Automatización de navegación
-├── scraping_engine/      # Motor de scraping
-└── api_integrations/     # Integraciones con APIs
-```
-- Extracción en tiempo real de datos de proveedores
-- Sistema anti-bloqueo y gestión de proxies
-- Manejo de rate-limiting y caché
-
-#### 1.2 Analysis Engine
+#### 1.1 Analysis Engine
 ```
 smart_travel_agency/core/analysis/
-├── price_optimizer/      # Optimización de precios
-├── package_comparator/   # Comparación de paquetes
-└── recommendation/       # Motor de recomendaciones
-```
-- Análisis comparativo de ofertas
-- Optimización multi-pasada de presupuestos
-- Generación de alternativas
-
-#### 1.3 Session Manager
-```
-smart_travel_agency/core/session/
-├── state_manager/        # Gestión de estado
-├── stability_guard/      # Protección de estabilidad
-└── change_tracker/       # Seguimiento de cambios
-```
-- Aislamiento de datos por sesión
-- Control de modificaciones
-- Registro de cambios y decisiones
-
-### 2. Provider Integration (⚠️ PARCIALMENTE NECESARIO)
-
-```
-smart_travel_agency/providers/
-├── scrapers/            # Scrapers específicos
-│   ├── hotels/
-│   ├── flights/
-│   └── packages/
-├── api_clients/         # Clientes de API
-└── data_normalizers/    # Normalización de datos
+├── price_optimizer/      # Optimización de precios ✅
+├── package_comparator/   # Comparación de paquetes 🚧
+└── recommendation/       # Motor de recomendaciones 🚧
 ```
 
-### 3. Budget Engine (✅ IMPRESCINDIBLE)
+**Responsabilidades:**
+- Análisis de precios y mercado
+- Optimización de márgenes
+- Comparación de ofertas
+- Recomendaciones personalizadas
 
+#### 1.2 Budget Engine
 ```
 smart_travel_agency/core/budget/
-├── calculator/          # Cálculo de presupuestos
-├── optimizer/           # Optimización
-└── reconstructor/       # Reconstrucción
+├── calculator/          # Cálculo de presupuestos ✅
+├── reconstruction/      # Reconstrucción de presupuestos 🚧
+└── validation/         # Validación de datos ✅
 ```
-- Construcción dinámica de presupuestos
-- Optimización iterativa
-- Sistema de reconstrucción
 
-### 4. Vendor Interface (✅ IMPRESCINDIBLE)
+**Responsabilidades:**
+- Construcción de presupuestos
+- Cálculo de costos y márgenes
+- Validación de datos
+- Historial de modificaciones
+
+### 2. Data Collection (✅ IMPLEMENTADO)
+
+```
+smart_travel_agency/core/collectors/
+├── scraper/           # Motor de scraping ✅
+│   ├── hotels/
+│   ├── flights/
+│   └── activities/
+├── api_client/        # Cliente de APIs ✅
+└── cache/            # Sistema de caché ✅
+```
+
+**Responsabilidades:**
+- Extracción de datos en tiempo real
+- Manejo de rate limiting
+- Caché y fallbacks
+- Validación de datos
+
+### 3. Provider Integration (🚧 EN DESARROLLO)
+
+```
+smart_travel_agency/core/providers/
+├── manager.py         # Gestor de proveedores ✅
+├── ola/              # OLA Travel Integration ✅
+├── aero/             # Aero API Integration ✅
+└── hotels/           # Hotels API Integration 🚧
+```
+
+**Responsabilidades:**
+- Integración con proveedores
+- Normalización de datos
+- Manejo de errores
+- Monitoreo de estado
+
+### 4. Session Management (✅ IMPLEMENTADO)
+
+```
+smart_travel_agency/core/session/
+├── manager.py         # Gestor de sesiones ✅
+├── state.py          # Estado de sesión ✅
+└── history.py        # Historial de cambios ✅
+```
+
+**Responsabilidades:**
+- Aislamiento de datos
+- Control de modificaciones
+- Registro de cambios
+- Estabilidad garantizada
+
+### 5. Vendor Interface (📝 PENDIENTE)
 
 ```
 smart_travel_agency/interface/
-├── dashboard/          # Dashboard principal
-├── budget_editor/      # Editor de presupuestos
-└── realtime_view/      # Vista en tiempo real
+├── dashboard/        # Dashboard principal
+├── editor/          # Editor de presupuestos
+└── components/      # Componentes UI
 ```
-- Control total del vendedor
-- Visualización de optimizaciones
-- Herramientas de modificación
 
-## Flujo de Trabajo
+**Responsabilidades:**
+- Interfaz interactiva
+- Control del vendedor
+- Visualización de datos
+- Feedback en tiempo real
 
-1. **Recolección de Datos**
-   - Extracción continua de información
-   - Actualización de cache
-   - Detección de cambios
+## Flujo de Datos
 
-2. **Análisis y Optimización**
-   - Comparación de opciones
-   - Múltiples pasadas de optimización
-   - Generación de alternativas
+1. **Recolección**
+   ```
+   Providers -> Collectors -> Cache -> Analysis Engine
+   ```
 
-3. **Interacción del Vendedor**
-   - Visualización de resultados
-   - Modificación de parámetros
-   - Control de cambios
+2. **Análisis**
+   ```
+   Analysis Engine -> Budget Engine -> Session Manager
+   ```
 
-4. **Generación de Presupuesto**
-   - Construcción dinámica
-   - Validación de datos
-   - Exportación de documentos
+3. **Presentación**
+   ```
+   Session Manager -> Vendor Interface -> User
+   ```
 
-## Prioridades de Implementación
+## Consideraciones Técnicas
 
-### Fase 1: Core (✅)
-- Motor de recolección de datos
-- Sistema de sesiones
-- Interfaz básica del vendedor
+### Performance
+- Caché en múltiples niveles
+- Operaciones asíncronas
+- Optimización de queries
+- Monitoreo de recursos
 
-### Fase 2: Optimización (⚠️)
-- Análisis comparativo
-- Optimización multi-pasada
-- Recomendaciones
+### Seguridad
+- Aislamiento de sesiones
+- Validación de datos
+- Control de acceso
+- Logging de seguridad
 
-### Fase 3: Mejoras (❌)
-- Caché avanzado
-- Análisis predictivo
-- Interfaz avanzada
+### Mantenibilidad
+- Tests completos
+- Documentación actualizada
+- Código modular
+- Principios SOLID
 
-## Principios de Diseño
+## Próximos Pasos
 
-1. **Estabilidad de Sesión**
-   - Datos consistentes durante la venta
-   - Sin interrupciones no controladas
-   - Modificaciones explícitas
+1. **Alta Prioridad**
+   - Implementar reconstrucción de presupuestos
+   - Completar interfaz del vendedor
+   - Integrar Hotels API
 
-2. **Control del Vendedor**
-   - Decisiones finales por el vendedor
-   - Interfaz clara y responsive
-   - Herramientas de modificación efectivas
+2. **Media Prioridad**
+   - Sistema de preferencias
+   - Más proveedores
+   - Analytics
 
-3. **Optimización Continua**
-   - Múltiples pasadas de análisis
-   - Mejora iterativa de presupuestos
-   - Adaptación a cambios
+3. **Baja Prioridad**
+   - API pública
+   - Dashboard avanzado
+   - Reportes
