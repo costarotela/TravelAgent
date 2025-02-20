@@ -10,8 +10,10 @@ from enum import Enum
 from pydantic import BaseModel, field_validator, Field, ValidationInfo
 import json
 
+
 class AccommodationType(str, Enum):
     """Tipos de alojamiento soportados."""
+
     HOTEL = "hotel"
     RESORT = "resort"
     APARTMENT = "apartment"
@@ -20,32 +22,39 @@ class AccommodationType(str, Enum):
     CABIN = "cabin"
     OTHER = "other"
 
+
 class ActivityDifficulty(str, Enum):
     """Niveles de dificultad para actividades."""
+
     EASY = "easy"
     MODERATE = "moderate"
     CHALLENGING = "challenging"
     EXPERT = "expert"
 
+
 class PackageStatus(str, Enum):
     """Estados posibles de un paquete."""
+
     AVAILABLE = "available"
     LIMITED = "limited"
     SOLD_OUT = "sold_out"
     PENDING = "pending"
     EXPIRED = "expired"
 
+
 class PriorityLevel(str, Enum):
     """Niveles de prioridad."""
+
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
     URGENT = "urgent"
 
+
 class Location(BaseModel):
     """
     Información detallada de ubicación.
-    
+
     Attributes:
         country: País
         city: Ciudad
@@ -53,22 +62,24 @@ class Location(BaseModel):
         latitude: Latitud (opcional)
         longitude: Longitud (opcional)
     """
+
     country: str
     city: str
     address: str
     latitude: Optional[float] = None
     longitude: Optional[float] = None
 
-    @field_validator('latitude', 'longitude')
+    @field_validator("latitude", "longitude")
     def validate_coordinates(cls, v):
         if v is not None and not -180 <= v <= 180:
-            raise ValueError('Coordenada debe estar entre -180 y 180')
+            raise ValueError("Coordenada debe estar entre -180 y 180")
         return v
+
 
 class Accommodation(BaseModel):
     """
     Información detallada de alojamiento.
-    
+
     Attributes:
         name: Nombre del alojamiento
         type: Tipo de alojamiento
@@ -81,6 +92,7 @@ class Accommodation(BaseModel):
         description: Descripción detallada
         policies: Políticas del alojamiento
     """
+
     name: str
     type: AccommodationType
     rating: float = Field(..., ge=0, le=5)
@@ -92,17 +104,18 @@ class Accommodation(BaseModel):
     description: Optional[str] = None
     policies: Dict[str, str] = {}
 
-    @field_validator('rating')
+    @field_validator("rating")
     def validate_rating(cls, v):
         """Validar que el rating sea un número válido."""
         if not isinstance(v, (int, float)):
-            raise ValueError('Rating debe ser numérico')
+            raise ValueError("Rating debe ser numérico")
         return float(v)
+
 
 class Activity(BaseModel):
     """
     Actividad turística detallada.
-    
+
     Attributes:
         name: Nombre de la actividad
         description: Descripción detallada
@@ -114,6 +127,7 @@ class Activity(BaseModel):
         requirements: Requisitos especiales
         schedule: Horarios disponibles
     """
+
     name: str
     description: str
     duration: Optional[int] = Field(None, gt=0)
@@ -124,10 +138,11 @@ class Activity(BaseModel):
     requirements: List[str] = []
     schedule: Dict[str, List[str]] = {}
 
+
 class TravelPackage(BaseModel):
     """
     Paquete turístico completo con validación avanzada.
-    
+
     Attributes:
         id: Identificador único
         title: Título del paquete
@@ -150,6 +165,7 @@ class TravelPackage(BaseModel):
         price_history: Historial de precios
         metadata: Datos adicionales
     """
+
     id: str
     title: str
     description: str
@@ -171,18 +187,19 @@ class TravelPackage(BaseModel):
     price_history: List[Dict[str, Any]] = []
     metadata: Dict[str, Any] = {}
 
-    @field_validator('end_date')
+    @field_validator("end_date")
     @classmethod
     def validate_dates(cls, v: datetime, info: ValidationInfo) -> datetime:
         """Validar que la fecha de fin sea posterior a la de inicio."""
-        if info.data.get('start_date') and v <= info.data['start_date']:
-            raise ValueError('Fecha de fin debe ser posterior a fecha de inicio')
+        if info.data.get("start_date") and v <= info.data["start_date"]:
+            raise ValueError("Fecha de fin debe ser posterior a fecha de inicio")
         return v
+
 
 class SearchCriteria(BaseModel):
     """
     Criterios detallados de búsqueda.
-    
+
     Attributes:
         destination: Destino deseado
         dates: Rango de fechas
@@ -191,6 +208,7 @@ class SearchCriteria(BaseModel):
         preferences: Preferencias específicas
         requirements: Requisitos especiales
     """
+
     destination: Optional[str] = None
     dates: Dict[str, date] = {}
     budget: Dict[str, Decimal] = {}
@@ -198,17 +216,18 @@ class SearchCriteria(BaseModel):
     preferences: Dict[str, Any] = {}
     requirements: List[str] = []
 
-    @field_validator('budget')
+    @field_validator("budget")
     def validate_budget(cls, v):
         """Validar que el presupuesto tenga valores válidos."""
-        if 'min' in v and 'max' in v and v['min'] > v['max']:
-            raise ValueError('Presupuesto mínimo no puede ser mayor al máximo')
+        if "min" in v and "max" in v and v["min"] > v["max"]:
+            raise ValueError("Presupuesto mínimo no puede ser mayor al máximo")
         return v
+
 
 class CustomerProfile(BaseModel):
     """
     Perfil detallado del cliente.
-    
+
     Attributes:
         id: Identificador único
         name: Nombre completo
@@ -218,6 +237,7 @@ class CustomerProfile(BaseModel):
         segment: Segmento de cliente
         metrics: Métricas del cliente
     """
+
     id: str
     name: str
     email: str
@@ -226,10 +246,11 @@ class CustomerProfile(BaseModel):
     segment: Optional[str] = None
     metrics: Dict[str, Any] = {}
 
+
 class SalesQuery(BaseModel):
     """
     Consulta detallada de venta.
-    
+
     Attributes:
         id: Identificador único
         customer: Perfil del cliente
@@ -238,6 +259,7 @@ class SalesQuery(BaseModel):
         context: Contexto de la consulta
         history: Historial de interacciones
     """
+
     id: str
     customer: CustomerProfile
     criteria: SearchCriteria
@@ -245,10 +267,11 @@ class SalesQuery(BaseModel):
     context: Dict[str, Any] = {}
     history: List[Dict[str, Any]] = []
 
+
 class AnalysisResult(BaseModel):
     """
     Resultado del análisis de cambios en paquetes.
-    
+
     Attributes:
         package_id: ID del paquete analizado
         changes: Lista de cambios detectados
@@ -256,20 +279,23 @@ class AnalysisResult(BaseModel):
         recommendations: Recomendaciones sugeridas
         metadata: Datos adicionales del análisis
     """
+
     package_id: str
     changes: List[Dict[str, Any]] = []
     impact_level: float = Field(..., ge=0, le=1)
     recommendations: List[str] = []
     metadata: Dict[str, Any] = {}
 
-    @field_validator('impact_level')
+    @field_validator("impact_level")
     def validate_impact(cls, v):
         if not isinstance(v, (int, float)):
-            raise ValueError('Nivel de impacto debe ser numérico')
+            raise ValueError("Nivel de impacto debe ser numérico")
         return float(v)
+
 
 def to_json(obj: Any) -> str:
     """Convertir objeto a JSON con soporte para tipos especiales."""
+
     def default(o):
         if isinstance(o, (datetime, date)):
             return o.isoformat()
@@ -278,8 +304,9 @@ def to_json(obj: Any) -> str:
         if isinstance(o, Enum):
             return o.value
         return o.__dict__
-    
+
     return json.dumps(obj, default=default)
+
 
 def from_json(json_str: str, cls: type) -> Any:
     """Crear objeto desde JSON."""

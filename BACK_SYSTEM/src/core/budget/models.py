@@ -38,13 +38,15 @@ class Budget:
     items: List[BudgetItem] = field(default_factory=list)
     status: str = "draft"
     version: int = 1
-    preferences: Dict = field(default_factory=lambda: {
-        "max_budget": 0,
-        "date_flexibility": "Ninguna",
-        "priority": "Mejor precio",
-        "additional_services": [],
-        "notes": ""
-    })
+    preferences: Dict = field(
+        default_factory=lambda: {
+            "max_budget": 0,
+            "date_flexibility": "Ninguna",
+            "priority": "Mejor precio",
+            "additional_services": [],
+            "notes": "",
+        }
+    )
     adjustments_history: List[Dict] = field(default_factory=list)
 
     def __post_init__(self):
@@ -61,12 +63,15 @@ class Budget:
     def add_item(self, item: BudgetItem) -> None:
         """Agregar ítem al presupuesto."""
         self.items.append(item)
-        self._record_adjustment("add_item", {
-            "item_id": item.id,
-            "type": item.type,
-            "description": item.description,
-            "price": float(item.unit_price)
-        })
+        self._record_adjustment(
+            "add_item",
+            {
+                "item_id": item.id,
+                "type": item.type,
+                "description": item.description,
+                "price": float(item.unit_price),
+            },
+        )
 
     def update_item(self, item_id: str, **updates) -> None:
         """Actualizar un ítem existente."""
@@ -75,9 +80,9 @@ class Budget:
                 old_values = {
                     "unit_price": float(item.unit_price),
                     "quantity": item.quantity,
-                    "details": item.details.copy()
+                    "details": item.details.copy(),
                 }
-                
+
                 # Actualizar valores
                 for key, value in updates.items():
                     if hasattr(item, key):
@@ -85,11 +90,14 @@ class Budget:
                     elif key in item.details:
                         item.details[key] = value
 
-                self._record_adjustment("update_item", {
-                    "item_id": item_id,
-                    "old_values": old_values,
-                    "new_values": updates
-                })
+                self._record_adjustment(
+                    "update_item",
+                    {
+                        "item_id": item_id,
+                        "old_values": old_values,
+                        "new_values": updates,
+                    },
+                )
                 break
 
     def remove_item(self, item_id: str) -> None:
@@ -97,29 +105,30 @@ class Budget:
         for item in self.items[:]:
             if item.id == item_id:
                 self.items.remove(item)
-                self._record_adjustment("remove_item", {
-                    "item_id": item_id,
-                    "type": item.type,
-                    "description": item.description
-                })
+                self._record_adjustment(
+                    "remove_item",
+                    {
+                        "item_id": item_id,
+                        "type": item.type,
+                        "description": item.description,
+                    },
+                )
                 break
 
     def update_preferences(self, new_preferences: Dict) -> None:
         """Actualizar preferencias del cliente."""
         old_preferences = self.preferences.copy()
         self.preferences.update(new_preferences)
-        self._record_adjustment("update_preferences", {
-            "old_preferences": old_preferences,
-            "new_preferences": new_preferences
-        })
+        self._record_adjustment(
+            "update_preferences",
+            {"old_preferences": old_preferences, "new_preferences": new_preferences},
+        )
 
     def _record_adjustment(self, action: str, details: Dict) -> None:
         """Registrar un ajuste en el historial."""
-        self.adjustments_history.append({
-            "timestamp": datetime.now(),
-            "action": action,
-            "details": details
-        })
+        self.adjustments_history.append(
+            {"timestamp": datetime.now(), "action": action, "details": details}
+        )
         self.version += 1
 
     def to_dict(self) -> Dict:
@@ -137,7 +146,7 @@ class Budget:
                     "unit_price": float(item.unit_price),
                     "quantity": item.quantity,
                     "currency": item.currency,
-                    "details": item.details
+                    "details": item.details,
                 }
                 for item in self.items
             ],
@@ -145,11 +154,11 @@ class Budget:
             "version": self.version,
             "preferences": self.preferences,
             "total_amount": float(self.total_amount),
-            "adjustments_history": self.adjustments_history
+            "adjustments_history": self.adjustments_history,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict) -> 'Budget':
+    def from_dict(cls, data: Dict) -> "Budget":
         """Crear presupuesto desde diccionario."""
         items = [
             BudgetItem(
@@ -159,7 +168,7 @@ class Budget:
                 unit_price=Decimal(str(item["unit_price"])),
                 quantity=item["quantity"],
                 currency=item["currency"],
-                details=item["details"]
+                details=item["details"],
             )
             for item in data["items"]
         ]
@@ -173,5 +182,5 @@ class Budget:
             status=data["status"],
             version=data["version"],
             preferences=data["preferences"],
-            adjustments_history=data.get("adjustments_history", [])
+            adjustments_history=data.get("adjustments_history", []),
         )

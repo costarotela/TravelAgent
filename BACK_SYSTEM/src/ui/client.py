@@ -4,6 +4,7 @@ import httpx
 from typing import Optional, Dict, Any
 from datetime import datetime
 
+
 class TravelAgentClient:
     """Cliente para interactuar con la API de Travel Agent."""
 
@@ -17,7 +18,7 @@ class TravelAgentClient:
         """Crear una nueva sesión."""
         response = await self._client.post(
             "/api/v1/sessions/create",
-            params={"vendor_id": vendor_id, "customer_id": customer_id}
+            params={"vendor_id": vendor_id, "customer_id": customer_id},
         )
         response.raise_for_status()
         data = response.json()
@@ -28,10 +29,9 @@ class TravelAgentClient:
         """Agregar un paquete a la sesión actual."""
         if not self.session_id:
             raise ValueError("No hay una sesión activa")
-        
+
         response = await self._client.post(
-            f"/api/v1/sessions/{self.session_id}/packages",
-            json=package
+            f"/api/v1/sessions/{self.session_id}/packages", json=package
         )
         response.raise_for_status()
         return response.json()
@@ -40,10 +40,8 @@ class TravelAgentClient:
         """Obtener el presupuesto actual."""
         if not self.session_id:
             raise ValueError("No hay una sesión activa")
-        
-        response = await self._client.get(
-            f"/api/v1/sessions/{self.session_id}/budget"
-        )
+
+        response = await self._client.get(f"/api/v1/sessions/{self.session_id}/budget")
         response.raise_for_status()
         return response.json()
 
@@ -51,10 +49,9 @@ class TravelAgentClient:
         """Agregar una modificación al presupuesto."""
         if not self.session_id:
             raise ValueError("No hay una sesión activa")
-        
+
         response = await self._client.post(
-            f"/api/v1/sessions/{self.session_id}/modifications",
-            json=modification
+            f"/api/v1/sessions/{self.session_id}/modifications", json=modification
         )
         response.raise_for_status()
         return response.json()
@@ -63,10 +60,8 @@ class TravelAgentClient:
         """Cerrar la sesión actual."""
         if not self.session_id:
             raise ValueError("No hay una sesión activa")
-        
-        response = await self._client.post(
-            f"/api/v1/sessions/{self.session_id}/close"
-        )
+
+        response = await self._client.post(f"/api/v1/sessions/{self.session_id}/close")
         response.raise_for_status()
         result = response.json()
         self.session_id = None

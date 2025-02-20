@@ -1,4 +1,5 @@
 """Development script for the Travel Agent application."""
+
 import os
 from pathlib import Path
 
@@ -19,9 +20,4 @@ os.environ["STREAMLIT_SERVER_RUN_ON_SAVE"] = "true"
 
 # Run the Streamlit application
 if __name__ == "__main__":
-    bootstrap.run(
-        str(ROOT_DIR / "src" / "ui" / "main.py"),
-        "",
-        [],
-        flag_options={}
-    )
+    bootstrap.run(str(ROOT_DIR / "src" / "ui" / "main.py"), "", [], flag_options={})

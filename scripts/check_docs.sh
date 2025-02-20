@@ -37,7 +37,7 @@ NC='\033[0m'
 check_principles() {
     local file=$1
     echo -e "${YELLOW}Verificando $file...${NC}"
-    
+
     for principle in "${PRINCIPLES[@]}"; do
         if grep -q "$principle" "$file"; then
             echo -e "${GREEN}✅ Principio '$principle' encontrado${NC}"

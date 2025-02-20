@@ -1,7 +1,7 @@
 # Guía de Usuario - Smart Travel Agency
 
 ## Introducción
-Esta guía está diseñada para vendedores y agentes que utilizan el sistema Smart Travel Agency para la gestión de presupuestos y análisis de proveedores.
+Esta guía está diseñada para vendedores que utilizan el sistema Smart Travel Agency, enfocándose en la elaboración dinámica de presupuestos y el procesamiento de datos en tiempo real de proveedores.
 
 ## Acceso al Sistema
 1. Abrir el navegador web
@@ -10,80 +10,100 @@ Esta guía está diseñada para vendedores y agentes que utilizan el sistema Sma
 
 ## Funcionalidades Principales
 
-### 1. Gestión de Presupuestos
+### 1. Elaboración Dinámica de Presupuestos
 
 #### Crear Nuevo Presupuesto
 1. Click en "Nuevo Presupuesto"
-2. Seleccionar servicios requeridos
-3. Aplicar reglas de negocio (márgenes, descuentos)
-4. Guardar o enviar al cliente
+2. El sistema automáticamente:
+   - Extrae datos actualizados de proveedores
+   - Procesa información en tiempo real
+   - Sugiere opciones optimizadas
+3. Como vendedor, puedes:
+   - Ajustar parámetros según preferencias del cliente
+   - Ver simulaciones en tiempo real
+   - Aplicar reglas de negocio personalizadas
 
-#### Editar Presupuesto
-1. Buscar presupuesto en la lista
-2. Click en "Editar"
-3. Realizar modificaciones
-4. Guardar cambios
+#### Reconstrucción de Presupuestos
+1. Seleccionar presupuesto existente
+2. Sistema muestra:
+   - Cambios en precios de proveedores
+   - Nuevas alternativas disponibles
+   - Impacto en márgenes
+3. Opciones de actualización:
+   - Actualización automática manteniendo estructura
+   - Reconfiguración con nuevas opciones
+   - Ajuste manual de componentes
 
-### 2. Análisis de Precios
+### 2. Procesamiento de Datos en Tiempo Real
 
-#### Ver Tendencias
-1. Seleccionar servicio o paquete
-2. Ver gráfico de tendencias
-3. Analizar predicciones
-4. Revisar factores de influencia
+#### Monitor de Proveedores
+- Visualización de datos actualizados
+- Alertas de cambios significativos
+- Tendencias y predicciones
 
-#### Alertas de Precios
-- Monitoreo automático de cambios
-- Notificaciones de variaciones significativas
-- Sugerencias de acción
+#### Adaptación a Cambios
+1. Sistema detecta automáticamente:
+   - Variaciones de precios
+   - Nuevas ofertas
+   - Cambios en disponibilidad
+2. Herramientas de respuesta rápida:
+   - Actualización masiva de presupuestos
+   - Notificaciones a clientes
+   - Ajustes automáticos de márgenes
 
-### 3. Gestión de Proveedores
+### 3. Asistencia al Vendedor
 
-#### Evaluar Proveedores
-1. Acceder a "Análisis de Proveedores"
-2. Seleccionar proveedor
-3. Revisar métricas:
-   - Confiabilidad
-   - Competitividad
-   - Calidad de servicio
-   - Tiempos de respuesta
+#### Panel de Control Interactivo
+- Vista unificada de datos relevantes
+- Herramientas de decisión rápida
+- Indicadores de rendimiento
 
-#### Recomendaciones
-- Revisar sugerencias automáticas
-- Implementar acciones recomendadas
-- Dar seguimiento a mejoras
+#### Optimización de Presupuestos
+1. Análisis automático de:
+   - Márgenes por servicio
+   - Competitividad de precios
+   - Preferencias históricas del cliente
+2. Sugerencias inteligentes para:
+   - Mejora de rentabilidad
+   - Satisfacción del cliente
+   - Velocidad de respuesta
 
-## Tips y Mejores Prácticas
+## Mejores Prácticas
 
-### Análisis de Precios
-- Revisar tendencias regularmente
-- Considerar factores estacionales
-- Actuar rápido ante cambios significativos
+### Elaboración de Presupuestos
+- Revisar datos en tiempo real antes de finalizar
+- Utilizar herramientas de simulación
+- Documentar preferencias especiales del cliente
 
-### Gestión de Proveedores
-- Mantener comunicación regular
-- Documentar incidencias
-- Seguir métricas de rendimiento
+### Gestión de Cambios
+- Monitorear alertas de cambios importantes
+- Priorizar actualizaciones según impacto
+- Mantener comunicación proactiva con clientes
 
-### Presupuestos
-- Verificar reglas aplicadas
-- Documentar cambios importantes
-- Mantener versiones actualizadas
+### Optimización Continua
+- Analizar métricas de rendimiento
+- Ajustar estrategias según tendencias
+- Aprovechar sugerencias del sistema
 
 ## Solución de Problemas
 
 ### Problemas Comunes
-1. **Error al cargar datos**
-   - Verificar conexión
-   - Refrescar página
+1. **Datos Desactualizados**
+   - Verificar conexión a proveedores
+   - Forzar actualización manual
    - Contactar soporte si persiste
 
-2. **Cambios no guardados**
-   - Usar botón "Guardar" explícitamente
-   - Verificar confirmación
-   - Revisar historial de cambios
+2. **Errores en Cálculos**
+   - Revisar reglas de negocio aplicadas
+   - Verificar datos de entrada
+   - Usar herramienta de validación
 
-### Contacto Soporte
+### Soporte Técnico
 - Email: support@smarttravel.com
 - Horario: 9:00 - 18:00 (GMT-3)
 - Teléfono: +54 (011) 4444-5555
+
+## Notas Importantes
+- El sistema está diseñado para mantener el control del vendedor mientras optimiza el proceso
+- Todas las automatizaciones pueden ser ajustadas manualmente
+- La prioridad es mantener la calidad del servicio y la satisfacción del cliente

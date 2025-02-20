@@ -66,10 +66,10 @@ is_available = rules.check_availability(package)
 if rules.check_availability(package):
     # 2. Registrar precio
     await price_tracker.track_price(package)
-    
+
     # 3. Aplicar margen
     final_price = rules.apply_margin(package.price, client_type)
-    
+
     # 4. Validar
     errors = rules.validate_budget_items({
         "flight": {"price": final_price, "date": "2024-03-01"}

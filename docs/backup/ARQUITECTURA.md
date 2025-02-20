@@ -92,18 +92,18 @@ realtime_validator.py
 
 ## Priorización de Desarrollo
 
-### 1. IMPRESCINDIBLE 
+### 1. IMPRESCINDIBLE
 - Framework base de scraping
 - Manejo de sesiones y anti-bloqueo
 - Modelos de datos core
 - Endpoints básicos de API
 
-### 2. PARCIALMENTE NECESARIO 
+### 2. PARCIALMENTE NECESARIO
 - Sistema simple de detección de cambios
 - Notificaciones básicas
 - UI elementos esenciales
 
-### 3. OMITIBLE 
+### 3. OMITIBLE
 - Optimizaciones avanzadas
 - Caché complejo
 - Características no críticas

@@ -13,7 +13,7 @@ st.set_page_config(
     page_title="Costa Rotela Travel",
     page_icon="✈️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 
@@ -32,17 +32,15 @@ def handle_navigation():
         pages = {
             "🏠 Inicio": render_home_page,
             "🔍 Búsqueda": render_search_page,
-            "💰 Presupuestos": render_budget_page
+            "💰 Presupuestos": render_budget_page,
         }
 
         # Selección de página
         st.sidebar.title("Costa Rotela Travel")
         st.sidebar.divider()
-        
+
         selected_page = st.sidebar.selectbox(
-            "Navegación",
-            list(pages.keys()),
-            key="page"
+            "Navegación", list(pages.keys()), key="page"
         )
 
         # Renderizar página seleccionada

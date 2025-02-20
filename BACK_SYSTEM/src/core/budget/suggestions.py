@@ -18,11 +18,7 @@ class SuggestionEngine:
 
     def get_suggestions(self, budget: Budget) -> Dict[str, List[str]]:
         """Obtener sugerencias para un presupuesto."""
-        suggestions = {
-            "optimizations": [],
-            "warnings": [],
-            "opportunities": []
-        }
+        suggestions = {"optimizations": [], "warnings": [], "opportunities": []}
 
         # Analizar precios
         self._analyze_prices(budget, suggestions)
@@ -43,7 +39,7 @@ class SuggestionEngine:
         for item in budget.items:
             # Comparar con precios históricos
             avg_price = self._get_average_price(item.type, item.description)
-            if avg_price and item.unit_price > avg_price * Decimal('1.15'):
+            if avg_price and item.unit_price > avg_price * Decimal("1.15"):
                 suggestions["warnings"].append(
                     f"El precio para {item.description} está 15% por encima del promedio histórico"
                 )
@@ -56,7 +52,7 @@ class SuggestionEngine:
         for item in budget.items:
             if "departure_date" in item.details:
                 departure = item.details["departure_date"]
-                
+
                 # Verificar temporada alta
                 if self._is_high_season(departure):
                     suggestions["warnings"].append(
@@ -91,25 +87,27 @@ class SuggestionEngine:
             if alternatives:
                 key = f"alternatives_{item.id}"
                 suggestions[key] = []
-                
+
                 for alt in alternatives:
                     if alt.price < item.unit_price:
                         savings = item.unit_price - alt.price
-                        suggestions[key].append({
-                            "id": alt.id,
-                            "description": alt.description,
-                            "price": float(alt.price),
-                            "currency": alt.currency,
-                            "potential_savings": float(savings)
-                        })
-                        
+                        suggestions[key].append(
+                            {
+                                "id": alt.id,
+                                "description": alt.description,
+                                "price": float(alt.price),
+                                "currency": alt.currency,
+                                "potential_savings": float(savings),
+                            }
+                        )
+
                         if len(suggestions[key]) >= 3:  # Limitar a 3 alternativas
                             break
 
     def _get_average_price(self, item_type: str, description: str) -> Optional[Decimal]:
         """Obtener precio promedio histórico."""
         # TODO: Implementar lógica real de consulta
-        return Decimal('1000.00')
+        return Decimal("1000.00")
 
     def _is_high_season(self, date: datetime) -> bool:
         """Determinar si una fecha está en temporada alta."""

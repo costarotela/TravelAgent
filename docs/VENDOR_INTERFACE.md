@@ -167,12 +167,12 @@ async_validator.schedule_validation(budget)
 def render_dashboard():
     """Render dashboard view."""
     st.title("Dashboard")
-    
+
     # Recent Changes
     st.subheader("Recent Changes")
     changes_df = pd.DataFrame(...)
     st.dataframe(changes_df)
-    
+
     # Price Alerts
     st.subheader("Price Alerts")
     fig = px.bar(...)

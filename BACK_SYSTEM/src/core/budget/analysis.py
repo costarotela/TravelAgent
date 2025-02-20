@@ -22,7 +22,7 @@ class BudgetAnalyzer:
             "estimated_margin": self._calculate_margin(budget),
             "margin_trend": self._get_margin_trend(budget),
             "competitive_score": self._calculate_competitive_score(budget),
-            "score_trend": self._get_score_trend(budget)
+            "score_trend": self._get_score_trend(budget),
         }
         return result
 
@@ -30,7 +30,7 @@ class BudgetAnalyzer:
         """Calcular diferencia porcentual con precios del mercado."""
         total_price = sum(item.total_price for item in budget.items)
         market_price = self._get_market_price(budget)
-        
+
         if market_price:
             difference = ((total_price - market_price) / market_price) * 100
             return round(float(difference), 2)
@@ -45,7 +45,7 @@ class BudgetAnalyzer:
         """Calcular margen estimado."""
         total_price = sum(item.total_price for item in budget.items)
         cost_price = self._get_cost_price(budget)
-        
+
         if cost_price:
             margin = ((total_price - cost_price) / total_price) * 100
             return round(float(margin), 2)
@@ -72,10 +72,10 @@ class BudgetAnalyzer:
 
         # Calcular score final
         final_score = (
-            price_score * price_weight +
-            margin_score * margin_weight +
-            season_score * season_weight +
-            availability_score * availability_weight
+            price_score * price_weight
+            + margin_score * margin_weight
+            + season_score * season_weight
+            + availability_score * availability_weight
         )
 
         return round(final_score, 2)
@@ -88,12 +88,12 @@ class BudgetAnalyzer:
     def _get_market_price(self, budget: Budget) -> Decimal:
         """Obtener precio promedio del mercado."""
         # TODO: Implementar lógica real de consulta
-        return Decimal('1000.00')
+        return Decimal("1000.00")
 
     def _get_cost_price(self, budget: Budget) -> Decimal:
         """Obtener precio de costo."""
         # TODO: Implementar lógica real de consulta
-        return Decimal('800.00')
+        return Decimal("800.00")
 
     def _get_price_score(self, budget: Budget) -> float:
         """Calcular puntuación de precio."""

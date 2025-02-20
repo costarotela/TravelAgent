@@ -10,5 +10,5 @@ __all__ = [
     "BudgetItem",
     "create_budget_from_package",
     "SuggestionEngine",
-    "BudgetAnalyzer"
+    "BudgetAnalyzer",
 ]

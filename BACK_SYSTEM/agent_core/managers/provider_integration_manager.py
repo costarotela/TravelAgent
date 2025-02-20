@@ -16,8 +16,9 @@ from ..interfaces import (
     EventEmitter,
     MetricsCollector,
     Logger,
-    AgentComponent
+    AgentComponent,
 )
+
 
 class ProviderIntegrationManager(AgentComponent):
     """
@@ -35,7 +36,7 @@ class ProviderIntegrationManager(AgentComponent):
         logger: Logger,
         metrics: MetricsCollector,
         events: EventEmitter,
-        update_interval: int = 300  # 5 minutos por defecto
+        update_interval: int = 300,  # 5 minutos por defecto
     ):
         super().__init__(logger, metrics, events)
         self.storage = storage
@@ -50,14 +51,14 @@ class ProviderIntegrationManager(AgentComponent):
         """Inicializar el componente."""
         if self.initialized:
             return
-        
+
         self.logger.info("Inicializando ProviderIntegrationManager")
-        
+
         # Inicializar colecciones
         await self.storage.init_collection("providers")
         await self.storage.init_collection("packages")
         await self.storage.init_collection("price_history")
-        
+
         # Cargar proveedores registrados
         providers_data = await self.storage.find("providers", {"status": "active"})
         for provider_data in providers_data:
@@ -65,15 +66,17 @@ class ProviderIntegrationManager(AgentComponent):
             if provider_id not in self.providers:
                 # Aquí podrías tener lógica para recrear el proveedor
                 # Por ahora solo lo registramos en el log
-                self.logger.info(f"Proveedor {provider_id} encontrado pero no inicializado")
-        
+                self.logger.info(
+                    f"Proveedor {provider_id} encontrado pero no inicializado"
+                )
+
         # Iniciar monitoreo de precios para proveedores activos
         for provider_id in self.providers:
             if provider_id not in self._active_monitors:
                 self._active_monitors[provider_id] = asyncio.create_task(
                     self._monitor_price_changes(provider_id)
                 )
-        
+
         self.initialized = True
         self.logger.info("ProviderIntegrationManager inicializado")
 
@@ -81,50 +84,44 @@ class ProviderIntegrationManager(AgentComponent):
         """Cerrar el componente."""
         if not self.initialized:
             return
-        
+
         self.logger.info("Cerrando ProviderIntegrationManager")
-        
+
         # Detener todas las tareas de monitoreo
         for task in self._active_monitors.values():
             task.cancel()
-        
+
         # Esperar a que todas las tareas terminen
         if self._active_monitors:
-            await asyncio.gather(*self._active_monitors.values(), return_exceptions=True)
-        
+            await asyncio.gather(
+                *self._active_monitors.values(), return_exceptions=True
+            )
+
         # Limpiar estado
         self._active_monitors.clear()
         self._last_update.clear()
-        
+
         # Desconectar proveedores
         for provider in self.providers.values():
             # Aquí podrías tener lógica para cerrar conexiones de proveedores
             pass
-        
+
         self.initialized = False
         self.logger.info("ProviderIntegrationManager cerrado")
 
-    async def register_provider(
-        self,
-        provider_id: str,
-        provider: DataProvider
-    ) -> None:
+    async def register_provider(self, provider_id: str, provider: DataProvider) -> None:
         """
         Registrar nuevo proveedor de datos.
         """
         self.providers[provider_id] = provider
         self._last_update[provider_id] = datetime.now()
-        
-        self.emit_event("provider_registered", {
-            "provider_id": provider_id,
-            "timestamp": datetime.now().isoformat()
-        })
 
-    async def start_monitoring(
-        self,
-        package_ids: List[str],
-        provider_id: str
-    ) -> None:
+        self.emit_event(
+            "provider_registered",
+            {"provider_id": provider_id, "timestamp": datetime.now().isoformat()},
+        )
+
+    async def start_monitoring(self, package_ids: List[str], provider_id: str) -> None:
         """
         Iniciar monitoreo de paquetes específicos.
         """
@@ -133,40 +130,33 @@ class ProviderIntegrationManager(AgentComponent):
 
         for package_id in package_ids:
             monitor_key = f"{provider_id}:{package_id}"
-            
+
             if monitor_key in self._active_monitors:
                 continue
-                
+
             self._active_monitors[monitor_key] = asyncio.create_task(
                 self._monitor_package(package_id, provider_id)
             )
 
-    async def stop_monitoring(
-        self,
-        package_ids: List[str],
-        provider_id: str
-    ) -> None:
+    async def stop_monitoring(self, package_ids: List[str], provider_id: str) -> None:
         """
         Detener monitoreo de paquetes específicos.
         """
         for package_id in package_ids:
             monitor_key = f"{provider_id}:{package_id}"
-            
+
             if monitor_key in self._active_monitors:
                 self._active_monitors[monitor_key].cancel()
                 del self._active_monitors[monitor_key]
 
     async def get_package_data(
-        self,
-        package_id: str,
-        provider_id: str,
-        force_refresh: bool = False
+        self, package_id: str, provider_id: str, force_refresh: bool = False
     ) -> Optional[TravelPackage]:
         """
         Obtener datos actualizados de un paquete.
         """
         cache_key = f"package:{provider_id}:{package_id}"
-        
+
         if not force_refresh:
             cached_data = self.cache.get(cache_key)
             if cached_data:
@@ -177,21 +167,15 @@ class ProviderIntegrationManager(AgentComponent):
             raise ValueError(f"Proveedor {provider_id} no registrado")
 
         package_data = await provider.get_package_details(package_id)
-        
+
         if package_data:
-            self.cache.set(
-                cache_key,
-                package_data.dict(),
-                ttl=self.update_interval
-            )
+            self.cache.set(cache_key, package_data.dict(), ttl=self.update_interval)
             return package_data
 
         return None
 
     async def search_packages(
-        self,
-        criteria: SearchCriteria,
-        provider_ids: Optional[List[str]] = None
+        self, criteria: SearchCriteria, provider_ids: Optional[List[str]] = None
     ) -> List[Tuple[str, TravelPackage]]:
         """
         Buscar paquetes en múltiples proveedores.
@@ -202,12 +186,10 @@ class ProviderIntegrationManager(AgentComponent):
         search_tasks = []
         for provider_id in provider_ids:
             if provider_id in self.providers:
-                search_tasks.append(
-                    self._search_provider(provider_id, criteria)
-                )
+                search_tasks.append(self._search_provider(provider_id, criteria))
 
         results = await asyncio.gather(*search_tasks, return_exceptions=True)
-        
+
         packages = []
         for provider_id, result in zip(provider_ids, results):
             if isinstance(result, Exception):
@@ -215,32 +197,23 @@ class ProviderIntegrationManager(AgentComponent):
                     f"Error searching provider {provider_id}: {str(result)}"
                 )
                 continue
-                
+
             packages.extend((provider_id, pkg) for pkg in result)
 
         return packages
 
-    async def _monitor_package(
-        self,
-        package_id: str,
-        provider_id: str
-    ) -> None:
+    async def _monitor_package(self, package_id: str, provider_id: str) -> None:
         """
         Monitorear cambios en un paquete específico.
         """
         while True:
             try:
-                previous_data = await self.get_package_data(
-                    package_id,
-                    provider_id
-                )
-                
+                previous_data = await self.get_package_data(package_id, provider_id)
+
                 await asyncio.sleep(self.update_interval)
-                
+
                 current_data = await self.get_package_data(
-                    package_id,
-                    provider_id,
-                    force_refresh=True
+                    package_id, provider_id, force_refresh=True
                 )
 
                 if not current_data:
@@ -251,59 +224,54 @@ class ProviderIntegrationManager(AgentComponent):
 
                 # Detectar cambios significativos
                 changes = self._detect_changes(previous_data, current_data)
-                
+
                 if changes:
-                    self.emit_event("package_updated", {
-                        "package_id": package_id,
-                        "provider_id": provider_id,
-                        "changes": changes,
-                        "timestamp": datetime.now().isoformat()
-                    })
+                    self.emit_event(
+                        "package_updated",
+                        {
+                            "package_id": package_id,
+                            "provider_id": provider_id,
+                            "changes": changes,
+                            "timestamp": datetime.now().isoformat(),
+                        },
+                    )
 
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                self.logger.error(
-                    f"Error monitoring package {package_id}: {str(e)}"
-                )
+                self.logger.error(f"Error monitoring package {package_id}: {str(e)}")
                 await asyncio.sleep(self.update_interval)
 
     async def _search_provider(
-        self,
-        provider_id: str,
-        criteria: SearchCriteria
+        self, provider_id: str, criteria: SearchCriteria
     ) -> List[TravelPackage]:
         """
         Realizar búsqueda en un proveedor específico.
         """
         cache_key = f"search:{provider_id}:{criteria.dict()}"
         cached_results = self.cache.get(cache_key)
-        
+
         if cached_results:
             return [TravelPackage(**pkg) for pkg in cached_results]
 
         provider = self.providers[provider_id]
         results = await provider.search_packages(criteria)
-        
+
         if results:
             self.cache.set(
-                cache_key,
-                [pkg.dict() for pkg in results],
-                ttl=self.update_interval
+                cache_key, [pkg.dict() for pkg in results], ttl=self.update_interval
             )
 
         return results
 
     def _detect_changes(
-        self,
-        previous: TravelPackage,
-        current: TravelPackage
+        self, previous: TravelPackage, current: TravelPackage
     ) -> Dict[str, Any]:
         """
         Detectar cambios significativos entre versiones de un paquete.
         """
         changes = {}
-        
+
         # Cambios en precio
         if previous.price != current.price:
             changes["price"] = {
@@ -312,21 +280,18 @@ class ProviderIntegrationManager(AgentComponent):
                 "difference": float(current.price - previous.price),
                 "percentage": float(
                     ((current.price - previous.price) / previous.price) * 100
-                )
+                ),
             }
 
         # Cambios en disponibilidad
         if previous.availability != current.availability:
             changes["availability"] = {
                 "previous": previous.availability,
-                "current": current.availability
+                "current": current.availability,
             }
 
         # Cambios en estado
         if previous.status != current.status:
-            changes["status"] = {
-                "previous": previous.status,
-                "current": current.status
-            }
+            changes["status"] = {"previous": previous.status, "current": current.status}
 
         return changes

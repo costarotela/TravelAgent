@@ -17,14 +17,14 @@ def load_metrics(days: int = 7) -> pd.DataFrame:
     since = datetime.now() - timedelta(days=days)
 
     query = """
-    SELECT 
+    SELECT
         timestamp,
         metric_name,
         metric_value,
         json_extract(tags, '$.provider') as provider,
         json_extract(tags, '$.action') as action,
         json_extract(tags, '$.total') as total_items
-    FROM metrics 
+    FROM metrics
     WHERE timestamp >= ?
     ORDER BY timestamp DESC
     """
@@ -40,13 +40,13 @@ def load_errors(days: int = 7) -> pd.DataFrame:
     since = datetime.now() - timedelta(days=days)
 
     query = """
-    SELECT 
+    SELECT
         timestamp,
         error_type,
         error_message,
         json_extract(tags, '$.provider') as provider,
         json_extract(tags, '$.action') as action
-    FROM errors 
+    FROM errors
     WHERE timestamp >= ?
     ORDER BY timestamp DESC
     """

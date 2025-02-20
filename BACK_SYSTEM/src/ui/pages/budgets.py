@@ -30,7 +30,9 @@ def render_budget_page():
                 st.write("**Detalles del presupuesto:**")
                 st.write(f"- Cliente: {budget.customer_name or 'Sin nombre'}")
                 st.write(f"- Creado: {budget.created_at.strftime('%d/%m/%Y %H:%M')}")
-                st.write(f"- Válido hasta: {budget.valid_until.strftime('%d/%m/%Y %H:%M')}")
+                st.write(
+                    f"- Válido hasta: {budget.valid_until.strftime('%d/%m/%Y %H:%M')}"
+                )
                 st.write(f"- Estado: {budget.status}")
 
             with col2:

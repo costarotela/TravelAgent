@@ -12,17 +12,17 @@ def create_budget_from_package(
     package: TravelPackage,
     customer_name: Optional[str] = None,
     passengers: Optional[Dict[str, int]] = None,
-    valid_days: int = 7
+    valid_days: int = 7,
 ) -> Budget:
     """
     Crear un presupuesto a partir de un paquete de viaje.
-    
+
     Args:
         package: Paquete de viaje
         customer_name: Nombre del cliente (opcional)
         passengers: Diccionario con cantidad de pasajeros por tipo (opcional)
         valid_days: Días de validez del presupuesto
-    
+
     Returns:
         Budget: Presupuesto generado
     """
@@ -41,19 +41,19 @@ def create_budget_from_package(
                 "flight_number": package.details.get("flight_number"),
                 "airline": package.details.get("airline"),
                 "cabin_class": package.details.get("cabin_class", "Economy"),
-                "baggage": package.details.get("baggage", "23kg")
+                "baggage": package.details.get("baggage", "23kg"),
             },
             "departure_date": package.departure_date,
             "return_date": package.return_date,
-            "passengers": passengers
-        }
+            "passengers": passengers,
+        },
     )
 
     # Crear presupuesto
     budget = Budget(
         customer_name=customer_name,
         items=[flight_item],
-        valid_until=datetime.now() + timedelta(days=valid_days)
+        valid_until=datetime.now() + timedelta(days=valid_days),
     )
 
     return budget

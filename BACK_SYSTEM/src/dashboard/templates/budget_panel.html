@@ -159,10 +159,10 @@ button {
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar WebSocket para actualizaciones en tiempo real
     const ws = new WebSocket('ws://' + window.location.host + '/ws/budget/' + sessionId);
-    
+
     ws.onmessage = function(event) {
         const data = JSON.parse(event.data);
-        
+
         if (data.type === 'recommendation') {
             addRecommendation(data.content);
         } else if (data.type === 'alternative') {

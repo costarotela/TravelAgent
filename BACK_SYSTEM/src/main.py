@@ -33,10 +33,12 @@ app.add_middleware(
 # Incluir rutas de la API
 app.include_router(api_router)
 
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy"}
+
 
 @app.get("/status")
 async def get_status():
@@ -47,26 +49,26 @@ async def get_status():
         "uptime": "available in full version",
     }
 
+
 @app.on_event("startup")
 async def startup_event():
     """Inicializar componentes al arrancar."""
     # Inicializar storage manager
     await storage_manager.init()
-    
+
     # Inicializar session manager
     await session_manager.init()
 
+
 async def main():
     """Función principal asíncrona."""
-    config = {
-        'host': '0.0.0.0',
-        'port': 8001,
-        'reload': True
-    }
-    
+    config = {"host": "0.0.0.0", "port": 8001, "reload": True}
+
     import uvicorn
+
     server = uvicorn.Server(uvicorn.Config(app, **config))
     await server.serve()
+
 
 if __name__ == "__main__":
     # Ejecutar el servidor en el event loop

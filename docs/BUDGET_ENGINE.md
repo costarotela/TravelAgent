@@ -233,7 +233,7 @@ updated_budget = session.recalculate()
 
 ## Próximas Mejoras
 
-### 1. Optimizaciones 
+### 1. Optimizaciones
 - Caché inteligente
 - Precálculo de escenarios
 - Análisis predictivo
@@ -256,10 +256,10 @@ async def main():
             priority=1,
         )
     ]
-    
+
     notification_manager = NotificationManager()
     engine = BudgetUpdateEngine(rules, notification_manager)
-    
+
     # Crear presupuesto inicial
     budget = engine.create_budget(
         client_name="John Doe",
@@ -267,12 +267,12 @@ async def main():
         packages=initial_packages,
         markup_percentage=0.15,
     )
-    
+
     # Actualizar con nuevos datos
     collector = DataCollector(providers)
     new_packages = await collector.collect_data("Cancún")
     updated_budget = engine.update_budget(budget, new_packages)
-    
+
     # Ver cambios
     for version in updated_budget.versions:
         print(f"Version {version.version}:")

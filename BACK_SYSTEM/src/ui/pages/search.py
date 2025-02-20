@@ -17,7 +17,7 @@ async def create_budget_from_flight(flight: TravelPackage, adults: int) -> bool:
             # Crear sesión
             await client.create_session(
                 vendor_id="default",  # TODO: Implementar autenticación
-                customer_id="new_customer"  # TODO: Implementar gestión de clientes
+                customer_id="new_customer",  # TODO: Implementar gestión de clientes
             )
 
             # Agregar paquete
@@ -30,7 +30,9 @@ async def create_budget_from_flight(flight: TravelPackage, adults: int) -> bool:
         return False
 
 
-def filter_results(results: List[TravelPackage], max_price: float = None) -> List[TravelPackage]:
+def filter_results(
+    results: List[TravelPackage], max_price: float = None
+) -> List[TravelPackage]:
     """Filtrar resultados por precio máximo."""
     if max_price is None:
         return results
@@ -49,13 +51,19 @@ def show_flight_details(flight: TravelPackage, adults: int):
         if flight.return_date:
             st.write(f"- Fecha vuelta: {flight.return_date.strftime('%d/%m/%Y %H:%M')}")
         st.write(f"- Aerolínea: {flight.details.get('airline', 'No disponible')}")
-        st.write(f"- Número de vuelo: {flight.details.get('flight_number', 'No disponible')}")
+        st.write(
+            f"- Número de vuelo: {flight.details.get('flight_number', 'No disponible')}"
+        )
 
     with col2:
         st.write("**Precio y disponibilidad:**")
         st.write(f"- Precio por persona: {flight.price} {flight.currency}")
-        st.write(f"- Total para {adults} personas: {flight.price * adults} {flight.currency}")
-        st.write(f"- Asientos disponibles: {flight.details.get('seats_available', 'No disponible')}")
+        st.write(
+            f"- Total para {adults} personas: {flight.price * adults} {flight.currency}"
+        )
+        st.write(
+            f"- Asientos disponibles: {flight.details.get('seats_available', 'No disponible')}"
+        )
         st.write(f"- Clase: {flight.details.get('cabin_class', 'Economy')}")
         st.write(f"- Equipaje: {flight.details.get('baggage', '23kg')}")
 
@@ -77,16 +85,14 @@ def render_search_page():
         with col1:
             origin = st.text_input("Origen", "BUE")
             departure_date = st.date_input(
-                "Fecha ida",
-                datetime.now() + timedelta(days=7)
+                "Fecha ida", datetime.now() + timedelta(days=7)
             )
             adults = st.number_input("Adultos", 1, 9, 1)
 
         with col2:
             destination = st.text_input("Destino", "MDZ")
             return_date = st.date_input(
-                "Fecha vuelta",
-                datetime.now() + timedelta(days=14)
+                "Fecha vuelta", datetime.now() + timedelta(days=14)
             )
             max_price = st.number_input("Precio máximo", 0, 100000, 50000)
 
@@ -100,7 +106,7 @@ def render_search_page():
                 destination=destination,
                 departure_date=departure_date,
                 return_date=return_date,
-                adults=adults
+                adults=adults,
             )
 
             # Buscar vuelos

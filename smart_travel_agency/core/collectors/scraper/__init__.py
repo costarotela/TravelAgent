@@ -6,11 +6,11 @@ from .base import BaseScraper, ScraperConfig, Credentials, OptimizationResult
 from .change_detector import ChangeDetector, ChangeAnalyzer, ChangeImpact
 
 __all__ = [
-    'BaseScraper',
-    'ScraperConfig',
-    'Credentials',
-    'OptimizationResult',
-    'ChangeDetector',
-    'ChangeAnalyzer',
-    'ChangeImpact'
+    "BaseScraper",
+    "ScraperConfig",
+    "Credentials",
+    "OptimizationResult",
+    "ChangeDetector",
+    "ChangeAnalyzer",
+    "ChangeImpact",
 ]

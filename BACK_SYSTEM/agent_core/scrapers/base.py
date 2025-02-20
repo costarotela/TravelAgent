@@ -39,15 +39,18 @@ from .session_manager import SessionManager
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class Credentials:
     """Credenciales para login."""
+
     username: str
     password: str
 
+
 class ScraperConfig:
     """Configuration for a scraper instance."""
-    
+
     def __init__(
         self,
         base_url: str,
@@ -58,7 +61,7 @@ class ScraperConfig:
         min_delay: float = 2.0,
         max_delay: float = 5.0,
         max_retries: int = 3,
-        credentials: Optional[Credentials] = None
+        credentials: Optional[Credentials] = None,
     ):
         self.base_url = base_url
         self.login_required = login_required
@@ -74,6 +77,7 @@ class ScraperConfig:
         if login_required and not credentials:
             raise ValueError("Se requieren credenciales cuando login_required es True")
 
+
 class BaseScraper(ABC):
     """Base class for all scrapers."""
 
@@ -82,7 +86,7 @@ class BaseScraper(ABC):
         self.session_manager = SessionManager(
             min_delay=config.min_delay,
             max_delay=config.max_delay,
-            max_retries=config.max_retries
+            max_retries=config.max_retries,
         )
         self.driver = None
         self.session_active = False
@@ -109,21 +113,23 @@ class BaseScraper(ABC):
             await self.close()
 
         session_config = await self.session_manager.get_session_config()
-        
+
         options = webdriver.ChromeOptions()
         if self.config.headless:
-            options.add_argument('--headless')
-        
+            options.add_argument("--headless")
+
         options.add_argument(f'user-agent={session_config["user_agent"]}')
-        options.add_argument('--disable-gpu')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        
-        for key, value in session_config['headers'].items():
-            options.add_argument(f'--header={key}: {value}')
+        options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+
+        for key, value in session_config["headers"].items():
+            options.add_argument(f"--header={key}: {value}")
 
         self.driver = webdriver.Chrome(options=options)
-        self.logger.info(f"Initialized WebDriver with User-Agent: {session_config['user_agent']}")
+        self.logger.info(
+            f"Initialized WebDriver with User-Agent: {session_config['user_agent']}"
+        )
 
     async def navigate(self, url: str):
         """Navigate to a specific URL."""
@@ -140,17 +146,14 @@ class BaseScraper(ABC):
             raise
 
     async def wait_for_element(
-        self, 
-        selector: str, 
-        timeout: int = None, 
-        by: str = By.CSS_SELECTOR
+        self, selector: str, timeout: int = None, by: str = By.CSS_SELECTOR
     ) -> bool:
         """Wait for an element to be present on the page."""
         timeout = timeout or 10
         try:
             element = await asyncio.to_thread(
                 WebDriverWait(self.driver, timeout).until,
-                EC.presence_of_element_located((by, selector))
+                EC.presence_of_element_located((by, selector)),
             )
             return bool(element)
         except TimeoutException:
@@ -161,15 +164,11 @@ class BaseScraper(ABC):
             raise
 
     async def extract_text(
-        self, 
-        selector: str, 
-        by: str = By.CSS_SELECTOR
+        self, selector: str, by: str = By.CSS_SELECTOR
     ) -> Optional[str]:
         """Extract text from an element."""
         try:
-            element = await asyncio.to_thread(
-                self.driver.find_element, by, selector
-            )
+            element = await asyncio.to_thread(self.driver.find_element, by, selector)
             return element.text.strip()
         except Exception as e:
             self.logger.error(f"Failed to extract text from {selector}: {e}")
@@ -196,7 +195,7 @@ class BaseScraper(ABC):
                 self.logger.error(f"Error closing driver: {e}")
             finally:
                 self.driver = None
-        
+
         self.session_manager.reset()
 
     async def __aenter__(self):

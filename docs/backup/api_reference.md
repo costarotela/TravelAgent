@@ -171,7 +171,7 @@ def calculate_confidence(
     """Calcula nivel de confianza del análisis."""
     mape = calculate_mape(forecast)
     r2 = calculate_r2(forecast)
-    
+
     if mape < 10 and r2 > 0.8:
         return ConfidenceLevel.HIGH
     elif mape < 20 and r2 > 0.6:
@@ -191,10 +191,10 @@ async def analyze_package(package_id: str):
         historical_prices=get_historical_prices(package_id),
         market_data=get_market_data(),
     )
-    
+
     # Analizar precio
     price_analysis = await engine.analyze_price(context)
-    
+
     # Analizar proveedores
     supplier_analyses = []
     for supplier_id in get_package_suppliers(package_id):
@@ -202,7 +202,7 @@ async def analyze_package(package_id: str):
             context, supplier_id
         )
         supplier_analyses.append(analysis)
-    
+
     return {
         "price_analysis": price_analysis,
         "supplier_analyses": supplier_analyses,
@@ -216,7 +216,7 @@ def track_analysis_metrics(analysis_type: str):
     def decorator(func):
         async def wrapper(*args, **kwargs):
             start_time = time.time()
-            
+
             try:
                 result = await func(*args, **kwargs)
                 METRICS["analysis_operations"].labels(

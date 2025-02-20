@@ -1,12 +1,31 @@
-# Smart Travel Agency
+# SmartTravelAgent 🌍✈️
 
-Sistema inteligente de asistencia para la elaboración de presupuestos de viajes que combina:
+Sistema inteligente para la elaboración y gestión de presupuestos de viaje que combina:
 - Extracción y análisis automatizado de datos de proveedores
 - Optimización multi-pasada de presupuestos
 - Control total del vendedor sobre el proceso
 - Estabilidad garantizada durante sesiones de venta
 
 El sistema actúa como un asistente digital que trabaja "tras bambalinas" realizando múltiples pasadas de búsqueda, análisis y optimización, mientras mantiene la interfaz estable para la interacción vendedor-cliente.
+
+## 🎯 Objetivos Principales
+
+1. **Elaboración de Presupuestos**
+   - Basados en información de proveedores
+   - Construcción dinámica con asistencia del vendedor
+   - Optimización inteligente de precios y márgenes
+
+2. **Adaptabilidad en Tiempo Real**
+   - Adaptación a cambios de proveedores
+   - Procesamiento de datos en tiempo real
+   - Manejo de preferencias del cliente
+   - Sin interrupciones en sesiones activas
+
+3. **Experiencia del Vendedor**
+   - Interfaz interactiva y amigable
+   - Control total sobre el proceso
+   - Reconstrucción de presupuestos
+   - Estabilidad garantizada
 
 ## Principios Fundamentales
 
@@ -50,6 +69,11 @@ SmartTravelAgency/
 │   └── scrapers/          # Integración proveedores
 └── tests/                 # Tests
 ```
+
+## Documentación Adicional
+
+- [Características y Estado](docs/FEATURES.md): Estado actual del proyecto y funcionalidades implementadas
+- [Guía de Desarrollo](docs/DEVELOPMENT.md): Procesos de desarrollo, actualización y control de calidad
 
 ## Uso de la API
 
