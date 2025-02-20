@@ -1,3 +1,0 @@
-"""
-Travel Agent Core module.
-"""

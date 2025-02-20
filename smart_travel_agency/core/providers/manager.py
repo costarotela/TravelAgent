@@ -19,7 +19,7 @@ from prometheus_client import Counter, Histogram, Gauge
 
 from .scrapers import OlaScraper, AeroScraper, ScraperError
 from .scrapers.config import OlaScraperConfig, AeroScraperConfig
-from ...schemas import Flight, Accommodation, Activity
+from ..schemas import Flight, Accommodation, Activity
 
 # Métricas
 PROVIDER_OPERATIONS = Counter(

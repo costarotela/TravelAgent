@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union, Any
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field, validator
@@ -13,6 +13,8 @@ from pydantic import BaseModel, Field, validator
 class Flight:
     """Esquema de vuelo."""
 
+    flight_id: UUID
+    provider: str
     origin: str
     destination: str
     departure_time: datetime
@@ -20,49 +22,84 @@ class Flight:
     flight_number: str
     airline: str
     price: Decimal
-    passengers: int
-    flight_id: UUID = field(default_factory=uuid4)
+    currency: str
+    passengers: int = 1
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convierte el vuelo a diccionario."""
+        return {
+            "flight_id": str(self.flight_id),
+            "provider": self.provider,
+            "origin": self.origin,
+            "destination": self.destination,
+            "departure_time": self.departure_time.isoformat(),
+            "arrival_time": self.arrival_time.isoformat(),
+            "flight_number": self.flight_number,
+            "airline": self.airline,
+            "price": str(self.price),
+            "currency": self.currency,
+            "passengers": self.passengers,
+        }
 
 
 @dataclass
 class Accommodation:
     """Esquema de alojamiento."""
 
+    accommodation_id: UUID
+    provider: str
     hotel_id: str
     name: str
     room_type: str
     price_per_night: Decimal
+    currency: str
     nights: int
     check_in: datetime
     check_out: datetime
-    accommodation_id: UUID = field(default_factory=uuid4)
 
-    @property
-    def total_price(self) -> Decimal:
-        """Calcula el precio total del alojamiento."""
-        return self.price_per_night * self.nights
+    def to_dict(self) -> Dict[str, Any]:
+        """Convierte el alojamiento a diccionario."""
+        return {
+            "accommodation_id": str(self.accommodation_id),
+            "provider": self.provider,
+            "hotel_id": self.hotel_id,
+            "name": self.name,
+            "room_type": self.room_type,
+            "price_per_night": str(self.price_per_night),
+            "currency": self.currency,
+            "nights": self.nights,
+            "check_in": self.check_in.isoformat(),
+            "check_out": self.check_out.isoformat(),
+        }
 
 
 @dataclass
 class Activity:
     """Esquema de actividad."""
 
-    activity_id: str
+    activity_id: UUID
+    provider: str
     name: str
+    description: str
     price: Decimal
+    currency: str
     duration: timedelta
-    participants: int
     date: datetime
-    included: bool = True
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    participants: int = 1
 
-    def __post_init__(self):
-        """Inicializa los campos calculados."""
-        if not self.start_time:
-            self.start_time = self.date
-        if not self.end_time:
-            self.end_time = self.date + self.duration
+    def to_dict(self) -> Dict[str, Any]:
+        """Convierte la actividad a diccionario."""
+        return {
+            "activity_id": str(self.activity_id),
+            "provider": self.provider,
+            "name": self.name,
+            "description": self.description,
+            "price": str(self.price),
+            "currency": self.currency,
+            "duration": str(self.duration),
+            "date": self.date.isoformat(),
+            "participants": self.participants,
+        }
 
 
 @dataclass
@@ -78,55 +115,67 @@ class Hotel:
 
 
 @dataclass
-class TravelPackage:
-    """Esquema de paquete de viaje."""
+class Insurance:
+    """Esquema de seguro de viaje."""
 
-    destination: str
-    start_date: datetime
-    end_date: datetime
+    coverage_type: str
     price: Decimal
     currency: str
     provider: str
-    description: str
-    hotel: Optional[Hotel] = None
+    insurance_id: UUID = field(default_factory=uuid4)
+    description: Optional[str] = None
+    coverage_details: Optional[Dict[str, Any]] = None
+    terms_and_conditions: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convierte el seguro a diccionario."""
+        return {
+            "insurance_id": str(self.insurance_id),
+            "coverage_type": self.coverage_type,
+            "price": str(self.price),
+            "currency": self.currency,
+            "provider": self.provider,
+            "description": self.description,
+            "coverage_details": self.coverage_details,
+            "terms_and_conditions": self.terms_and_conditions,
+        }
+
+
+@dataclass
+class TravelPackage:
+    """Esquema de paquete de viaje."""
+
+    package_id: UUID
+    provider: str
+    currency: str
     flights: Optional[List[Flight]] = None
-    accommodation: Optional[Accommodation] = None
+    accommodations: Optional[List[Accommodation]] = None
     activities: Optional[List[Activity]] = None
-    id: UUID = field(default_factory=uuid4)
+    insurance: Optional[Insurance] = None
+    description: Optional[str] = None
     cancellation_policy: Optional[str] = None
     modification_policy: Optional[str] = None
     payment_options: Optional[List[str]] = None
     margin: Decimal = Decimal("0.15")
     is_refundable: bool = False
 
-    @property
-    def total_price(self) -> Decimal:
-        """Calcula el precio total del paquete."""
-        from .services import PackageService
-        return PackageService.calculate_total_price(self)
-
-    @property
-    def check_in_date(self) -> datetime:
-        """Obtiene la fecha de check-in."""
-        from .services import PackageService
-        return PackageService.get_instance().calculate_check_in_date(self)
-
-    @property
-    def check_out_date(self) -> datetime:
-        """Obtiene la fecha de check-out."""
-        from .services import PackageService
-        return PackageService.get_instance().calculate_check_out_date(self)
-
-    @property
-    def nights(self) -> int:
-        """Obtiene el número de noches."""
-        from .services import PackageService
-        return PackageService.get_instance().calculate_nights(self)
-
-    def is_valid(self) -> bool:
-        """Valida el paquete."""
-        from .services import PackageService
-        return PackageService.get_instance().validate_package(self)
+    def to_dict(self) -> Dict[str, Any]:
+        """Convierte el paquete a diccionario."""
+        return {
+            "package_id": str(self.package_id),
+            "provider": self.provider,
+            "currency": self.currency,
+            "flights": [f.to_dict() for f in self.flights] if self.flights else None,
+            "accommodations": [a.to_dict() for a in self.accommodations] if self.accommodations else None,
+            "activities": [a.to_dict() for a in self.activities] if self.activities else None,
+            "insurance": self.insurance.to_dict() if self.insurance else None,
+            "description": self.description,
+            "cancellation_policy": self.cancellation_policy,
+            "modification_policy": self.modification_policy,
+            "payment_options": self.payment_options,
+            "margin": str(self.margin),
+            "is_refundable": self.is_refundable,
+        }
 
 
 @dataclass

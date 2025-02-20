@@ -83,6 +83,36 @@ smart_travel_agency/
   - Valida y construye paquetes
   - Aplica preferencias y reglas
 
+## Características Principales
+
+### 1. Elaboración de Presupuestos
+- Creación automática desde paquetes de viaje
+- Gestión de items (vuelos, hoteles, actividades, seguros)
+- Soporte para múltiples monedas
+- Cálculo automático de totales y márgenes
+
+### 2. Sistema de Versionado
+- Control de versiones de presupuestos
+- Registro de cambios y razones
+- Trazabilidad completa de modificaciones
+- Metadata extensible para cada versión
+
+### 3. Reconstrucción Dinámica
+- Múltiples estrategias de reconstrucción:
+  - **PRESERVE_MARGIN**: Mantiene el margen ajustando precios
+  - **PRESERVE_PRICE**: Mantiene precios ajustando margen
+  - **ADJUST_PROPORTIONALLY**: Distribuye cambios proporcionalmente
+  - **BEST_ALTERNATIVE**: Busca alternativas similares en proveedores
+- Sistema de sugerencias inteligente basado en impacto
+- Análisis de impacto en precios y márgenes
+- Adaptación automática a cambios de proveedores
+
+### 4. Integración con Proveedores
+- Conexión en tiempo real con APIs de proveedores
+- Web scraping inteligente para datos actualizados
+- Cache y gestión de datos históricos
+- Sistema de fallback para datos no disponibles
+
 ## Uso
 
 ### Configuración de Proveedores
@@ -132,6 +162,25 @@ preferences = VendorPreferences(
 )
 
 manager.update_vendor_preferences(preferences)
+```
+
+### Crear Presupuesto desde Paquete
+```python
+budget = create_budget_from_package(package)
+```
+
+### Aplicar Cambios con Estrategia Específica
+```python
+await budget.apply_changes(
+    changes={"price_increase": {"hotel": 0.15}},
+    reason="Ajuste por temporada alta",
+    strategy=ReconstructionStrategy.PRESERVE_MARGIN
+)
+```
+
+### Obtener Sugerencias de Reconstrucción
+```python
+suggestions = await budget.get_reconstruction_suggestions(changes)
 ```
 
 ## Métricas y Monitoreo

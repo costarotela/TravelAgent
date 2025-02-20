@@ -104,6 +104,18 @@ class BudgetManager:
         self.logger.info(f"Created budget {budget_id} for customer {customer_id}")
         return budget_id
 
+    async def get_budget(self, budget_id: str) -> Optional[Budget]:
+        """
+        Obtener presupuesto por ID.
+
+        Args:
+            budget_id: ID del presupuesto
+
+        Returns:
+            Presupuesto o None si no existe
+        """
+        return self.active_budgets.get(budget_id)
+
     async def optimize_budget(
         self, budget_id: str, max_passes: int = 3
     ) -> Tuple[bool, List[OptimizationResult]]:
@@ -228,11 +240,18 @@ class BudgetManager:
         BUDGET_OPERATIONS.labels(operation_type="unlock").inc()
         return True
 
+    def register_budget(self, budget: Budget) -> None:
+        """Registrar un presupuesto.
+
+        Args:
+            budget: Presupuesto a registrar
+        """
+        self.active_budgets[str(budget.budget_id)] = budget
 
 # Instancia global del gestor
 budget_manager = BudgetManager()
 
 
-async def get_budget_manager() -> BudgetManager:
+def get_budget_manager() -> BudgetManager:
     """Obtener instancia única del gestor."""
     return budget_manager
