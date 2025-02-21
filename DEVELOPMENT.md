@@ -323,3 +323,120 @@ El `BudgetBuilder` incluye un sistema de sugerencias inteligente que ayuda a opt
 builder = BudgetBuilder(vendor_id="vendedor1")
 builder.add_item(item)  # Las sugerencias se generan automáticamente
 sugerencias = builder.get_suggestions()  # Obtener lista de sugerencias
+
+```
+
+# MEMORIAS DEL DESARROLLO
+
+## 1️⃣ REGLAS DE ORO
+
+### Estabilidad en Sesiones
+- ⚡ NUNCA interrumpir una sesión activa
+- 🛡️ Aislar datos durante la venta
+- ⏳ Posponer actualizaciones hasta cierre
+- 📊 Mantener coherencia de precios
+
+### Modificación de Código
+- 🎯 Core (`reconstructor.py`): NO tocar sin:
+  * Tests exhaustivos
+  * Documentación completa
+  * Análisis de impacto
+- 🔄 Nuevas features: SIEMPRE en `reconstruction/`
+- ⬆️ Dependencias: Core → Alto Nivel (nunca al revés)
+
+### Testing y Calidad
+- ✅ Tests antes de PR
+- 📝 Documentar TODOS los cambios
+- 🔍 Revisar impacto en sesiones
+- 🐛 Logging detallado de errores
+
+## 2️⃣ ARQUITECTURA ACTUAL
+
+### Sistema de Reconstrucción
+```
+core/budget/
+├── reconstructor.py     # NÚCLEO - ¡CUIDADO!
+└── reconstruction/      # EXTENSIONES
+    ├── manager.py      # Orquestación
+    ├── models.py       # Datos
+    ├── session.py      # Sesiones
+    └── strategies.py   # Estrategias
+```
+
+### Estrategias Implementadas
+1. PRESERVE_MARGIN
+   - Mantiene margen absoluto
+   - Prioridad: márgenes críticos
+   
+2. PRESERVE_PRICE
+   - Mantiene precio final
+   - Prioridad: estabilidad cliente
+   
+3. ADJUST_PROPORTIONALLY
+   - Distribuye impacto
+   - Prioridad: cambios moderados
+   
+4. BEST_ALTERNATIVE
+   - Busca mejores opciones
+   - Prioridad: cambios grandes
+
+## 3️⃣ FLUJOS CRÍTICOS
+
+### Reconstrucción de Presupuesto
+1. Validar completitud
+2. Confirmar cambios proveedores
+3. Seleccionar estrategia
+4. Aplicar cambios
+5. Validar resultado
+
+### Manejo de Sesiones
+1. Iniciar/recuperar sesión
+2. Aislar datos
+3. Procesar operaciones
+4. Validar al cierre
+5. Confirmar cambios
+
+## 4️⃣ PRIORIDADES DE DESARROLLO
+
+### Inmediatas
+- 🔨 Corregir bugs bloqueantes
+- 📊 Estabilizar features core
+- ✅ Completar tests base
+
+### Corto Plazo
+- 🔄 Optimizar reconstrucción
+- 📈 Mejorar análisis
+- 🛡️ Reforzar validaciones
+
+### Medio Plazo
+- 🚀 Nuevas estrategias
+- 📱 Mejoras UX
+- 🔍 Analytics avanzados
+
+## 5️⃣ GUÍAS DE IMPLEMENTACIÓN
+
+### Nuevas Features
+1. Crear en `reconstruction/`
+2. Tests exhaustivos
+3. Documentar en SYSTEMS.md
+4. PR a develop
+
+### Corrección de Bugs
+1. Reproducir error
+2. Logging detallado
+3. Fix aislado
+4. Tests específicos
+
+### Mejoras de Performance
+1. Medir baseline
+2. Implementar mejora
+3. Validar impacto
+4. No comprometer estabilidad
+
+## ⚠️ RECORDATORIOS IMPORTANTES
+
+- Siempre trabajar en feature branches
+- PR requiere tests pasando
+- Documentar decisiones importantes
+- Priorizar estabilidad sobre features
+- Mantener DEVELOPMENT.md actualizado
