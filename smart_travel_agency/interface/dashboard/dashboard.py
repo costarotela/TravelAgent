@@ -1,442 +1,265 @@
 """
-Dashboard principal del vendedor.
+Dashboard de SmartTravelAgent implementado con Streamlit.
 
-Este módulo implementa:
-1. Vista principal del dashboard
-2. Control de estado
-3. Gestión de eventos
-4. Actualización en tiempo real
+Este módulo implementa un dashboard interactivo para:
+1. Visualización y gestión de presupuestos
+2. Monitoreo de cambios en tiempo real
+3. Aplicación de estrategias de reconstrucción
+4. Seguimiento de métricas
+
+Características principales:
+- Actualización automática de datos
+- Interfaz interactiva
+- Visualización de métricas
+- Gestión de presupuestos
+- Control de reconstrucción
+
+Uso:
+    Para ejecutar el dashboard:
+    ```bash
+    streamlit run dashboard.py
+    ```
+
+Dependencias principales:
+    - streamlit>=1.29.0
+    - pandas
 """
 
-from typing import Dict, Any, Optional, List
+import streamlit as st
 from datetime import datetime
+import pandas as pd
 import logging
-import asyncio
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-import uvicorn
-from prometheus_client import Counter, Gauge
+from typing import Dict, Any, List, Optional
 
-from ...schemas import DashboardState, SessionEvent, UIUpdate, NotificationLevel
-from ...metrics import get_metrics_collector
-from ...core.session import get_session_manager
-from ...core.budget import get_budget_calculator
-
-# Métricas
-DASHBOARD_SESSIONS = Gauge(
-    "dashboard_active_sessions", "Number of active dashboard sessions"
+from smart_travel_agency.core.budget.reconstruction import (
+    BudgetReconstructionManager,
+    ReconstructionStrategy
 )
-
-DASHBOARD_EVENTS = Counter(
-    "dashboard_events_total", "Number of dashboard events", ["event_type"]
-)
-
+from smart_travel_agency.core.budget.validator import get_budget_validator
+from smart_travel_agency.core.vendors.preferences import get_preference_manager
+from smart_travel_agency.core.workflow import get_approval_workflow
 
 class DashboardManager:
     """
-    Gestor del dashboard.
-
-    Responsabilidades:
-    1. Gestionar estado
-    2. Manejar conexiones
-    3. Procesar eventos
-    4. Actualizar UI
+    Gestor del Dashboard implementado con Streamlit.
+    
+    Esta clase maneja:
+    1. Estado del dashboard
+    2. Lógica de negocio
+    3. Interacción con componentes core
+    4. Actualización de datos
+    5. Gestión de eventos
     """
 
     def __init__(self):
-        """Inicializar gestor."""
+        """Inicializar el gestor del dashboard."""
         self.logger = logging.getLogger(__name__)
-        self.metrics = get_metrics_collector()
-
-        # Estado del dashboard
-        self.active_sessions: Dict[str, WebSocket] = {}
-        self.session_states: Dict[str, DashboardState] = {}
-
+        
+        # Componentes core
+        self.reconstruction_manager = BudgetReconstructionManager()
+        self.approval_workflow = get_approval_workflow()
+        self.validator = get_budget_validator()
+        self.preference_manager = get_preference_manager()
+        
         # Configuración
         self.config = {
-            "update_interval": 5,  # 5 segundos
-            "max_notifications": 10,
-            "auto_refresh": True,
+            "update_interval": 5,  # segundos
+            "max_items": 10,
+            "metrics_window": 3600,  # 1 hora
         }
+        
+        # Inicializar estado de Streamlit si no existe
+        if 'active_budgets' not in st.session_state:
+            st.session_state.active_budgets = []
+        if 'metrics' not in st.session_state:
+            st.session_state.metrics = {}
+        if 'notifications' not in st.session_state:
+            st.session_state.notifications = []
 
-        # Aplicación FastAPI
-        self.app = FastAPI(title="SmartTravelAgent Dashboard")
-        self.templates = Jinja2Templates(directory="templates")
+    def render(self):
+        """Renderizar el dashboard completo."""
+        st.set_page_config(
+            page_title="SmartTravelAgent Dashboard",
+            page_icon="✈️",
+            layout="wide"
+        )
 
-        # Montar archivos estáticos
-        self.app.mount("/static", StaticFiles(directory="static"), name="static")
+        # Barra lateral con menú
+        menu = st.sidebar.radio(
+            "SmartTravelAgent",
+            ["Presupuestos", "Reconstrucción", "Métricas"]
+        )
 
-        # Registrar rutas
-        self._register_routes()
+        # Renderizar sección seleccionada
+        if menu == "Presupuestos":
+            self.render_budgets_section()
+        elif menu == "Reconstrucción":
+            self.render_reconstruction_section()
+        elif menu == "Métricas":
+            self.render_metrics_section()
 
-        # Tarea de actualización
-        self.update_task: Optional[asyncio.Task] = None
-
-    async def __aenter__(self):
-        """Iniciar gestor."""
-        # Iniciar tarea de actualización
-        self.update_task = asyncio.create_task(self._update_loop())
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Cerrar gestor."""
-        # Cancelar tarea de actualización
-        if self.update_task:
-            self.update_task.cancel()
-
-        # Cerrar conexiones activas
-        for session_id in list(self.active_sessions.keys()):
-            await self.disconnect_session(session_id)
-
-    def _register_routes(self) -> None:
-        """Registrar rutas de la aplicación."""
-
-        @self.app.get("/")
-        async def index():
-            """Vista principal."""
-            return self.templates.TemplateResponse("index.html", {"request": {}})
-
-        @self.app.websocket("/ws/{session_id}")
-        async def websocket_endpoint(websocket: WebSocket, session_id: str):
-            """Endpoint WebSocket."""
-            await self.connect_session(session_id, websocket)
-
-            try:
-                while True:
-                    # Recibir evento
-                    data = await websocket.receive_json()
-                    await self.process_event(session_id, data)
-
-            except WebSocketDisconnect:
-                await self.disconnect_session(session_id)
-
-    async def connect_session(self, session_id: str, websocket: WebSocket) -> None:
-        """
-        Conectar nueva sesión.
-
-        Args:
-            session_id: ID de sesión
-            websocket: Conexión WebSocket
-        """
-        try:
-            # Aceptar conexión
-            await websocket.accept()
-
-            # Registrar sesión
-            self.active_sessions[session_id] = websocket
-
-            # Crear estado inicial
-            self.session_states[session_id] = DashboardState(
-                session_id=session_id,
-                connected_at=datetime.now(),
-                notifications=[],
-                current_budget=None,
-                is_editing=False,
+    def render_budgets_section(self):
+        """Renderizar sección de presupuestos."""
+        st.title("Gestión de Presupuestos")
+        
+        # Métricas principales
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric(
+                "Presupuestos Activos",
+                len(st.session_state.active_budgets)
+            )
+        with col2:
+            st.metric(
+                "Pendientes",
+                sum(1 for b in st.session_state.active_budgets if b['status'] == 'pending')
+            )
+        with col3:
+            st.metric(
+                "Aprobados Hoy",
+                sum(1 for b in st.session_state.active_budgets 
+                    if b['status'] == 'approved' and 
+                    b['updated_at'].date() == datetime.now().date())
             )
 
-            # Actualizar métricas
-            DASHBOARD_SESSIONS.inc()
+        # Lista de presupuestos
+        st.subheader("Presupuestos Activos")
+        for budget in st.session_state.active_budgets:
+            with st.expander(f"{budget['title']} - {budget['status']}"):
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    st.write(f"**ID:** {budget['id']}")
+                    st.write(f"**Cliente:** {budget['client']}")
+                    st.write(f"**Última actualización:** {budget['updated_at']}")
+                with col2:
+                    st.button("Ver Detalles", key=f"view_{budget['id']}")
+                    if budget['status'] == 'draft':
+                        st.button("Editar", key=f"edit_{budget['id']}")
 
-            # Enviar estado inicial
-            await self.send_update(
-                session_id, "initial_state", self.session_states[session_id].dict()
-            )
+    def render_reconstruction_section(self):
+        """Renderizar sección de reconstrucción de presupuestos."""
+        st.title("Reconstrucción de Presupuestos")
 
-        except Exception as e:
-            self.logger.error(f"Error conectando sesión: {e}")
-            raise
+        # Selector de estrategia
+        strategy = st.selectbox(
+            "Estrategia de Reconstrucción",
+            [
+                "PRESERVE_MARGIN - Mantener Margen",
+                "PRESERVE_PRICE - Mantener Precio",
+                "ADJUST_PROPORTIONALLY - Ajuste Proporcional",
+                "BEST_ALTERNATIVE - Mejor Alternativa"
+            ]
+        )
 
-    async def disconnect_session(self, session_id: str) -> None:
-        """
-        Desconectar sesión.
+        # Configuración de reconstrucción
+        with st.expander("Configuración de Reconstrucción"):
+            st.slider("Tolerancia de Cambio (%)", 0, 100, 10)
+            st.checkbox("Notificar Cambios Significativos")
+            st.checkbox("Auto-aplicar Estrategia")
 
-        Args:
-            session_id: ID de sesión
-        """
-        try:
-            if session_id in self.active_sessions:
-                # Cerrar conexión
-                await self.active_sessions[session_id].close()
+        # Estado de reconstrucción
+        if 'reconstruction_status' in st.session_state:
+            status = st.session_state.reconstruction_status
+            st.info(f"Estado: {status['message']}")
 
-                # Limpiar estado
-                del self.active_sessions[session_id]
-                del self.session_states[session_id]
+        # Botón de aplicar
+        if st.button("Aplicar Estrategia"):
+            self._apply_reconstruction_strategy(strategy.split(" - ")[0])
 
-                # Actualizar métricas
-                DASHBOARD_SESSIONS.dec()
+    def render_metrics_section(self):
+        """Renderizar sección de métricas."""
+        st.title("Métricas y KPIs")
 
-        except Exception as e:
-            self.logger.error(f"Error desconectando sesión: {e}")
+        # Período de tiempo
+        period = st.selectbox(
+            "Período",
+            ["Última Hora", "Último Día", "Última Semana", "Último Mes"]
+        )
 
-    async def process_event(self, session_id: str, event_data: Dict[str, Any]) -> None:
-        """
-        Procesar evento de sesión.
-
-        Args:
-            session_id: ID de sesión
-            event_data: Datos del evento
-        """
-        try:
-            event = SessionEvent(**event_data)
-
-            # Registrar evento
-            DASHBOARD_EVENTS.labels(event_type=event.type).inc()
-
-            # Procesar según tipo
-            if event.type == "edit_budget":
-                await self._handle_edit_budget(session_id, event)
-
-            elif event.type == "save_budget":
-                await self._handle_save_budget(session_id, event)
-
-            elif event.type == "refresh_data":
-                await self._handle_refresh_data(session_id, event)
-
-            elif event.type == "update_config":
-                await self._handle_update_config(session_id, event)
-
-        except Exception as e:
-            self.logger.error(f"Error procesando evento: {e}")
-
-            # Notificar error
-            await self.add_notification(
-                session_id, "Error procesando evento", str(e), NotificationLevel.ERROR
-            )
-
-    async def send_update(
-        self, session_id: str, update_type: str, data: Dict[str, Any]
-    ) -> None:
-        """
-        Enviar actualización a sesión.
-
-        Args:
-            session_id: ID de sesión
-            update_type: Tipo de actualización
-            data: Datos a enviar
-        """
-        try:
-            if session_id not in self.active_sessions:
-                return
-
-            # Crear actualización
-            update = UIUpdate(type=update_type, timestamp=datetime.now(), data=data)
-
-            # Enviar por WebSocket
-            await self.active_sessions[session_id].send_json(update.dict())
-
-        except Exception as e:
-            self.logger.error(f"Error enviando actualización: {e}")
-
-    async def add_notification(
-        self, session_id: str, title: str, message: str, level: NotificationLevel
-    ) -> None:
-        """
-        Agregar notificación.
-
-        Args:
-            session_id: ID de sesión
-            title: Título
-            message: Mensaje
-            level: Nivel
-        """
-        try:
-            if session_id not in self.session_states:
-                return
-
-            state = self.session_states[session_id]
-
-            # Agregar notificación
-            state.notifications.append(
-                {
-                    "title": title,
-                    "message": message,
-                    "level": level,
-                    "timestamp": datetime.now(),
-                }
-            )
-
-            # Mantener límite
-            if len(state.notifications) > self.config["max_notifications"]:
-                state.notifications.pop(0)
-
-            # Enviar actualización
-            await self.send_update(
-                session_id, "notifications", {"notifications": state.notifications}
-            )
-
-        except Exception as e:
-            self.logger.error(f"Error agregando notificación: {e}")
-
-    async def _update_loop(self) -> None:
-        """Loop de actualización periódica."""
-        try:
-            while True:
-                # Esperar intervalo
-                await asyncio.sleep(self.config["update_interval"])
-
-                # Actualizar sesiones activas
-                for session_id in list(self.active_sessions.keys()):
-                    try:
-                        await self._update_session(session_id)
-                    except Exception as e:
-                        self.logger.error(
-                            f"Error actualizando sesión {session_id}: {e}"
-                        )
-
-        except asyncio.CancelledError:
-            pass
-        except Exception as e:
-            self.logger.error(f"Error en loop de actualización: {e}")
-
-    async def _update_session(self, session_id: str) -> None:
-        """Actualizar estado de sesión."""
-        try:
-            state = self.session_states[session_id]
-
-            # Obtener datos actualizados
-            if state.current_budget and not state.is_editing:
-                session_manager = await get_session_manager()
-                budget_calculator = await get_budget_calculator()
-
-                # Verificar cambios
-                session = await session_manager.get_session(
-                    state.current_budget.session_id
+        # Métricas en tiempo real
+        if 'metrics' in st.session_state:
+            metrics = st.session_state.metrics
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.metric(
+                    "Tasa de Aprobación",
+                    f"{metrics.get('approval_rate', 0)}%",
+                    f"{metrics.get('approval_rate_change', 0)}%"
+                )
+            with col2:
+                st.metric(
+                    "Tiempo Promedio de Proceso",
+                    f"{metrics.get('avg_process_time', 0)} min",
+                    f"{metrics.get('process_time_change', 0)} min"
+                )
+            with col3:
+                st.metric(
+                    "Reconstrucciones Exitosas",
+                    metrics.get('successful_reconstructions', 0),
+                    metrics.get('reconstruction_change', 0)
                 )
 
-                if session and session.budget != state.current_budget:
-                    # Recalcular presupuesto
-                    result = await budget_calculator.calculate_budget(
-                        session.budget.packages
-                    )
-
-                    if result.success:
-                        # Actualizar estado
-                        state.current_budget = result.budget
-
-                        # Enviar actualización
-                        await self.send_update(
-                            session_id,
-                            "budget_updated",
-                            {"budget": result.budget.dict()},
-                        )
-
-        except Exception as e:
-            self.logger.error(f"Error actualizando sesión: {e}")
-
-    async def _handle_edit_budget(self, session_id: str, event: SessionEvent) -> None:
-        """Manejar edición de presupuesto."""
+    def _apply_reconstruction_strategy(self, strategy: str):
+        """
+        Aplicar estrategia de reconstrucción.
+        
+        Args:
+            strategy: Nombre de la estrategia a aplicar
+        """
         try:
-            state = self.session_states[session_id]
-
-            # Marcar como editando
-            state.is_editing = True
-
-            # Enviar actualización
-            await self.send_update(session_id, "edit_mode", {"is_editing": True})
-
-        except Exception as e:
-            self.logger.error(f"Error manejando edición: {e}")
-            raise
-
-    async def _handle_save_budget(self, session_id: str, event: SessionEvent) -> None:
-        """Manejar guardado de presupuesto."""
-        try:
-            state = self.session_states[session_id]
-
-            # Actualizar presupuesto
-            session_manager = await get_session_manager()
-
-            success = await session_manager.update_session(
-                state.current_budget.session_id,
-                event.data["budget"],
-                "Manual update from dashboard",
+            result = self.reconstruction_manager.apply_strategy(
+                strategy=ReconstructionStrategy[strategy]
             )
-
-            if success:
-                # Actualizar estado
-                state.is_editing = False
-                state.current_budget = event.data["budget"]
-
-                # Notificar éxito
-                await self.add_notification(
-                    session_id,
-                    "Presupuesto actualizado",
-                    "Los cambios se guardaron correctamente",
-                    NotificationLevel.SUCCESS,
-                )
-
-            else:
-                raise Exception("Error guardando presupuesto")
-
+            st.session_state.reconstruction_status = {
+                "success": True,
+                "message": f"Estrategia {strategy} aplicada exitosamente"
+            }
+            self.logger.info(f"Estrategia {strategy} aplicada: {result}")
         except Exception as e:
-            self.logger.error(f"Error guardando presupuesto: {e}")
-            raise
+            st.session_state.reconstruction_status = {
+                "success": False,
+                "message": f"Error al aplicar estrategia: {str(e)}"
+            }
+            self.logger.error(f"Error al aplicar estrategia {strategy}: {e}")
 
-    async def _handle_refresh_data(self, session_id: str, event: SessionEvent) -> None:
-        """Manejar actualización de datos."""
-        try:
-            state = self.session_states[session_id]
+    def update_data(self):
+        """Actualizar datos del dashboard."""
+        # Actualizar presupuestos
+        st.session_state.active_budgets = self._fetch_active_budgets()
+        
+        # Actualizar métricas
+        st.session_state.metrics = self._calculate_metrics()
+        
+        # Actualizar cada 5 segundos
+        st.experimental_rerun()
 
-            if not state.current_budget:
-                return
+    def _fetch_active_budgets(self) -> List[Dict[str, Any]]:
+        """
+        Obtener presupuestos activos.
+        
+        Returns:
+            Lista de presupuestos activos
+        """
+        # Implementar lógica de obtención de presupuestos
+        return []
 
-            # Recalcular presupuesto
-            budget_calculator = await get_budget_calculator()
-
-            result = await budget_calculator.calculate_budget(
-                state.current_budget.packages, force_refresh=True
-            )
-
-            if result.success:
-                # Actualizar estado
-                state.current_budget = result.budget
-
-                # Enviar actualización
-                await self.send_update(
-                    session_id, "budget_updated", {"budget": result.budget.dict()}
-                )
-
-                # Notificar éxito
-                await self.add_notification(
-                    session_id,
-                    "Datos actualizados",
-                    "Se obtuvieron nuevos datos de proveedores",
-                    NotificationLevel.INFO,
-                )
-
-            else:
-                raise Exception("Error actualizando datos")
-
-        except Exception as e:
-            self.logger.error(f"Error actualizando datos: {e}")
-            raise
-
-    async def _handle_update_config(self, session_id: str, event: SessionEvent) -> None:
-        """Manejar actualización de configuración."""
-        try:
-            # Actualizar configuración
-            for key, value in event.data.items():
-                if key in self.config:
-                    self.config[key] = value
-
-            # Notificar cambio
-            await self.add_notification(
-                session_id,
-                "Configuración actualizada",
-                "Los cambios se aplicaron correctamente",
-                NotificationLevel.SUCCESS,
-            )
-
-        except Exception as e:
-            self.logger.error(f"Error actualizando configuración: {e}")
-            raise
-
+    def _calculate_metrics(self) -> Dict[str, Any]:
+        """
+        Calcular métricas del dashboard.
+        
+        Returns:
+            Diccionario con métricas calculadas
+        """
+        # Implementar cálculo de métricas
+        return {}
 
 # Instancia global
-dashboard_manager = DashboardManager()
+dashboard = DashboardManager()
 
-
-def run_dashboard(host: str = "0.0.0.0", port: int = 8000) -> None:
-    """Ejecutar dashboard."""
-    uvicorn.run(dashboard_manager.app, host=host, port=port)
+def run_dashboard():
+    """Ejecutar el dashboard de Streamlit."""
+    dashboard.render()
+    
+if __name__ == "__main__":
+    run_dashboard()
