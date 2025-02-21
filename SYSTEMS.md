@@ -97,6 +97,331 @@ def _generate_suggestions(self) -> List[str]:
 - Mantener lista de proveedores actualizada
 - Revisar efectividad de sugerencias periódicamente
 
+## SISTEMA DE PRESUPUESTOS DE VIAJE
+
+## 1. PROCESO GENERAL
+
+### 1.1 Interacción Inicial
+- Cliente contacta al vendedor
+- Vendedor utiliza nuestra herramienta
+- Se inicia proceso de definición
+
+### 1.2 Definición del Paquete
+1. **Requerimientos Base**
+   - Destino específico
+   - Fechas de viaje
+   - Cantidad de pasajeros
+   - Preferencias generales
+
+2. **Componentes a Definir**
+   - Vuelos disponibles
+   - Alojamiento requerido
+   - Traslados necesarios
+   - Excursiones deseadas
+   - Servicios adicionales
+
+### 1.3 Consulta a Proveedores
+- Sistema conecta con dos proveedores principales
+- Obtiene datos reales de:
+  * Disponibilidad actual
+  * Tarifas vigentes
+  * Opciones disponibles
+
+### 1.4 Elaboración del Presupuesto
+1. **Condiciones Previas**
+   - Paquete completamente definido
+   - Componentes confirmados
+   - Datos de proveedores actualizados
+
+2. **Proceso de Armado**
+   - Integración de componentes
+   - Cálculo de costos
+   - Aplicación de márgenes
+   - Generación de presupuesto formal
+
+## 2. RECONSTRUCCIÓN DE PRESUPUESTOS
+
+### 2.1 Cuándo se Activa
+- Cambios confirmados de proveedores
+- Modificaciones en componentes
+- Ajustes en servicios solicitados
+
+### 2.2 Proceso de Reconstrucción
+1. **Validación Inicial**
+   - Verificar paquete completo
+   - Confirmar cambios de proveedores
+   - Evaluar impacto
+
+2. **Estrategias de Reconstrucción**
+   - PRESERVE_PACKAGE
+     * Mantiene estructura original
+     * Actualiza precios/disponibilidad
+   
+   - FIND_ALTERNATIVES
+     * Busca opciones similares
+     * Mantiene nivel de servicio
+   
+   - ADJUST_SERVICES
+     * Modifica servicios si necesario
+     * Mantiene objetivo del paquete
+
+3. **Resultado**
+   - Presupuesto actualizado
+   - Cambios documentados
+   - Alternativas si aplica
+
+## 3. COMPONENTES DEL SISTEMA
+
+### 3.1 Core (reconstructor.py)
+- Maneja la lógica de reconstrucción
+- Aplica estrategias definidas
+- Mantiene integridad del paquete
+
+### 3.2 Proveedores
+- Conexión con sistemas externos
+- Datos actualizados
+- Confirmación de disponibilidad
+
+### 3.3 Gestión de Presupuestos
+- Almacenamiento de versiones
+- Historial de cambios
+- Control de estados
+
+## 4. PRINCIPIOS DEL SISTEMA
+
+### 4.1 Prioridades
+1. Integridad del Paquete
+   - Mantener estructura definida
+   - Respetar preferencias del cliente
+
+2. Datos Reales
+   - Trabajar con información confirmada
+   - Validar con proveedores
+
+3. Claridad
+   - Documentar cambios
+   - Mantener historial
+   - Facilitar seguimiento
+
+### 4.2 Restricciones
+- No modificar sin confirmación
+- Mantener coherencia de servicios
+- Respetar niveles de servicio
+
+## 5. FLUJO DE TRABAJO
+
+```mermaid
+graph TD
+    A[Cliente + Vendedor] --> B[Definición de Paquete]
+    B --> C{Paquete Completo?}
+    C -->|No| B
+    C -->|Sí| D[Consulta Proveedores]
+    D --> E[Elaboración Presupuesto]
+    E --> F[Entrega al Cliente]
+    G[Cambios Proveedores] --> H{Requiere Reconstrucción?}
+    H -->|Sí| I[Proceso Reconstrucción]
+    I --> J[Actualización Presupuesto]
+    H -->|No| E
+```
+
+## 6. NOTAS IMPORTANTES
+
+1. **Presupuesto Inicial**
+   - Solo se genera con paquete completo
+   - Requiere datos confirmados
+   - Debe incluir todos los servicios
+
+2. **Reconstrucción**
+   - Proceso controlado
+   - Mantiene estructura base
+   - Documenta todos los cambios
+
+3. **Validaciones**
+   - Datos de proveedores actualizados
+   - Disponibilidad confirmada
+   - Servicios coherentes
+
+## Sistema de Reconstrucción - BEST_ALTERNATIVE
+
+### 🎯 Propósito
+Algoritmo para encontrar las mejores alternativas cuando un presupuesto necesita ser reconstruido, ya sea por indisponibilidad o cambios significativos en precios.
+
+### 📈 Evolución del Algoritmo
+
+#### Fase 1 - Búsqueda Proactiva y Score Básico
+- **Estado**: ✅ Implementado
+- **Características**:
+  * Búsqueda proactiva de alternativas
+  * Sistema de scoring básico
+  * Logging detallado de decisiones
+
+##### Casos de Búsqueda
+1. **Indisponibilidad**:
+   - Cuando un item ya no está disponible
+   - Búsqueda inmediata de alternativas similares
+
+2. **Cambios de Precio**:
+   - Monitoreo de cambios significativos
+   - Umbral configurable (default: 15%)
+   - Búsqueda proactiva si se supera el umbral
+
+##### Sistema de Scoring
+- **Componentes**:
+  * Precio (40%): Menor precio = mejor score
+  * Rating (40%): Mayor rating = mejor score
+  * Disponibilidad (20%): Mayor disponibilidad = mejor score
+
+- **Ejemplo**:
+  ```python
+  # Cálculo de score para un hotel
+  hotel_score = (
+      (1/precio) * 0.4 +      # Factor precio
+      (rating/5) * 0.4 +      # Factor rating
+      disponibilidad * 0.2    # Factor disponibilidad
+  )
+  ```
+
+##### Proceso de Decisión
+1. Detectar necesidad de alternativa
+2. Buscar opciones disponibles
+3. Calcular scores
+4. Comparar con item original
+5. Reemplazar solo si hay mejora
+
+#### Próximas Fases
+- **Fase 2**: Preferencias del Cliente
+  * Incorporar preferencias en scoring
+  * Ponderación personalizada
+  * Historial de selecciones
+
+- **Fase 3**: Optimización Global
+  * Caché de alternativas
+  * Optimización de presupuesto total
+  * Machine learning para mejores predicciones
+
+### 🔄 Flujo de Trabajo
+
+```mermaid
+graph TD
+    A[Cambio Detectado] --> B{Tipo de Cambio}
+    B -->|No Disponible| C[Búsqueda Inmediata]
+    B -->|Cambio de Precio| D{¿Supera Umbral?}
+    D -->|Sí| C
+    D -->|No| E[Mantener Original]
+    C --> F[Calcular Scores]
+    F --> G{¿Mejor que Original?}
+    G -->|Sí| H[Reemplazar]
+    G -->|No| E
+```
+
+### 📊 Métricas de Éxito
+- Tasa de alternativas encontradas
+- Mejora promedio en scores
+- Tiempo de búsqueda
+- Satisfacción del cliente
+
+### 🔍 Logging y Monitoreo
+- Registro detallado de decisiones
+- Razones de cambios
+- Comparativas de scores
+- Tracking de mejoras
+
+## Sistema de Reconstrucción de Presupuestos
+
+### Arquitectura y Responsabilidades
+
+```
+core/budget/
+├── reconstructor.py           # Implementación CORE
+└── reconstruction/           # Características de alto nivel
+    ├── __init__.py
+    ├── analysis.py          # Análisis de impacto
+    ├── manager.py           # Gestión de alto nivel
+    ├── session_manager.py   # Manejo de sesiones
+    └── strategies.py        # Implementación de estrategias
+```
+
+#### 1. Core Implementation (reconstructor.py)
+- Lógica fundamental de reconstrucción
+- Manejo de memoria y optimización
+- Implementación base de estrategias
+- Control de estabilidad durante sesiones
+- Métricas y logging detallado
+
+#### 2. High-Level Features (reconstruction/)
+- **analysis.py**: Análisis predictivo de impacto
+- **manager.py**: Orquestación del proceso completo
+- **session_manager.py**: Control de sesiones activas
+- **strategies.py**: Estrategias avanzadas y extensibles
+
+### Principios de Diseño
+
+1. **Estabilidad en Sesiones Activas**
+   - Prioridad máxima durante interacción vendedor-cliente
+   - Control estricto de cambios durante sesión
+   - Validación de impacto antes de cambios
+
+2. **Estrategias de Reconstrucción**
+   - PRESERVE_MARGIN: Mantiene margen de ganancia
+   - PRESERVE_PRICE: Mantiene precio final
+   - ADJUST_PROPORTIONALLY: Ajuste balanceado
+   - BEST_ALTERNATIVE: Búsqueda inteligente
+
+3. **Manejo de Datos**
+   - Versionado completo de cambios
+   - Cache inteligente para optimización
+   - Validación en múltiples niveles
+   - Rollback seguro en caso de error
+
+4. **Extensibilidad**
+   - Diseño modular para nuevas estrategias
+   - Interfaces claras entre componentes
+   - Métricas extensibles por módulo
+   - Logging configurable por nivel
+
+### Reglas de Modificación
+
+1. **NO modificar reconstructor.py sin:**
+   - Documentación detallada del cambio
+   - Tests exhaustivos de regresión
+   - Análisis de impacto en módulos superiores
+
+2. **Extensiones vía reconstruction/:**
+   - Nuevas estrategias en strategies.py
+   - Análisis adicional en analysis.py
+   - Mejoras de sesión en session_manager.py
+
+3. **Manejo de Dependencias**
+   - Core → Alto Nivel (nunca al revés)
+   - Evitar dependencias circulares
+   - Documentar cualquier excepción
+
+### Métricas y Monitoreo
+
+1. **Métricas Críticas**
+   - Tiempo de reconstrucción
+   - Éxito/fallo de estrategias
+   - Estabilidad de sesiones
+   - Impacto en márgenes
+
+2. **Alertas**
+   - Fallos en reconstrucción
+   - Sesiones inestables
+   - Cambios de precio significativos
+   - Errores en estrategias
+
+### Próximas Mejoras
+
+1. **Optimizaciones**
+   - Cache distribuido para reconstrucciones
+   - Paralelización de análisis
+   - Predicción de impacto mejorada
+
+2. **Nuevas Características**
+   - Estrategias basadas en ML
+   - Análisis predictivo avanzado
+   - Dashboard en tiempo real
+
 ## Sistema de Métricas
 
 ### 🎯 Propósito
