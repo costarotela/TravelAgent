@@ -36,13 +36,11 @@ BUDGET_BUILD_LATENCY = Histogram(
 )
 
 
-class BuilderState(Enum):
-    """Estados del builder de presupuestos."""
+class BuilderState(str, Enum):
+    """Estados posibles del constructor de presupuestos."""
 
     INITIAL = "initial"
     COLLECTING_ITEMS = "collecting_items"
-    VALIDATING = "validating"
-    APPLYING_PREFERENCES = "applying_preferences"
     CALCULATING = "calculating"
     READY = "ready"
     ERROR = "error"
@@ -69,74 +67,114 @@ class BudgetBuilder:
     4. Control de estado
     """
 
-    def __init__(self, vendor_id: Optional[str] = None):
+    def __init__(self, vendor_id: str):
         """
-        Inicializar builder.
-
+        Inicializa un nuevo constructor de presupuestos.
+        
         Args:
-            vendor_id: ID del vendedor (opcional)
+            vendor_id: ID del vendedor
         """
-        self.state = BuilderState.INITIAL
         self.vendor_id = vendor_id
         self.items: List[BudgetItem] = []
-        self.currency: str = "USD"
-        self.metadata: Dict[str, Any] = {}
         self.errors: List[str] = []
         self.warnings: List[str] = []
+        self._suggestions: List[str] = []
+        self.state = BuilderState.INITIAL
+        self.metadata: Dict[str, Any] = {}
         
-        # Obtener preferencias si hay vendor_id
-        self.preferences = None
-        if vendor_id:
-            pref_manager = get_preference_manager()
-            self.preferences = pref_manager.get_vendor_preferences(vendor_id)
-
-        # Providers
+        # Obtener preferencias y provider manager
+        pref_manager = get_preference_manager()
+        self.preferences = pref_manager.get_vendor_preferences(vendor_id) if pref_manager else None
         self.provider_manager = get_provider_manager()
 
-    def with_currency(self, currency: str) -> "BudgetBuilder":
-        """Establecer moneda."""
-        self.currency = currency
-        return self
-
-    def with_metadata(self, metadata: Dict[str, Any]) -> "BudgetBuilder":
-        """Agregar metadata."""
-        self.metadata.update(metadata)
-        return self
-
-    def add_item(self, item: BudgetItem) -> "BudgetBuilder":
+    def get_suggestions(self) -> List[str]:
         """
-        Agregar item al presupuesto.
+        Obtiene las sugerencias actuales para el presupuesto.
+        
+        Returns:
+            Lista de sugerencias como strings
+        """
+        return self._suggestions
+
+    def _generate_suggestions(self, item: BudgetItem) -> List[str]:
+        """
+        Genera sugerencias para un item específico.
+        
+        Args:
+            item: Item para generar sugerencias
+            
+        Returns:
+            Lista de sugerencias
+        """
+        suggestions = []
+        
+        # Verificar si el item es costoso comparado con preferencias
+        if self.preferences and "max_amount" in self.preferences:
+            max_amount = Decimal(str(self.preferences["max_amount"]))
+            if item.amount > max_amount:
+                alternatives = self.provider_manager.search_alternatives(
+                    category=item.metadata.get("category", ""),
+                    max_price=max_amount
+                )
+                if alternatives:
+                    for alt in alternatives:
+                        if alt.amount < item.amount:
+                            suggestions.append(
+                                f"Alternativa más económica: {alt.description} "
+                                f"por {alt.amount} {alt.currency}"
+                            )
+
+        # Sugerencias por temporada
+        if item.metadata.get("season") == "high":
+            suggestions.append(
+                "Considere fechas alternativas en temporada baja "
+                "para obtener mejores tarifas"
+            )
+
+        # Optimización de paquetes
+        provider_items = [i for i in self.items 
+                        if i.metadata.get("provider_id") == item.metadata.get("provider_id")]
+        if len(provider_items) >= 2:
+            items_desc = [i.description for i in provider_items]
+            provider_id = item.metadata.get("provider_id", "proveedor")
+            suggestions.append(
+                f"Puede obtener un mejor precio contratando un paquete con {provider_id} "
+                f"que incluya: {', '.join(items_desc)}"
+            )
+
+        return suggestions
+
+    def add_item(self, item: BudgetItem) -> None:
+        """
+        Agrega un item al presupuesto.
         
         Args:
             item: Item a agregar
-            
-        Returns:
-            Self para encadenamiento
         """
-        with BUDGET_BUILD_LATENCY.labels("add_item").time():
-            self.state = BuilderState.COLLECTING_ITEMS
-            
-            # Validar item
-            validation = self._validate_item(item)
-            if not validation.is_valid:
-                self.errors.extend(validation.errors)
-                self.warnings.extend(validation.warnings)
-                BUDGET_BUILD_OPERATIONS.labels(
-                    operation_type="add_item", status="error"
-                ).inc()
-                return self
+        # Validar el item
+        if not self._validate_item(item):
+            return
+        
+        # Validar contra preferencias del vendedor
+        if self.preferences and "max_amount" in self.preferences:
+            max_amount = Decimal(str(self.preferences["max_amount"]))
+            if item.amount > max_amount:
+                self.warnings.append(
+                    f"El item {item.description} excede el monto máximo "
+                    f"recomendado de {max_amount} {item.currency}"
+                )
+        
+        # Agregar el item primero para que esté disponible para las sugerencias
+        self.items.append(item)
+        
+        # Generar sugerencias
+        new_suggestions = self._generate_suggestions(item)
+        if new_suggestions:
+            self._suggestions.extend(new_suggestions)
+        
+        self.state = BuilderState.COLLECTING_ITEMS
 
-            # Aplicar preferencias
-            if self.preferences:
-                item = self._apply_preferences_to_item(item)
-
-            self.items.append(item)
-            BUDGET_BUILD_OPERATIONS.labels(
-                operation_type="add_item", status="success"
-            ).inc()
-            return self
-
-    def _validate_item(self, item: BudgetItem) -> ValidationResult:
+    def _validate_item(self, item: BudgetItem) -> bool:
         """
         Validar item según reglas de negocio y preferencias.
         
@@ -144,43 +182,45 @@ class BudgetBuilder:
             item: Item a validar
             
         Returns:
-            Resultado de validación
+            True si el item es válido, False de lo contrario
         """
         errors = []
         warnings = []
         suggestions = []
 
         # Validaciones básicas
-        if item.price <= 0:
-            errors.append(f"Precio inválido para {item.description}")
+        if item.amount <= 0:
+            errors.append(f"Monto inválido para {item.description}")
 
-        if not item.provider_id:
+        if "provider_id" not in item.metadata:
             warnings.append(f"Item sin proveedor: {item.description}")
 
         # Validar contra preferencias
         if self.preferences:
-            if item.provider_id in self.preferences.base.excluded_providers:
-                errors.append(f"Proveedor excluido: {item.provider_id}")
+            provider_id = item.metadata.get("provider_id")
+            if provider_id in self.preferences.get("excluded_providers", []):
+                errors.append(f"Proveedor excluido: {provider_id}")
 
-            # Validar precio máximo
+            # Validar monto máximo
+            total_amount = item.amount * item.quantity
             if (
-                self.preferences.base.max_price
-                and item.price > self.preferences.base.max_price
+                self.preferences.get("max_price")
+                and total_amount > self.preferences["max_price"]
             ):
                 warnings.append(
-                    f"Precio excede máximo preferido: {item.price} > {self.preferences.base.max_price}"
+                    f"Monto total excede máximo preferido: {total_amount} > {self.preferences['max_price']}"
                 )
                 # Sugerir alternativas
                 suggestions.append(
                     f"Buscar alternativas más económicas para: {item.description}"
                 )
 
-        return ValidationResult(
-            is_valid=len(errors) == 0,
-            errors=errors,
-            warnings=warnings,
-            suggestions=suggestions,
-        )
+        # Propagar errores y advertencias
+        self.errors.extend(errors)
+        self.warnings.extend(warnings)
+        self._suggestions.extend(suggestions)
+
+        return len(errors) == 0
 
     def _apply_preferences_to_item(self, item: BudgetItem) -> BudgetItem:
         """
@@ -193,7 +233,7 @@ class BudgetBuilder:
             Item procesado
         """
         # Aplicar reglas de precio
-        for rule in self.preferences.business_preferences.price_rules:
+        for rule in self.preferences.get("price_rules", []):
             # TODO: Implementar evaluación de reglas
             pass
 
@@ -206,7 +246,7 @@ class BudgetBuilder:
         Returns:
             Resultado de validación
         """
-        self.state = BuilderState.VALIDATING
+        self.state = BuilderState.CALCULATING
         with BUDGET_BUILD_LATENCY.labels("validate").time():
             errors = []
             warnings = []
@@ -224,13 +264,13 @@ class BudgetBuilder:
 
             # Validar contra preferencias
             if self.preferences:
-                total = sum(item.price for item in self.items)
+                total = sum(item.amount * item.quantity for item in self.items)
                 if (
-                    self.preferences.base.max_price
-                    and total > self.preferences.base.max_price
+                    self.preferences.get("max_price")
+                    and total > self.preferences["max_price"]
                 ):
                     warnings.append(
-                        f"Presupuesto total excede máximo: {total} > {self.preferences.base.max_price}"
+                        f"Presupuesto total excede máximo: {total} > {self.preferences['max_price']}"
                     )
 
             result = ValidationResult(
@@ -246,48 +286,45 @@ class BudgetBuilder:
             ).inc()
             return result
 
-    def build(self) -> Tuple[Optional[Budget], ValidationResult]:
+    def build(self) -> Budget:
         """
-        Construir el presupuesto final.
+        Construir presupuesto final.
         
         Returns:
-            Tupla de (Presupuesto, Resultado de validación)
+            Presupuesto construido
+            
+        Raises:
+            ValueError: Si hay errores en la construcción
         """
-        with BUDGET_BUILD_LATENCY.labels("build").time():
-            # Validación final
-            validation = self.validate()
-            if not validation.is_valid:
-                self.state = BuilderState.ERROR
-                BUDGET_BUILD_OPERATIONS.labels(
-                    operation_type="build", status="error"
-                ).inc()
-                return None, validation
+        # No construir si hay errores
+        if self.errors:
+            raise ValueError("No se puede construir presupuesto con errores")
 
-            # Construir presupuesto
-            self.state = BuilderState.CALCULATING
-            budget = Budget(
-                items=self.items.copy(),
-                currency=self.currency,
-                metadata=self.metadata.copy(),
-            )
+        # Validar estado final
+        if not self.items:
+            raise ValueError("No se puede construir presupuesto sin items")
 
-            self.state = BuilderState.READY
-            BUDGET_BUILD_OPERATIONS.labels(
-                operation_type="build", status="success"
-            ).inc()
-            return budget, validation
+        # Crear presupuesto
+        budget = Budget(
+            items=self.items.copy(),
+            metadata=self.metadata.copy()
+        )
+
+        # Actualizar estado
+        self.state = BuilderState.READY
+        return budget
 
 
 # Instancia global
-budget_builder = BudgetBuilder()
+budget_builder = BudgetBuilder("")
 
 
-def get_budget_builder(vendor_id: Optional[str] = None) -> BudgetBuilder:
+def get_budget_builder(vendor_id: str) -> BudgetBuilder:
     """
     Obtener una nueva instancia del builder.
     
     Args:
-        vendor_id: ID del vendedor (opcional)
+        vendor_id: ID del vendedor
         
     Returns:
         Nueva instancia del builder
