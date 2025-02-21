@@ -96,3 +96,141 @@ def _generate_suggestions(self) -> List[str]:
 - Ajustar porcentajes de ahorro según datos reales
 - Mantener lista de proveedores actualizada
 - Revisar efectividad de sugerencias periódicamente
+
+## Sistema de Métricas
+
+### 🎯 Propósito
+Sistema de monitoreo y métricas para seguimiento de operaciones y rendimiento del sistema.
+
+### 📊 Componentes Principales
+
+#### 1. Registro de Métricas
+- **Registro Único**: Todas las métricas se registran en un `CollectorRegistry` centralizado
+- **Prevención**: Evita duplicación de métricas
+- **Gestión**: Facilita la administración y consulta
+
+#### 2. Tipos de Métricas
+- **Operaciones**: Contador de operaciones por proveedor
+- **Latencia**: Histograma de tiempos de respuesta
+- **Monitores Activos**: Medidor de monitores en ejecución
+- **Cambios de Precio**: Histograma de variaciones porcentuales
+
+### 💻 Implementación
+
+```python
+# Configuración del registro
+REGISTRY = CollectorRegistry()
+
+# Ejemplo de métrica
+PROVIDER_OPERATIONS = Counter(
+    'provider_operations',
+    'Número de operaciones por proveedor',
+    ['provider_name', 'operation_type'],
+    registry=REGISTRY
+)
+```
+
+### 🔄 Mantenimiento
+- Monitoreo regular de métricas
+- Ajuste de buckets según necesidad
+- Limpieza periódica de datos antiguos
+
+## Sistema de Notificaciones
+
+### 🎯 Propósito
+Sistema de notificaciones en tiempo real para mantener al vendedor informado sobre cambios importantes en presupuestos y servicios.
+
+### 🔍 Componentes
+
+#### 1. Notificaciones Emergentes
+- **Propósito**: Alertas inmediatas para cambios críticos
+- **Activación**: Cambios de precio significativos, problemas de disponibilidad
+- **Visibilidad**: Prominente en la interfaz
+- **Interacción**: Botón de cierre y marcado como leído
+
+#### 2. Barra de Estado
+- **Ubicación**: Parte superior del dashboard
+- **Contenido**: Contadores por tipo de severidad
+- **Categorías**: 
+  * ⚠️ Críticas (rojo)
+  * 📢 Importantes (amarillo)
+  * ℹ️ Informativas (azul)
+
+#### 3. Panel Lateral
+- **Funcionalidad**: Historial completo de notificaciones
+- **Filtros**:
+  * Por tipo de notificación
+  * Por severidad
+  * Estado de lectura
+- **Ordenamiento**: Cronológico inverso
+- **Detalles**: Expandible para cada notificación
+
+### 💻 Implementación Técnica
+
+```python
+@dataclass
+class Notification:
+    type: NotificationType
+    message: str
+    severity: NotificationSeverity
+    timestamp: datetime
+    data: Optional[Dict] = None
+    read: bool = False
+```
+
+### 📱 Interfaz de Usuario
+
+#### Flujo de Notificaciones
+1. Generación de notificación
+2. Aparición como alerta emergente (si es crítica)
+3. Actualización de contadores en barra superior
+4. Registro en panel lateral
+
+#### Gestión
+- Marcado como leído
+- Filtrado por categorías
+- Visualización de detalles
+- Historial persistente
+
+### 🔄 Ciclo de Vida
+
+1. **Creación**
+   ```python
+   notification = Notification(
+       type=NotificationType.PRICE_CHANGE,
+       message="Cambio de precio detectado",
+       severity=NotificationSeverity.HIGH
+   )
+   ```
+
+2. **Distribución**
+   ```python
+   manager.add_notification(notification)
+   ```
+
+3. **Presentación**
+   - Emergente si es crítica
+   - Actualización de contadores
+   - Agregado al historial
+
+4. **Gestión**
+   - Marcado como leído
+   - Filtrado
+   - Archivado automático
+
+### 📋 Mejores Prácticas
+
+1. **Priorización**
+   - Usar severidad apropiadamente
+   - No saturar con notificaciones
+   - Agrupar notificaciones relacionadas
+
+2. **Contenido**
+   - Mensajes claros y concisos
+   - Incluir datos relevantes
+   - Acciones recomendadas
+
+3. **Mantenimiento**
+   - Limpieza periódica
+   - Ajuste de umbrales
+   - Monitoreo de efectividad

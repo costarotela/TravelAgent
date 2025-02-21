@@ -4,8 +4,13 @@ Dashboard para visualización y gestión de presupuestos.
 import streamlit as st
 from decimal import Decimal
 from typing import List, Dict, Any
+from datetime import datetime
 
-from smart_travel_agency.core.budget.builder import BudgetBuilder, BudgetItem, BuilderState
+from smart_travel_agency.core.budget.builder import BudgetBuilder, BudgetItem
+from smart_travel_agency.core.notifications import (
+    NotificationType, NotificationSeverity, 
+    Notification, NotificationManager
+)
 
 def init_session_state():
     """Inicializa el estado de la sesión si no existe."""
@@ -13,10 +18,83 @@ def init_session_state():
         st.session_state.budget_builder = BudgetBuilder(vendor_id="default")
     if 'current_tab' not in st.session_state:
         st.session_state.current_tab = "Resumen"
+    if 'notification_manager' not in st.session_state:
+        st.session_state.notification_manager = NotificationManager()
+    if 'show_notification' not in st.session_state:
+        st.session_state.show_notification = None
+
+def handle_notification(notification: Notification):
+    """Maneja la llegada de una nueva notificación."""
+    if notification.severity == NotificationSeverity.HIGH:
+        st.session_state.show_notification = notification
+
+def render_notifications():
+    """Renderiza las notificaciones emergentes."""
+    if st.session_state.show_notification:
+        notification = st.session_state.show_notification
+        
+        # Crear contenedor para la notificación
+        with st.container():
+            col1, col2 = st.columns([5,1])
+            
+            with col1:
+                if notification.severity == NotificationSeverity.HIGH:
+                    st.error(f"⚠️ {notification.message}")
+                elif notification.severity == NotificationSeverity.MEDIUM:
+                    st.warning(f"📢 {notification.message}")
+                else:
+                    st.info(f"ℹ️ {notification.message}")
+                
+                if notification.data:
+                    st.write("Detalles:", notification.data)
+            
+            with col2:
+                if st.button("✕", key=f"close_{hash(notification.timestamp)}"):
+                    notification.mark_as_read()
+                    st.session_state.show_notification = None
+                    st.rerun()
+
+def get_notification_counts():
+    """Obtiene el conteo de notificaciones por severidad."""
+    manager = st.session_state.notification_manager
+    unread = manager.get_unread()
+    
+    return {
+        NotificationSeverity.HIGH: len([n for n in unread if n.severity == NotificationSeverity.HIGH]),
+        NotificationSeverity.MEDIUM: len([n for n in unread if n.severity == NotificationSeverity.MEDIUM]),
+        NotificationSeverity.LOW: len([n for n in unread if n.severity == NotificationSeverity.LOW])
+    }
+
+def render_notification_bar():
+    """Renderiza la barra superior con contadores de notificaciones."""
+    counts = get_notification_counts()
+    total = sum(counts.values())
+    
+    if total > 0:
+        st.markdown("---")
+        cols = st.columns([1, 1, 1, 3])
+        
+        with cols[0]:
+            if counts[NotificationSeverity.HIGH] > 0:
+                st.error(f"⚠️ Críticas: {counts[NotificationSeverity.HIGH]}")
+        
+        with cols[1]:
+            if counts[NotificationSeverity.MEDIUM] > 0:
+                st.warning(f"📢 Importantes: {counts[NotificationSeverity.MEDIUM]}")
+        
+        with cols[2]:
+            if counts[NotificationSeverity.LOW] > 0:
+                st.info(f"ℹ️ Informativas: {counts[NotificationSeverity.LOW]}")
+        
+        with cols[3]:
+            if st.button("Ver Todas", key="view_all_notifications"):
+                # TODO: Implementar vista detallada de notificaciones
+                pass
 
 def render_header():
     """Renderiza el encabezado del dashboard."""
     st.title("Smart Travel Budget Dashboard")
+    render_notification_bar()
     st.markdown("---")
 
 def categorize_suggestions(suggestions: List[str]) -> Dict[str, List[str]]:
@@ -214,17 +292,137 @@ def add_example_items(builder: BudgetBuilder):
     for item in items:
         builder.add_item(item)
 
+def render_notification_panel():
+    """Renderiza el panel lateral con historial de notificaciones."""
+    with st.sidebar:
+        st.header("📋 Historial de Notificaciones")
+        
+        # Filtros
+        st.subheader("Filtros")
+        cols = st.columns(2)
+        with cols[0]:
+            selected_type = st.selectbox(
+                "Tipo",
+                options=[t.value for t in NotificationType],
+                index=None,
+                placeholder="Todos"
+            )
+        with cols[1]:
+            selected_severity = st.selectbox(
+                "Severidad",
+                options=[s.value for s in NotificationSeverity],
+                index=None,
+                placeholder="Todas"
+            )
+        
+        show_read = st.checkbox("Mostrar leídas", value=False)
+        
+        st.markdown("---")
+        
+        # Obtener y filtrar notificaciones
+        notifications = st.session_state.notification_manager.notifications
+        
+        if not show_read:
+            notifications = [n for n in notifications if not n.read]
+        
+        if selected_type:
+            notifications = [n for n in notifications if n.type.value == selected_type]
+            
+        if selected_severity:
+            notifications = [n for n in notifications if n.severity.value == selected_severity]
+        
+        # Mostrar notificaciones
+        if not notifications:
+            st.info("No hay notificaciones que mostrar")
+        else:
+            for notification in sorted(
+                notifications,
+                key=lambda x: x.timestamp,
+                reverse=True
+            ):
+                with st.expander(
+                    f"{'📌' if not notification.read else '✓'} {notification.message}",
+                    expanded=not notification.read
+                ):
+                    st.write(f"**Tipo:** {notification.type.value}")
+                    st.write(f"**Severidad:** {notification.severity.value}")
+                    st.write(f"**Fecha:** {notification.timestamp.strftime('%Y-%m-%d %H:%M')}")
+                    
+                    if notification.data:
+                        st.write("**Detalles:**")
+                        for key, value in notification.data.items():
+                            st.write(f"- {key}: {value}")
+                    
+                    if not notification.read:
+                        if st.button("Marcar como leída", key=f"mark_read_{hash(notification.timestamp)}"):
+                            notification.mark_as_read()
+                            st.rerun()
+
 def main():
     """Función principal del dashboard."""
     init_session_state()
+    
+    # Suscribir al manejador de notificaciones
+    st.session_state.notification_manager.subscribe(handle_notification)
+    
+    # Renderizar panel lateral
+    render_notification_panel()
+    
     render_header()
     
-    # Botón para agregar items de ejemplo
-    if not st.session_state.budget_builder.items:
-        if st.button(" Cargar Items de Ejemplo"):
-            add_example_items(st.session_state.budget_builder)
-            st.rerun()
+    # Renderizar notificaciones emergentes
+    render_notifications()
     
+    # Ejemplo de notificación (temporal, para pruebas)
+    if not st.session_state.budget_builder.items:
+        if st.button("📝 Cargar Items de Ejemplo"):
+            add_example_items(st.session_state.budget_builder)
+            
+            # Crear notificaciones de ejemplo
+            notifications = [
+                Notification(
+                    type=NotificationType.PRICE_CHANGE,
+                    message="¡Alerta! El precio del Hotel de Lujo en Cancún ha aumentado un 15%",
+                    item_id="hotel_123",
+                    severity=NotificationSeverity.HIGH,
+                    timestamp=datetime.now(),
+                    data={
+                        "old_price": 1500,
+                        "new_price": 1725,
+                        "currency": "USD",
+                        "difference": "+15%"
+                    }
+                ),
+                Notification(
+                    type=NotificationType.PACKAGE_OFFER,
+                    message="Nuevo paquete disponible para tours en Cancún",
+                    item_id="package_456",
+                    severity=NotificationSeverity.MEDIUM,
+                    timestamp=datetime.now(),
+                    data={
+                        "items": ["Tour a Chichen Itzá", "Tour a Xcaret"],
+                        "discount": "15%",
+                        "valid_until": "2025-03-21"
+                    }
+                ),
+                Notification(
+                    type=NotificationType.SEASON_ALERT,
+                    message="Se acerca temporada alta en Cancún",
+                    item_id="season_789",
+                    severity=NotificationSeverity.LOW,
+                    timestamp=datetime.now(),
+                    data={
+                        "start_date": "2025-06-01",
+                        "end_date": "2025-08-31",
+                        "price_impact": "+25%"
+                    }
+                )
+            ]
+            
+            for notification in notifications:
+                st.session_state.notification_manager.add_notification(notification)
+            st.rerun()
+
     # Tabs principales
     tab1, tab2, tab3 = st.tabs(["Resumen", "Items", "Agregar Item"])
     

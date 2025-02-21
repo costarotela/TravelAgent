@@ -14,18 +14,21 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Dict, List, Optional, Any, Tuple, Union
 from dataclasses import dataclass, field
-
-from prometheus_client import Counter, Histogram, Gauge
+from prometheus_client import Counter, Histogram, Gauge, CollectorRegistry
 
 from .scrapers import OlaScraper, AeroScraper, ScraperError
 from .scrapers.config import OlaScraperConfig, AeroScraperConfig
 from ..schemas import Flight, Accommodation, Activity
+
+# Crear un registro único para las métricas
+REGISTRY = CollectorRegistry()
 
 # Métricas
 PROVIDER_OPERATIONS = Counter(
     "provider_operations_total",
     "Number of provider operations",
     ["provider_id", "operation_type"],
+    registry=REGISTRY
 )
 
 PROVIDER_LATENCY = Histogram(
@@ -33,10 +36,12 @@ PROVIDER_LATENCY = Histogram(
     "Latency of provider operations",
     ["provider_id", "operation_type"],
     buckets=[0.1, 0.5, 1.0, 2.0, 5.0],
+    registry=REGISTRY
 )
 
 ACTIVE_MONITORS = Gauge(
-    "active_monitors_total", "Number of active package monitors", ["provider_id"]
+    "active_monitors_total", "Number of active package monitors", ["provider_id"],
+    registry=REGISTRY
 )
 
 PRICE_CHANGES = Histogram(
@@ -44,6 +49,7 @@ PRICE_CHANGES = Histogram(
     "Percentage changes in package prices",
     ["provider_id"],
     buckets=[-50, -20, -10, -5, 0, 5, 10, 20, 50],
+    registry=REGISTRY
 )
 
 
