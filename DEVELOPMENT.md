@@ -162,6 +162,10 @@ SmartTravelAgency/
    - Mantener ejemplos actualizados
    - Guías de contribución
 
+## Documentación de Sistemas
+
+Para una descripción detallada de cada sistema y su funcionamiento, consultar [SYSTEMS.md](SYSTEMS.md).
+
 ## Historial de Cambios 
 
 ### 2025-02-20
