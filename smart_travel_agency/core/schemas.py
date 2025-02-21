@@ -291,3 +291,114 @@ class Recommendation:
     score: RecommendationScore
     reason: str
     metadata: Dict[str, Union[float, str]] = field(default_factory=dict)
+
+
+class ReconstructionStrategy:
+    """Estrategias de reconstrucción de presupuestos."""
+    
+    PRESERVE_MARGIN = "preserve_margin"
+    PRESERVE_PRICE = "preserve_price"
+    ADJUST_PROPORTIONAL = "adjust_proportional"
+    BEST_ALTERNATIVE = "best_alternative"
+
+
+@dataclass
+class BudgetItem:
+    """Item de presupuesto."""
+    
+    id: str
+    type: str
+    category: str
+    price: Decimal
+    cost: Decimal
+    rating: float
+    availability: float = 1.0
+    dates: Dict[str, datetime] = field(default_factory=dict)
+    attributes: Dict[str, Any] = field(default_factory=dict)
+    
+    def dict(self) -> Dict[str, Any]:
+        """Convierte el item a diccionario."""
+        data = {
+            "id": self.id,
+            "type": self.type,
+            "category": self.category,
+            "price": float(self.price),
+            "cost": float(self.cost),
+            "rating": self.rating,
+            "availability": self.availability,
+            "dates": {k: v.isoformat() for k, v in self.dates.items()},
+            "attributes": self.attributes
+        }
+        return data
+
+    def copy(self):
+        """Crea una copia del item."""
+        return BudgetItem(
+            id=self.id,
+            type=self.type,
+            category=self.category,
+            price=self.price,
+            cost=self.cost,
+            rating=self.rating,
+            availability=self.availability,
+            dates=self.dates.copy(),
+            attributes=self.attributes.copy()
+        )
+
+
+@dataclass
+class Budget:
+    """Presupuesto completo."""
+    
+    id: str
+    items: List[BudgetItem]
+    criteria: Dict[str, Any]
+    dates: Dict[str, datetime]
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    def dict(self) -> Dict[str, Any]:
+        """Convierte el presupuesto a diccionario."""
+        data = {
+            "id": self.id,
+            "items": [item.dict() for item in self.items],
+            "criteria": self.criteria,
+            "dates": {k: v.isoformat() for k, v in self.dates.items()},
+            "metadata": self.metadata
+        }
+        return data
+
+    def copy(self):
+        """Crea una copia del presupuesto."""
+        return Budget(
+            id=self.id,
+            items=[item.copy() for item in self.items],
+            criteria=self.criteria.copy(),
+            dates=self.dates.copy(),
+            metadata=self.metadata.copy()
+        )
+
+
+@dataclass
+class SessionState:
+    """Estado de una sesión activa."""
+    
+    session_id: str
+    budget_id: str
+    start_time: datetime
+    last_update: datetime
+    stability_score: float = 1.0
+    changes_history: List[Dict[str, Any]] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ReconstructionResult:
+    """Resultado de una reconstrucción."""
+    
+    budget_id: str
+    strategy: str
+    success: bool
+    changes_applied: Dict[str, Any]
+    stability_impact: float
+    execution_time: float
+    metadata: Dict[str, Any] = field(default_factory=dict)

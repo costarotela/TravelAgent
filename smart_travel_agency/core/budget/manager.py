@@ -17,6 +17,8 @@ from dataclasses import dataclass
 
 from prometheus_client import Counter, Histogram, Gauge
 
+from ..schemas import Budget
+
 # Métricas
 BUDGET_OPERATIONS = Counter(
     "budget_operations_total", "Number of budget operations", ["operation_type"]
@@ -44,21 +46,6 @@ class OptimizationResult:
     improvement_percentage: float
     changes_applied: List[str]
     timestamp: datetime
-
-
-@dataclass
-class Budget:
-    """Presupuesto con historial de optimización."""
-
-    id: str
-    customer_id: str
-    vendor_id: str
-    creation_date: datetime
-    base_package: Dict[str, Any]
-    current_price: Decimal
-    optimization_history: List[OptimizationResult]
-    status: str = "active"
-    locked: bool = False
 
 
 class BudgetManager:
@@ -114,7 +101,7 @@ class BudgetManager:
         Returns:
             Presupuesto o None si no existe
         """
-        return self.active_budgets.get(budget_id)
+        return self.active_budgets.get(str(budget_id))
 
     async def optimize_budget(
         self, budget_id: str, max_passes: int = 3
@@ -240,13 +227,14 @@ class BudgetManager:
         BUDGET_OPERATIONS.labels(operation_type="unlock").inc()
         return True
 
-    def register_budget(self, budget: Budget) -> None:
+    async def register_budget(self, budget: Budget) -> None:
         """Registrar un presupuesto.
 
         Args:
             budget: Presupuesto a registrar
         """
-        self.active_budgets[str(budget.budget_id)] = budget
+        self.active_budgets[str(budget.id)] = budget
+
 
 # Instancia global del gestor
 budget_manager = BudgetManager()

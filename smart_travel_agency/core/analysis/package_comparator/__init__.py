@@ -1,15 +1,10 @@
-"""Módulo de comparación de paquetes."""
+"""
+Comparador de paquetes turísticos.
+"""
 
-from .comparator import (
-    get_package_comparator,
-    PackageComparator,
-    PackageFeatures,
-    MarketAnalysis,
-)
+from .comparator import PackageComparator, get_package_comparator
 
 __all__ = [
-    "get_package_comparator",
-    "PackageComparator",
-    "PackageFeatures",
-    "MarketAnalysis",
+    'PackageComparator',
+    'get_package_comparator',
 ]

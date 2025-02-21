@@ -1,12 +1,7 @@
-"""
-Módulo de métricas para el sistema.
-
-Este módulo provee funcionalidades para recolectar y exponer métricas
-del sistema usando Prometheus.
-"""
+"""Sistema de métricas."""
 
 from typing import Dict, Any, Optional
-from prometheus_client import Counter, Histogram, Gauge
+from prometheus_client import Counter, Histogram
 import logging
 
 
@@ -107,64 +102,10 @@ class BudgetMetrics(BaseMetrics):
         )
 
 
-class MetricsCollector(BaseMetrics):
-    """Colector de métricas del sistema."""
-    
-    def __init__(self, namespace: str = "default"):
-        """Inicializar colector de métricas.
-        
-        Args:
-            namespace: Namespace para las métricas
-        """
-        super().__init__(namespace)
-        
-        # Métricas de reconstrucción
-        self.reconstruction_count = Counter(
-            f"{self.namespace}_reconstruction_count",
-            'Número total de reconstrucciones',
-            ['strategy']
-        )
-        
-        self.reconstruction_duration = Histogram(
-            f"{self.namespace}_reconstruction_duration_seconds",
-            'Duración de las reconstrucciones',
-            ['strategy'],
-            buckets=[0.1, 0.5, 1.0, 2.0, 5.0]
-        )
-        
-        self.active_sessions = Gauge(
-            f"{self.namespace}_active_sessions",
-            'Número de sesiones activas'
-        )
-
-
-# Diccionario para almacenar colectores por namespace
-_metrics_collectors: Dict[str, MetricsCollector] = {}
+# Instancias globales
 _budget_metrics = BudgetMetrics()
-
-
-def get_metrics_collector(namespace: str = "default") -> MetricsCollector:
-    """Obtener instancia del colector de métricas.
-    
-    Args:
-        namespace: Namespace para las métricas
-        
-    Returns:
-        Instancia del colector de métricas para el namespace especificado
-    """
-    if namespace not in _metrics_collectors:
-        _metrics_collectors[namespace] = MetricsCollector(namespace)
-    return _metrics_collectors[namespace]
 
 
 def get_budget_metrics() -> BudgetMetrics:
     """Obtiene la instancia global de métricas de presupuestos."""
     return _budget_metrics
-
-
-__all__ = [
-    "get_metrics_collector",
-    "get_budget_metrics",
-    "BudgetMetrics",
-    "MetricsCollector"
-]
