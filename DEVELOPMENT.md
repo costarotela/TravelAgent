@@ -93,10 +93,10 @@ Necesario para objetivo #1
    - [x] Desarrollar sistema de sugerencias
 
 2. **Fase 2: Mejoras de UX**
-   - [ ] Dashboard para visualización
+   - [x] Dashboard para visualización
+   - [ ] Mejoras en la visualización de sugerencias
    - [ ] Sistema de notificaciones
-   - [ ] Feedback visual de impacto
-   - [ ] Interfaz de reconstrucción
+   - [ ] Filtros y búsqueda avanzada
 
 3. **Fase 3: Optimizaciones**
    - [ ] Caché para reconstrucciones
@@ -215,6 +215,49 @@ SmartTravelAgency/
   * Control de estado validado
 -  Próximo foco: Sistema de sugerencias durante construcción
 
+## Dashboard de Presupuestos
+
+El dashboard de presupuestos proporciona una interfaz visual para la gestión y visualización de presupuestos.
+
+### Características
+
+1. **Vista de Resumen**
+   - Estado actual del presupuesto
+   - Contador de items
+   - Alertas y advertencias
+   - Sugerencias de optimización
+
+2. **Gestión de Items**
+   - Lista detallada de items
+   - Vista expandible con detalles
+   - Metadata y propiedades
+   - Información de precios y cantidades
+
+3. **Formulario de Ingreso**
+   - Interfaz intuitiva para agregar items
+   - Validación de datos en tiempo real
+   - Campos para metadata relevante
+   - Feedback inmediato
+
+### Uso
+
+Para ejecutar el dashboard:
+
+```bash
+# Desde el directorio raíz del proyecto
+PYTHONPATH=/home/pablo/CascadeProjects/SmartTravelAgency streamlit run smart_travel_agency/ui/dashboard/budget_dashboard.py
+```
+
+### Estructura
+
+```
+smart_travel_agency/
+└── ui/
+    └── dashboard/
+        ├── __init__.py
+        └── budget_dashboard.py
+```
+
 ## Sistema de Sugerencias
 
 El `BudgetBuilder` incluye un sistema de sugerencias inteligente que ayuda a optimizar los presupuestos. Las sugerencias se generan automáticamente en base a diferentes criterios:
@@ -251,4 +294,3 @@ El `BudgetBuilder` incluye un sistema de sugerencias inteligente que ayuda a opt
 builder = BudgetBuilder(vendor_id="vendedor1")
 builder.add_item(item)  # Las sugerencias se generan automáticamente
 sugerencias = builder.get_suggestions()  # Obtener lista de sugerencias
-```
